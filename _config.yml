@@ -1,0 +1,27 @@
+# Site settings
+title: Flightmare! coming soon...
+email: song@ifi.uzh.ch
+description: Flightmare
+baseurl: "/flightmare"
+url: "https://uzh-rpg.github.io"
+
+author:
+  name     : RPG
+  email    : song@ifi.uzh.ch
+  url      : http://rpg.ifi.uzh.ch/
+
+github: https://github.com/uzh-rpg
+disqus_shortname: "yunlong"
+google_analytics: UA-52446115-1
+
+paginate: 2
+comments: true
+paginate_path: "/page/:num"
+
+sass:
+  style: :compressed
+  sass_dir: _sass
+
+# Build settings
+markdown  : kramdown
+permalink : /:title/
