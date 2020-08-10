@@ -1,6 +1,8 @@
-# flightmare
+# Flightmare
 
-<img src="./docs/images/flightmare_envs.png" alt="drawing" width="1000"/>
+![Build Status](https://github.com/uzh-rpg/flightmare/workflows/CPP_CI/badge.svg)
+
+![clang format](https://github.com/uzh-rpg/flightmare/workflows/clang_format/badge.svg)
 
 **coming soon...**
 
