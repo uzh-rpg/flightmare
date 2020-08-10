@@ -8,6 +8,4 @@ using namespace flightlib;
 TEST(Quadrotor, Constructor) {
   QuadrotorDynamics dynamics(1.0, 0.2);
   Quadrotor quadrotor(dynamics);
-
-  //
 }

@@ -13,3 +13,4 @@ jobs:
       with:
         source: './flightlib'
         exclude: './flightlib/externals'
+        clangFormatVersion: 6
