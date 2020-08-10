@@ -12,5 +12,5 @@ jobs:
       uses: DoozyX/clang-format-lint-action@v0.5
       with:
         source: './flightlib'
-        exclude: './flightlib/externals'
+        exclude: './flightlib/externals  ./flightlib/include/flightlib/json'
         clangFormatVersion: 6
