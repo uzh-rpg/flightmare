@@ -1,0 +1,18 @@
+---
+BasedOnStyle: Google
+ColumnLimit: 80
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+ConstructorInitializerIndentWidth: 2
+ContinuationIndentWidth: 2
+Cpp11BracedListStyle: true
+IndentWidth: 2
+Language: Cpp
+MaxEmptyLinesToKeep: 2
+NamespaceIndentation: None
+SortUsingDeclarations: true
+SpaceAfterTemplateKeyword: false
+SpaceInEmptyParentheses: false
+Standard: Cpp11
+TabWidth: 2
+UseTab: Never
+---

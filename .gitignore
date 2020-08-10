@@ -1,1 +1,6 @@
 .sass-cache
+.vscode/*
+!.vscode/extensions.json
+externals/*
+dist
+*.egg-info
