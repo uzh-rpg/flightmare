@@ -9,7 +9,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: 'clang-format flightlib'
-      uses: DoozyX/clang-format-lint-action@v0.5
+      uses: DoozyX/clang-format-lint-action@v0.8
       with:
         source: './flightlib'
         exclude: './flightlib/externals  ./flightlib/include/flightlib/json'
