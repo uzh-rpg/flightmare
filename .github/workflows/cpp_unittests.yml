@@ -9,12 +9,14 @@ jobs:
     
     steps:
     - uses: actions/checkout@v2
-
+    
     - name: cmake
       run: pwd && cd flightlib/build && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_TEST=ON -DEIGEN_FROM_SYSTEM=OFF ..
+    - name: check_file
+      run: cd /__w/flightmare/flightmare && ls && cd ./flightlib && ls && cd ./configs && cat quadrotor_env.yaml
     - name: make
       run: cd flightlib/build && make -j${nprog}
     - name: test
       env: 
-        FLIGHTMARE_DIR: /github/home/flightmare/flightmare
+        FLIGHTMARE_PATH: /__w/flightmare/flightmare
       run: cd flightlib/build && ./test_lib
