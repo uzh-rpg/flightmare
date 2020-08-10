@@ -12,7 +12,5 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
    libopencv-dev \
    && rm -rf /var/lib/apt/lists/*
 
-RUN echo "export FLIGHTMARE_DIR=/__w/flightmare/flightmare" >> ~/.bashrc 
-RUN /bin/bash -c "source ~/.bashrc" 
-RUN echo $FLIGHTMARE_DIR
+
 
