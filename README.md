@@ -5,3 +5,14 @@
 **coming soon...**
 
 https://uzh-rpg.github.io/flightmare/
+
+
+# Installation
+
+```console
+cd flightlib
+
+# activate conda env
+conda activate <env-name>
+python3 setup.py install
+```

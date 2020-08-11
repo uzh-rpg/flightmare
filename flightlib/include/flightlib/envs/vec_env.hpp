@@ -17,7 +17,7 @@ namespace flightlib {
 template<typename EnvBase>
 class VecEnv {
  public:
-  VecEnv(const std::string cfg_path);
+  explicit VecEnv(std::string cfg_path);
   ~VecEnv();
 
   // - public OpenAI-gym style functions for vectorized environment

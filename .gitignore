@@ -4,3 +4,4 @@
 externals/*
 dist
 *.egg-info
+*.so

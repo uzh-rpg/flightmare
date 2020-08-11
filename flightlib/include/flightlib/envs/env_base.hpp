@@ -19,13 +19,13 @@ namespace flightlib {
 class EnvBase {
  public:
   EnvBase();
-  virtual ~EnvBase();
+  virtual ~EnvBase() = 0;
 
   // (pure virtual) public methods (has to be implemented by child classes)
   virtual bool reset(Ref<Vector<>> obs) = 0;
   virtual Scalar step(Ref<Vector<>> act, Ref<Vector<>> obs) = 0;
   virtual bool getObs(Ref<Vector<>> obs) = 0;
-  virtual bool setFlightmare(bool) = 0;
+  virtual bool setFlightmare(bool on) = 0;
 
   // (virtual) public methods (implementations are optional.)
   virtual void curriculumUpdate();

@@ -78,7 +78,6 @@ endif()
 ################################################################################
 message(STATUS "======> Setup Compilation")
 
-add_definitions(-std=c++17)
 add_definitions(-DEIGEN_STACK_ALLOCATION_LIMIT=1048576)
 include_directories(${EIGEN_INCLUDE_DIR} "tests")
 
@@ -92,6 +91,7 @@ endif()
 # Add c++ flags 
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -fPIC -Wall -DNDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -fPIC -Wall -g ")
+set(CMAKE_CXX_STANDARD 17)
 
 # Architectural flags
 if("${CMAKE_HOST_SYSTEM_PROCESSOR}" STREQUAL "armv7l")
@@ -165,6 +165,8 @@ file(GLOB_RECURSE FLIGHTLIB_GYM_SOURCES
   src/wrapper/*.cpp 
 )
 
+message(${FLIGHTLIB_GYM_SOURCES})
+
 file(GLOB_RECURSE FLIGHTLIB_GYM_TEST_SOURCES
   tests/wrapper/*.cpp
 )
@@ -197,7 +199,7 @@ if(NOT FLIGHTLIB_SOURCES)
 else()
   # flightlib
 	add_library(${PROJECT_NAME} ${FLIGHTLIB_SOURCES})
-  target_link_libraries(${PROJECT_NAME} 
+  target_link_libraries(${PROJECT_NAME} PRIVATE
     ${OpenCV_LIBRARIES}
     yaml-cpp
     zmq
@@ -210,7 +212,7 @@ if(FLIGHTLIB_GYM_SOURCES)
   # flightlib_gym (python3 binding with Pybind11)
   pybind11_add_module(flightgym MODULE 
     ${FLIGHTLIB_GYM_SOURCES})
-  target_include_directories(flightgym PUBLIC
+  target_include_directories(flightgym PRIVATE
     ${PROJECT_SOURCE_DIR}/externals/pybind11-src/include
     ${PROJECT_SOURCE_DIR}/include)
   target_link_libraries(flightgym PRIVATE ${LIBRARY_NAME})

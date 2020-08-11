@@ -40,6 +40,8 @@ VecEnv<EnvBase>::VecEnv(const std::string cfg_path) {
   for (auto& re : envs_[0]->extra_info_) {
     extra_info_names_.push_back(re.first);
   }
+
+  std::cout << "Vec Env" << std::endl;
 }
 
 template<typename EnvBase>
@@ -111,6 +113,15 @@ void VecEnv<EnvBase>::perAgentStep(int agent_id, Ref<MatrixRowMajor<>> act,
     reward(agent_id) += terminal_reward;
   }
 }
+
+template<typename EnvBase>
+void VecEnv<EnvBase>::isTerminalState(Ref<BoolVector<>> terminal_state) {}
+
+template<typename EnvBase>
+void VecEnv<EnvBase>::connectFlightmare(void) {}
+
+template<typename EnvBase>
+void VecEnv<EnvBase>::disconnectFlightmare(void) {}
 
 // IMPORTANT. Otherwise:
 // Segmentation fault (core dumped)
