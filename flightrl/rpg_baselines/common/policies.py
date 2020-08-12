@@ -12,7 +12,7 @@ from stable_baselines.common.tf_layers import conv, linear, conv_to_fc, lstm
 #     MultiCategoricalProbabilityDistribution, DiagGaussianProbabilityDistribution, BernoulliProbabilityDistribution
 from stable_baselines.common.input import observation_input
 #
-from alpha_baselines.common.distributions import make_proba_dist_type, CategoricalProbabilityDistribution, \
+from rpg_baselines.common.distributions import make_proba_dist_type, CategoricalProbabilityDistribution, \
     MultiCategoricalProbabilityDistribution, DiagGaussianProbabilityDistribution, BernoulliProbabilityDistribution
 
 

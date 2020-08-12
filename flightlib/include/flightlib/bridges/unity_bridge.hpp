@@ -8,7 +8,7 @@
 #include <string>
 #include <unordered_map>
 
-// Include ZMQ bindings for comms with Unity.
+// Include ZMQ bindings for communications with Unity.
 #include <zmqpp/zmqpp.hpp>
 
 // flightlib

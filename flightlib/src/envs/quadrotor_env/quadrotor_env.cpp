@@ -6,12 +6,11 @@ QuadrotorEnv::QuadrotorEnv() : EnvBase() {
   // define input and output dimension for the environment
   obs_dim_ = CtlObsAct::kObsSize;
   act_dim_ = CtlObsAct::kActSize;
-  std::cout << "Quadrotor Env." << std::endl;
 }
 
 QuadrotorEnv::~QuadrotorEnv() {}
 
-bool QuadrotorEnv::reset(const Ref<Vector<>> obs) {
+void QuadrotorEnv::reset(const Ref<Vector<>> obs) {
   quad_state_.setZero();
 
   // randomly reset the quadrotor state
@@ -31,7 +30,6 @@ bool QuadrotorEnv::reset(const Ref<Vector<>> obs) {
 
   // obtain observations
   getObs(obs);
-  return true;
 }
 
 bool QuadrotorEnv::getObs(Ref<Vector<>> obs) {

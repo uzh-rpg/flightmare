@@ -1,3 +1,5 @@
+hello: 12
+render: no
 env:
   seed: 1
   scene_id: 0  # 0 warehouse, 1 garage, 3 natureforest
@@ -10,7 +12,7 @@ env:
 quadrotor:
   mass: 0.73
   arm_length: 0.17
-  rotor_drag_coeff: 0.016 
+  rotor_drag_coeff: 0.016
   inertia: [0.007, 0.007, 0.012]
   camera: no
 

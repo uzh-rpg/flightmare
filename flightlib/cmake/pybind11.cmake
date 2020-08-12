@@ -1,6 +1,9 @@
 # Download and unpack pybind11 at configure time
 message(STATUS "Getting Pybind11...")
 
+# set(PYBIND11_PYTHON_VERSION 3.6)
+set(PYBIND11_PYTHON_VERSION ${PYTHON_VERSION_STRING})   
+
 configure_file(
   cmake/pybind11_download.cmake
   ${PROJECT_SOURCE_DIR}/externals/pybind11/CMakeLists.txt)

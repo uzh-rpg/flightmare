@@ -3,20 +3,24 @@
 namespace flightlib {
 
 template<typename EnvBase>
-VecEnv<EnvBase>::VecEnv(const std::string cfg_path) {
+VecEnv<EnvBase>::VecEnv()
+  : VecEnv(getenv("FLIGHTMARE_PATH") +
+           std::string("/flightlib/configs/quadrotor_env.yaml")) {}
+
+template<typename EnvBase>
+VecEnv<EnvBase>::VecEnv(const std::string& cfg_path) {
   // load environment configuration
-  cfg_ = YAML::Load(cfg_path);
+  cfg_ = YAML::LoadFile(cfg_path);
 
   // logger
   logger_ = std::make_unique<Logger>("VecEnv");
 
-  //
-  if (cfg_["env"]["render"])
-    unity_render_ = cfg_["env"]["render"].template as<bool>();
-  logger_->info("environment created.");
+  if (cfg_["env"]["render"]) {
+    unity_render_ = cfg_["env"]["render"].as<bool>();
+  }
 
-  omp_set_num_threads(cfg_["env"]["num_threads"].template as<int>());
-  num_envs_ = cfg_["env"]["num_envs"].template as<int>();
+  omp_set_num_threads(cfg_["env"]["num_threads"].as<int>());
+  num_envs_ = cfg_["env"]["num_envs"].as<int>();
 
   // create & setup environments
   const bool render = false;
@@ -29,6 +33,7 @@ VecEnv<EnvBase>::VecEnv(const std::string cfg_path) {
   if (unity_render_) {
     // enable rendering for only one environment
     envs_[0]->setFlightmare(unity_render_);
+    logger_->info("Flightmare Unity Render is enabled!");
   }
 
   obs_dim_ = envs_[0]->getObsDim();
@@ -40,8 +45,6 @@ VecEnv<EnvBase>::VecEnv(const std::string cfg_path) {
   for (auto& re : envs_[0]->extra_info_) {
     extra_info_names_.push_back(re.first);
   }
-
-  std::cout << "Vec Env" << std::endl;
 }
 
 template<typename EnvBase>
@@ -122,6 +125,9 @@ void VecEnv<EnvBase>::connectFlightmare(void) {}
 
 template<typename EnvBase>
 void VecEnv<EnvBase>::disconnectFlightmare(void) {}
+
+template<typename EnvBase>
+void VecEnv<EnvBase>::curriculumUpdate(void) {}
 
 // IMPORTANT. Otherwise:
 // Segmentation fault (core dumped)

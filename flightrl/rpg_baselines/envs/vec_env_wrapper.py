@@ -2,13 +2,13 @@ import numpy as np
 from gym import spaces
 from stable_baselines.common.vec_env import VecEnv
 
-class AlphaGymVec(VecEnv):
+class FlightEnvVec(VecEnv):
     #
     def __init__(self, impl):
         self.wrapper = impl
-        self.wrapper.init()
         self.num_obs = self.wrapper.getObsDim()
         self.num_acts = self.wrapper.getActDim()
+        print(self.num_obs, self.num_acts)
         self._observation_space = spaces.Box(
           np.ones(self.num_obs) * -np.Inf, 
           np.ones(self.num_obs) * np.Inf, dtype=np.float32)

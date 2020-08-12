@@ -7,7 +7,7 @@ namespace flightlib {
 // ------------ General Stuff-------------
 
 // Define the scalar type used.
-using Scalar = double;
+using Scalar = float;
 
 // Define frame id for unity
 using FrameID = uint64_t;
@@ -27,7 +27,7 @@ template<int rows = Dynamic, int cols = rows>
 using Matrix = Eigen::Matrix<Scalar, rows, cols>;
 
 // Using shorthand for `Matrix<ros, cols>` with scalar type.
-template<int rows = Dynamic, int cols = rows>
+template<int rows = Dynamic, int cols = Dynamic>
 using MatrixRowMajor = Eigen::Matrix<Scalar, rows, cols, Eigen::RowMajor>;
 
 // Using shorthand for `Vector<ros>` with scalar type.

@@ -1,5 +1,5 @@
+#include "flightlib/envs/vec_env.hpp"
 #include "flightlib/envs/quadrotor_env/quadrotor_env.hpp"
-#include "flightlib/common/logger.hpp"
 
 #include <gtest/gtest.h>
 #include <yaml-cpp/yaml.h>
@@ -8,17 +8,18 @@
 
 using namespace flightlib;
 
-TEST(QuadrotorEnv, Constructor) {
+TEST(VecEnv, Constructor) {
   std::string config_path =
     getenv("FLIGHTMARE_PATH") +
     std::string("/flightlib/configs/quadrotor_env.yaml");
-  Logger logger("QuadrotorEnv");
+
+  Logger logger("VecEnv TEST");
   logger.info("Environment configuration path \"%s\".", config_path.c_str());
 
-  //
-  YAML::Node cfg = YAML::LoadFile(config_path);
-  QuadrotorEnv env;
+  VecEnv<QuadrotorEnv> env(config_path);
 
-  //
-  QuadState quad_state;
+  env.setSeed(10);
+
+  int obs_dim = env.getObsDim();
+  std::cout << "obs_dim : " << obs_dim << std::endl;
 }

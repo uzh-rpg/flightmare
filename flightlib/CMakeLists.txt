@@ -27,6 +27,7 @@ if(EIGEN_FROM_SYSTTEM)
   find_package(Eigen3 3.3.4 QUIET)
   if(EIGEN3_FOUND)
     message(STATUS "Using system provided Eigen.")
+    message(${EIGEN3_INCLUDE_DIR})
   else()
     message(STATUS "No sufficient Eigen version (3.3.4) found.")
     message(STATUS "Restoring to download Eigen sources.")
@@ -35,8 +36,9 @@ if(EIGEN_FROM_SYSTTEM)
 elseif(EIGEN_ALTERNATIVE STREQUAL "")
   include(cmake/eigen.cmake)
 else()
-  set(EIGEN_INCLUDE_DIR ${EIGEN_ALTERNATIVE})
+  set(EIGEN_INCLUDE_DIR ${cl})
 endif()
+
 
 # Including dependencies 
 include(cmake/pybind11.cmake)
@@ -198,7 +200,10 @@ if(NOT FLIGHTLIB_SOURCES)
 	set(LIBRARY_NAME)
 else()
   # flightlib
-	add_library(${PROJECT_NAME} ${FLIGHTLIB_SOURCES})
+  add_library(${PROJECT_NAME} ${FLIGHTLIB_SOURCES})
+  # target_include_directories(${PROJECT_NAME} PRIVATE
+  #   ${PROJECT_SOURCE_DIR}/externals/pybind11-src/include
+  # )
   target_link_libraries(${PROJECT_NAME} PRIVATE
     ${OpenCV_LIBRARIES}
     yaml-cpp
@@ -214,8 +219,9 @@ if(FLIGHTLIB_GYM_SOURCES)
     ${FLIGHTLIB_GYM_SOURCES})
   target_include_directories(flightgym PRIVATE
     ${PROJECT_SOURCE_DIR}/externals/pybind11-src/include
-    ${PROJECT_SOURCE_DIR}/include)
-  target_link_libraries(flightgym PRIVATE ${LIBRARY_NAME})
+    ${PROJECT_SOURCE_DIR}/include
+    ${EIGEN3_INCLUDE_DIR})
+  target_link_libraries(flightgym PRIVATE ${LIBRARY_NAME} )
 endif()
 
 if(ENABLE_BLAS AND BLAS_FOUND AND LAPACK_FOUND)

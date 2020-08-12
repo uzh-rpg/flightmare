@@ -17,7 +17,8 @@ namespace flightlib {
 template<typename EnvBase>
 class VecEnv {
  public:
-  explicit VecEnv(std::string cfg_path);
+  VecEnv();
+  VecEnv(const std::string& cfg_path);
   ~VecEnv();
 
   // - public OpenAI-gym style functions for vectorized environment
@@ -36,6 +37,9 @@ class VecEnv {
   inline int getActDim(void) { return act_dim_; };
   inline int getExtraInfoDim(void) { return extra_info_names_.size(); };
   inline int getNumOfEnvs(void) { return envs_.size(); };
+  inline std::vector<std::string>& getExtraInfoNames() {
+    return extra_info_names_;
+  };
 
   // - auxiliary functions
   void isTerminalState(Ref<BoolVector<>> terminal_state);
@@ -55,6 +59,7 @@ class VecEnv {
   //
   std::vector<std::unique_ptr<EnvBase>> envs_;
   std::vector<std::string> extra_info_names_;
+
   std::unique_ptr<Logger> logger_;
 
   // auxiliar variables
