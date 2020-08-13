@@ -6,13 +6,22 @@
 
 https://uzh-rpg.github.io/flightmare/
 
+# Development Progress
 
-# Installation
+* flighlib
+  - [x] Unity Bridge 
+  - [x] Quadrotor Dynamics
+  - [ ] Reinforcement Learning Environments
+  - [x] Quadrotor Objects
+  - [ ] Sensors
 
-```console
-cd flightlib
+* flightros 
+  - [ ] RotorS Bridge 
 
-# activate conda env
-conda activate <env-name>
-python3 setup.py install
-```
+* flightrl
+  - [x] RPG Baselines (PPO)
+
+* flightrender
+  - [x] Unity Rendering
+
+

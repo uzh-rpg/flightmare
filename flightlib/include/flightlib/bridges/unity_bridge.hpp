@@ -1,4 +1,3 @@
-// """credit: FlightGoggles """
 #pragma once
 
 // std libs

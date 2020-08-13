@@ -36,7 +36,7 @@ if(EIGEN_FROM_SYSTTEM)
 elseif(EIGEN_ALTERNATIVE STREQUAL "")
   include(cmake/eigen.cmake)
 else()
-  set(EIGEN_INCLUDE_DIR ${cl})
+  set(EIGEN_INCLUDE_DIR ${EIGEN_ALTERNATIVE})
 endif()
 
 
