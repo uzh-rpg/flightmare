@@ -115,13 +115,6 @@ else()
   set(CMAKE_CXX_FAST_FLAGS " -O0")
 endif()
 
-# Parallelization Flags
-if(ENABLE_PARALLEL)
-  message(STATUS "Enabling parallelization!")
-  set(CMAKE_CXX_PAR_FLAGS " -fopenmp")
-else()
-  set(CMAKE_CXX_PAR_FLAGS " -DEIGEN_DONT_PARALLELIZE")
-endif()
 
 # BLAS Flags
 if(BLAS_FOUND AND LAPACK_FOUND)
@@ -133,7 +126,7 @@ endif()
 
 # Summarize Flags
 set(CMAKE_CXX_FLAGS_RELEASE
-  "${CMAKE_CXX_FLAGS_RELEASE} ${CMAKE_CXX_FAST_FLAGS} ${CMAKE_CXX_ARCH_FLAGS} ${CMAKE_CXX_PAR_FLAGS} ${CMAKE_CXX_BLAS_FLAGS}")
+  "${CMAKE_CXX_FLAGS_RELEASE} ${CMAKE_CXX_FAST_FLAGS} ${CMAKE_CXX_ARCH_FLAGS} ${CMAKE_CXX_PAR_FLAGS}")
 string(REPLACE "-DNDEBUG" "" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
 message(STATUS "The activated CXX RELEASE configuration is:\n ${CMAKE_CXX_FLAGS_RELEASE}")
 message(STATUS "The activated CXX DEBUG configuration is:\n ${CMAKE_CXX_FLAGS_DEBUG}")
