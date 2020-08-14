@@ -11,7 +11,7 @@ jobs:
     - uses: actions/checkout@v2
     
     - name: cmake
-      run: pwd && cd flightlib/build && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_TEST=ON -DEIGEN_FROM_SYSTEM=OFF ..
+      run: pwd && cd flightlib/build && cmake -DBUILD_TEST=ON -DEIGEN_FROM_SYSTEM=OFF ..
     - name: check_file
       run: cd /__w/flightmare/flightmare && ls && cd ./flightlib && ls && cd ./configs && cat quadrotor_env.yaml
     - name: make
