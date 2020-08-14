@@ -1,5 +1,8 @@
 #pragma once
 
+#include <memory>
+
+#include "flightlib/common/logger.hpp"
 #include "flightlib/common/math.hpp"
 #include "flightlib/common/quad_state.hpp"
 #include "flightlib/dynamics/dynamics_base.hpp"
@@ -43,6 +46,10 @@ class QuadrotorDynamics : DynamicsBase {
   inline Scalar motor_tau_inv() { return motor_tau_inv_; }
   inline Matrix<3, 3> J(void) { return J_; }
   inline Matrix<3, 3> J_inv(void) { return J_inv_; }
+
+  bool setMass(const Scalar mass);
+  bool setMotortauInv(const Scalar tau_inv);
+  bool setJ(const Ref<Matrix<3, 3>> J);
 
  private:
   Scalar mass_;

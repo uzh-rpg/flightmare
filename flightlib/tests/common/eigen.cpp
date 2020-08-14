@@ -88,8 +88,8 @@ TEST(EigenChecks, QuaternionCrossMatrix) {
   const Vector<4> v1 = Vector<4>::Random().normalized();
   const Vector<4> v2 = Vector<4>::Random().normalized();
 
-  EXPECT_NEAR(v1.norm(), 1.0, 1e-9);
-  EXPECT_NEAR(v2.norm(), 1.0, 1e-9);
+  EXPECT_NEAR(v1.norm(), 1.0, 1e-6);
+  EXPECT_NEAR(v2.norm(), 1.0, 1e-6);
 
   const Quaternion q1(v1(0), v1(1), v1(2), v1(3));
   const Quaternion q2(v2(0), v2(1), v2(2), v2(3));

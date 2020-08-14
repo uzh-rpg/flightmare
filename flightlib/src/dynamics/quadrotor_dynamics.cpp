@@ -6,9 +6,9 @@ QuadrotorDynamics::QuadrotorDynamics(const Scalar mass, const Scalar arm_l)
   : mass_(mass),
     t_BM_(
       arm_l * sqrt(0.5) *
-      (Matrix<3, 4>() << 1, -1, -1, 1, -1, 1, -1, 1, 0, 0, 0, 0).finished()),
-    J_(Matrix<3, 3>::Zero()),
-    J_inv_(Matrix<3, 3>::Identity()),
+      (Matrix<3, 4>() << -1, 1, -1, 1, -1, 1, 1, -1, 0, 0, 0, 0).finished()),
+    J_(mass_ / 12.0 * arm_l * arm_l * Vector<3>(2.25, 2.25, 4).asDiagonal()),
+    J_inv_(J_.inverse()),
     motor_omega_min_(150.0),
     motor_omega_max_(2000.0),
     motor_tau_inv_(1.0 / 0.05),
@@ -116,6 +116,34 @@ Matrix<4, 4> QuadrotorDynamics::getAllocationMatrix() const {
   return (Matrix<4, 4>() << Vector<4>::Ones().transpose(), t_BM_.topRows<2>(),
           kappa_ * Vector<4>(-1, -1, 1, 1).transpose())
     .finished();
+}
+
+bool QuadrotorDynamics::setMass(const Scalar mass) {
+  if (mass < 0.0 || mass >= 100.) {
+    // logger_.error("Quadrotor mass value is not valid %1.3f", mass);
+    return false;
+  }
+  mass_ = mass;
+  return true;
+}
+
+bool QuadrotorDynamics::setMotortauInv(const Scalar tau_inv) {
+  if (tau_inv < 1.0) {
+    // logger_.error("Qaudrotor motor tau inv is not valid %1.3f", tau_inv);
+    return false;
+  }
+  motor_tau_inv_ = tau_inv;
+  return true;
+}
+
+bool QuadrotorDynamics::setJ(const Ref<Matrix<3, 3>> J) {
+  if (!J.allFinite()) {
+    // logger_.error("Quadrotor J matrix is not valid.");
+    return false;
+  }
+  J_ = J;
+  J_inv_ = J.inverse();
+  return false;
 }
 
 }  // namespace flightlib

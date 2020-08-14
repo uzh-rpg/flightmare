@@ -39,6 +39,7 @@ else()
   set(EIGEN_INCLUDE_DIR ${EIGEN_ALTERNATIVE})
 endif()
 
+message(STATUS "Eigen3 include dir: ${EIGEN3_INCLUDE_DIR}")
 
 # Including dependencies 
 include(cmake/pybind11.cmake)
@@ -91,8 +92,8 @@ if (NOT EXISTS ${CMAKE_BINARY_DIR}/CMakeCache.txt)
 endif()
 
 # Add c++ flags 
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -fPIC -Wall -DNDEBUG")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -fPIC -Wall -g ")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -fPIC -Wall -DNDEBUG  -fopenmp")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -fPIC -Wall -g -fopenmp")
 set(CMAKE_CXX_STANDARD 17)
 
 # Architectural flags
@@ -217,10 +218,17 @@ if(FLIGHTLIB_GYM_SOURCES)
   # flightlib_gym (python3 binding with Pybind11)
   pybind11_add_module(flightgym MODULE 
     ${FLIGHTLIB_GYM_SOURCES})
-  target_include_directories(flightgym PRIVATE
-    ${PROJECT_SOURCE_DIR}/externals/pybind11-src/include
-    ${PROJECT_SOURCE_DIR}/include
-    ${EIGEN3_INCLUDE_DIR})
+  if(EIGEN3_FOUND)
+    target_include_directories(flightgym PRIVATE
+      ${PROJECT_SOURCE_DIR}/externals/pybind11-src/include
+      ${PROJECT_SOURCE_DIR}/include
+      ${EIGEN3_INCLUDE_DIR})  
+  else()
+    target_include_directories(flightgym PRIVATE
+      ${PROJECT_SOURCE_DIR}/externals/pybind11-src/include
+      ${PROJECT_SOURCE_DIR}/externals/eigen/eigen3 #pybind11 use #include <Eigen/Core>, however, flightmare use #include <eigen3/Eigen/Core>
+      ${PROJECT_SOURCE_DIR}/include)  
+  endif()
   target_link_libraries(flightgym PRIVATE ${LIBRARY_NAME} )
 endif()
 

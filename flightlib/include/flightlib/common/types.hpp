@@ -7,7 +7,7 @@ namespace flightlib {
 // ------------ General Stuff-------------
 
 // Define the scalar type used.
-using Scalar = float;
+using Scalar = double;
 
 // Define frame id for unity
 using FrameID = uint64_t;
@@ -15,7 +15,6 @@ using FrameID = uint64_t;
 // Define frame id for unity
 using SceneID = size_t;
 
-const Scalar Gz = -9.81;
 
 // ------------ Eigen Stuff-------------
 
@@ -62,5 +61,8 @@ using Ref = Eigen::Ref<Derived>;
 // Using `Map`.
 template<class Derived>
 using Map = Eigen::Map<Derived>;
+
+static constexpr Scalar Gz = -9.81;
+const Vector<3> GVEC{0.0, 0.0, Gz};
 
 }  // namespace flightlib

@@ -52,6 +52,8 @@ class VecEnv {
   void disconnectFlightmare();
 
  private:
+  Logger logger_{"VecEnv"};
+
   // step every environment
   void perAgentStep(int agent_id, Ref<MatrixRowMajor<>> act,
                     Ref<MatrixRowMajor<>> obs, Ref<Vector<>> reward,
@@ -60,7 +62,6 @@ class VecEnv {
   std::vector<std::unique_ptr<EnvBase>> envs_;
   std::vector<std::string> extra_info_names_;
 
-  std::unique_ptr<Logger> logger_;
 
   // auxiliar variables
   int num_envs_;

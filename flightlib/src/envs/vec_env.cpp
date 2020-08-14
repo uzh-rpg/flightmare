@@ -13,7 +13,7 @@ VecEnv<EnvBase>::VecEnv(const std::string& cfg_path) {
   cfg_ = YAML::LoadFile(cfg_path);
 
   // logger
-  logger_ = std::make_unique<Logger>("VecEnv");
+  // logger_ = std::make_unique<Logger>("VecEnv");
 
   if (cfg_["env"]["render"]) {
     unity_render_ = cfg_["env"]["render"].as<bool>();
@@ -33,7 +33,7 @@ VecEnv<EnvBase>::VecEnv(const std::string& cfg_path) {
   if (unity_render_) {
     // enable rendering for only one environment
     envs_[0]->setFlightmare(unity_render_);
-    logger_->info("Flightmare Unity Render is enabled!");
+    logger_.info("Flightmare Unity Render is enabled!");
   }
 
   obs_dim_ = envs_[0]->getObsDim();

@@ -7,11 +7,11 @@
 
 using namespace flightlib;
 
-static constexpr Scalar m = 1.0;
-static constexpr Scalar l = 0.25;
+static constexpr Scalar MASS = 1.0;
+static constexpr Scalar ARM_LENGTH = 0.25;
 
 TEST(QuadrotorDynamics, Constructor) {
-  QuadrotorDynamics quad(m, l);
+  QuadrotorDynamics quad(MASS, ARM_LENGTH);
 
   QuadrotorDynamics quad_copy(quad);
 
@@ -19,13 +19,19 @@ TEST(QuadrotorDynamics, Constructor) {
   Matrix<3, 3> J = quad_copy.J();
   Matrix<3, 3> J_inv = quad_copy.J_inv();
 
-  EXPECT_EQ(mass, m);
-  EXPECT_TRUE(J.isApprox(Matrix<3, 3>::Zero()));
-  EXPECT_TRUE(J_inv.isApprox(Matrix<3, 3>::Identity()));
+  std::cout << J << std::endl;
+
+  Matrix<3, 3> expected_J = (mass / 12.0 * ARM_LENGTH * ARM_LENGTH *
+                             Vector<3>(2.25, 2.25, 4).asDiagonal());
+  Matrix<3, 3> expected_J_inv = expected_J.inverse();
+
+  EXPECT_EQ(mass, MASS);
+  EXPECT_TRUE(J.isApprox(expected_J));
+  EXPECT_TRUE(J_inv.isApprox(expected_J_inv));
 }
 
 TEST(QuadrotorDynamics, Dynamics) {
-  QuadrotorDynamics quad(m, l);
+  QuadrotorDynamics quad(MASS, ARM_LENGTH);
 
   QuadState hover;
   hover.setZero();
@@ -70,7 +76,7 @@ TEST(QuadrotorDynamics, Dynamics) {
 }
 
 TEST(QuadrotorDynamics, VectorReference) {
-  const QuadrotorDynamics quad(m, l);
+  const QuadrotorDynamics quad(MASS, ARM_LENGTH);
 
   static constexpr int N = 128;
   Matrix<QuadState::SIZE, N> states = Matrix<QuadState::SIZE, N>::Random();
