@@ -18,13 +18,22 @@ TEST(Quadrotor, Constructor) {
 
   QuadState expected_state;
   expected_state.setZero();
-  // expected_state.x(QS::ATTW) = 1.0;
 
   EXPECT_EQ(expected_state.x(QS::ATTW), quad_state.x(QS::ATTW));
   EXPECT_TRUE(quad_state.x.isApprox(expected_state.x));
 
   Quadrotor quad1;
   quad1.getState(&quad_state);
+
+  EXPECT_EQ(expected_state.x(QS::ATTW), quad_state.x(QS::ATTW));
+  EXPECT_TRUE(quad_state.x.isApprox(expected_state.x));
+
+  //
+  const std::string cfg_path =
+    getenv("FLIGHTMARE_PATH") +
+    std::string("/flightlib/configs/quadrotor_env.yaml");
+  Quadrotor quad2(cfg_path);
+  quad2.getState(&quad_state);
 
   EXPECT_EQ(expected_state.x(QS::ATTW), quad_state.x(QS::ATTW));
   EXPECT_TRUE(quad_state.x.isApprox(expected_state.x));
@@ -63,6 +72,9 @@ TEST(Quadrotor, ResetSimulator) {
 }
 
 TEST(Quadrotor, RunQuadCmdFeedThrough) {
+  Matrix<3, 4> BM =
+    (Matrix<3, 4>() << 1, -1, -1, 1, -1, -1, 1, 1, 1, -1, 1, -1).finished();
+  std::cout << BM.row(2) << std::endl;
   Quadrotor quad;
   QuadrotorDynamics dynamics = quad.getDynamics();
   Scalar inv_tau = 1.0 / 1e-6;
@@ -79,7 +91,7 @@ TEST(Quadrotor, RunQuadCmdFeedThrough) {
   quad_state.p << 0.0, 0.0, 1.0;
   quad.reset(quad_state);
 
-  const Scalar mass = dynamics.mass();
+  const Scalar mass = dynamics.getMass();
 
   Command cmd;
   cmd.t = 0.0;

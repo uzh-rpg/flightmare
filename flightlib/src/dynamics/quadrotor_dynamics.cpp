@@ -4,10 +4,10 @@ namespace flightlib {
 
 QuadrotorDynamics::QuadrotorDynamics(const Scalar mass, const Scalar arm_l)
   : mass_(mass),
-    t_BM_(
-      arm_l * sqrt(0.5) *
-      (Matrix<3, 4>() << -1, 1, -1, 1, -1, 1, 1, -1, 0, 0, 0, 0).finished()),
-    J_(mass_ / 12.0 * arm_l * arm_l * Vector<3>(2.25, 2.25, 4).asDiagonal()),
+    arm_l_(arm_l),
+    BM_(
+      (Matrix<3, 4>() << 1, -1, -1, 1, -1, -1, 1, 1, 1, -1, 1, -1).finished()),
+    J_(mass_ / 12.0 * arm_l_ * arm_l_ * Vector<3>(2.25, 2.25, 4).asDiagonal()),
     J_inv_(J_.inverse()),
     motor_omega_min_(150.0),
     motor_omega_max_(2000.0),
@@ -18,7 +18,9 @@ QuadrotorDynamics::QuadrotorDynamics(const Scalar mass, const Scalar arm_l)
     thrust_min_(0.0),
     thrust_max_(motor_omega_max_ * motor_omega_max_ * thrust_map_(0) +
                 motor_omega_max_ * thrust_map_(1) + thrust_map_(2)),
-    omega_max_(Vector<3>::Constant(6.0)) {}
+    omega_max_(Vector<3>::Constant(6.0)) {
+  t_BM_ = arm_l_ * sqrt(0.5) * BM_;
+}
 
 QuadrotorDynamics::~QuadrotorDynamics() {}
 
@@ -59,6 +61,7 @@ bool QuadrotorDynamics::valid() const {
 
   check &= mass_ > 0.0;
   check &= t_BM_.allFinite();
+  check &= BM_.allFinite();
   check &= J_.allFinite();
   check &= J_inv_.allFinite();
 
@@ -114,7 +117,7 @@ Vector<4> QuadrotorDynamics::motorThrustToOmega(
 
 Matrix<4, 4> QuadrotorDynamics::getAllocationMatrix() const {
   return (Matrix<4, 4>() << Vector<4>::Ones().transpose(), t_BM_.topRows<2>(),
-          kappa_ * Vector<4>(-1, -1, 1, 1).transpose())
+          kappa_ * BM_.row(2))
     .finished();
 }
 
@@ -124,6 +127,22 @@ bool QuadrotorDynamics::setMass(const Scalar mass) {
     return false;
   }
   mass_ = mass;
+  // update inertial matrix and its inverse
+  J_ = mass_ / 12.0 * arm_l_ * arm_l_ * Vector<3>(2.25, 2.25, 4).asDiagonal();
+  J_inv_ = J_.inverse();
+  return true;
+}
+
+bool QuadrotorDynamics::setArmLength(const Scalar arm_length) {
+  if (arm_length < 0.0) {
+    // logger_.error("Quadrotor mass value is not valid %1.3f", mass);
+    return false;
+  }
+  arm_l_ = arm_length;
+  // update torque mapping matrix, inertial matrix and its inverse
+  t_BM_ = arm_l_ * sqrt(0.5) * BM_;
+  J_ = mass_ / 12.0 * arm_l_ * arm_l_ * Vector<3>(2.25, 2.25, 4).asDiagonal();
+  J_inv_ = J_.inverse();
   return true;
 }
 
@@ -136,14 +155,34 @@ bool QuadrotorDynamics::setMotortauInv(const Scalar tau_inv) {
   return true;
 }
 
-bool QuadrotorDynamics::setJ(const Ref<Matrix<3, 3>> J) {
-  if (!J.allFinite()) {
-    // logger_.error("Quadrotor J matrix is not valid.");
+bool QuadrotorDynamics::updateParams(const YAML::Node& params) {
+  if (params["quadrotor_dynamics"]) {
+    // load parameters from a yaml configuration file
+    mass_ = params["quadrotor_dynamics"]["mass"].as<Scalar>();
+    arm_l_ = params["quadrotor_dynamics"]["arm_l"].as<Scalar>();
+    motor_omega_min_ =
+      params["quadrotor_dynamics"]["motor_omega_min"].as<Scalar>();
+    motor_omega_max_ =
+      params["quadrotor_dynamics"]["motor_omega_max"].as<Scalar>();
+    motor_tau_inv_ =
+      (1.0 / params["quadrotor_dynamics"]["motor_tau"].as<Scalar>());
+    std::vector<Scalar> thrust_map;
+    thrust_map =
+      params["quadrotor_dynamics"]["thrust_map"].as<std::vector<Scalar>>();
+    thrust_map_ = Map<Vector<3>>(thrust_map.data());
+    kappa_ = params["quadrotor_dynamics"]["kappa"].as<Scalar>();
+    std::vector<Scalar> omega_max;
+    omega_max =
+      params["quadrotor_dynamics"]["omega_max"].as<std::vector<Scalar>>();
+    omega_max_ = Map<Vector<3>>(omega_max.data());
+
+    // update relevant variables
+    t_BM_ = arm_l_ * sqrt(0.5) * BM_;
+    J_ = mass_ / 12.0 * arm_l_ * arm_l_ * Vector<3>(2.25, 2.25, 4).asDiagonal();
+    J_inv_ = J_.inverse();
+    return valid();
+  } else {
     return false;
   }
-  J_ = J;
-  J_inv_ = J.inverse();
-  return false;
 }
-
 }  // namespace flightlib

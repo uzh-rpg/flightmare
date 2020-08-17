@@ -2,9 +2,21 @@
 
 namespace flightlib {
 
+Quadrotor::Quadrotor(const std::string &cfg_path)
+  : size_(1.0, 1.0, 1.0), collision_(false) {
+  YAML::Node cfg = YAML::LoadFile(cfg_path);
+
+  // create quadrotor dynamics and update the parameters
+  dynamics_.updateParams(cfg);
+
+  // reset
+  updateDynamics(dynamics_);
+  reset();
+}
+
 Quadrotor::Quadrotor(const QuadrotorDynamics &dynamics)
   : dynamics_(dynamics), size_(1.0, 1.0, 1.0), collision_(false) {
-  updateDynamics(dynamics);
+  updateDynamics(dynamics_);
   reset();
 }
 
@@ -37,7 +49,7 @@ bool Quadrotor::run(const Scalar ctl_dt) {
 
     // Compute linear acceleration and body torque
     const Vector<3> force(0.0, 0.0, force_torques[0]);
-    state_.a = state_.R() * force / dynamics_.mass() + gz_;
+    state_.a = state_.R() * force / dynamics_.getMass() + gz_;
     state_.tau << force_torques.segment<3>(1);
 
     integrator_ptr_->step(state_.x, sim_dt, next_state.x);
@@ -67,13 +79,13 @@ bool Quadrotor::reset(const QuadState &state) {
 
 Vector<4> Quadrotor::runFlightCtl(const Scalar sim_dt, const Vector<3> &omega,
                                   const Command &command) {
-  const Scalar force = dynamics_.mass() * command.collective_thrust;
+  const Scalar force = dynamics_.getMass() * command.collective_thrust;
 
   const Vector<3> omega_err = command.omega - omega;
 
   const Vector<3> body_torque_des =
-    dynamics_.J() * Kinv_ang_vel_tau_ * omega_err +
-    state_.w.cross(dynamics_.J() * state_.w);
+    dynamics_.getJ() * Kinv_ang_vel_tau_ * omega_err +
+    state_.w.cross(dynamics_.getJ() * state_.w);
 
   const Vector<4> thrust_and_torque(force, body_torque_des.x(),
                                     body_torque_des.y(), body_torque_des.z());
@@ -91,7 +103,7 @@ void Quadrotor::runMotors(const Scalar sim_dt,
     dynamics_.clampMotorOmega(motor_omega_des);
 
   // simulate motors as a first-order system
-  const Scalar c = std::exp(-sim_dt * dynamics_.motor_tau_inv());
+  const Scalar c = std::exp(-sim_dt * dynamics_.getMotorTauInv());
   motor_omega_ = c * motor_omega_ + (1.0 - c) * motor_omega_clamped;
 
   motor_thrusts_ = dynamics_.motorOmegaToThrust(motor_omega_);
@@ -143,10 +155,11 @@ bool Quadrotor::getDynamics(QuadrotorDynamics *const dynamics) const {
   return true;
 }
 
-const QuadrotorDynamics &Quadrotor::getDynamics() const { return dynamics_; }
+const QuadrotorDynamics &Quadrotor::getDynamics() { return dynamics_; }
 
 bool Quadrotor::updateDynamics(const QuadrotorDynamics &dynamics) {
   if (!dynamics.valid()) {
+    std::cout << "[Quadrotor] dynamics is not valid!" << std::endl;
     return false;
   }
   dynamics_ = dynamics;

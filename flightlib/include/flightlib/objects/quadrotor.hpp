@@ -1,5 +1,7 @@
 #pragma once
 
+#include <yaml-cpp/yaml.h>
+
 // flightlib
 #include "flightlib/common/command.hpp"
 #include "flightlib/common/integrator_rk4.hpp"
@@ -12,6 +14,7 @@ namespace flightlib {
 class Quadrotor : ObjectBase {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  Quadrotor(const std::string& cfg_path);
   Quadrotor(const QuadrotorDynamics& dynamics = QuadrotorDynamics(1.0, 0.25));
   ~Quadrotor();
 
@@ -27,8 +30,8 @@ class Quadrotor : ObjectBase {
   bool getState(QuadState* const state) const;
   bool getMotorThrusts(Ref<Vector<4>> motor_thrusts) const;
   bool getMotorOmega(Ref<Vector<4>> motor_omega) const;
-  bool getDynamics(QuadrotorDynamics* const quad_dynamics) const;
-  const QuadrotorDynamics& getDynamics() const;
+  bool getDynamics(QuadrotorDynamics* const dynamics) const;
+  const QuadrotorDynamics& getDynamics();
   Vector<3> getSize(void);
   Vector<3> getPosition(void);
   Quaternion getQuaternion(void);
@@ -46,6 +49,8 @@ class Quadrotor : ObjectBase {
 
   // simulate motors
   void runMotors(const Scalar sim_dt, const Vector<4>& motor_thrust_des);
+
+  inline Scalar getMass(void) { return dynamics_.getMass(); };
 
  private:
   // quadrotor dynamics, integrators

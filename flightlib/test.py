@@ -12,7 +12,7 @@ def main():
   print(obs)
 
   quad_env1 = QuadrotorEnv_v1()
-  obs = np.zeros(shape=(1, 9), dtype=np.float32)
+  obs = np.zeros(shape=(100, 9), dtype=np.float32)
   quad_env1.reset(obs)
   print(obs)
 

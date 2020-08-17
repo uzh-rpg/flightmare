@@ -22,8 +22,8 @@ class EnvBase {
   virtual ~EnvBase() = 0;
 
   // (pure virtual) public methods (has to be implemented by child classes)
-  virtual void reset(Ref<Vector<>> obs) = 0;
-  virtual Scalar step(Ref<Vector<>> act, Ref<Vector<>> obs) = 0;
+  virtual bool reset(Ref<Vector<>> obs, const bool random = true) = 0;
+  virtual Scalar step(const Ref<Vector<>> act, Ref<Vector<>> obs) = 0;
   virtual bool getObs(Ref<Vector<>> obs) = 0;
   virtual bool setFlightmare(bool on) = 0;
 
@@ -38,12 +38,14 @@ class EnvBase {
   bool connectFlightmare();
   void disconnectFlightmare();
 
-  //
+  // auxilirary functions
   inline void setSeed(const int seed) { std::srand(seed); };
   inline int getObsDim() { return obs_dim_; };
   inline int getActDim() { return act_dim_; };
   inline Scalar getSimTimeStep() { return sim_dt_; };
   inline int getExtraInfoDim() { return extra_info_.size(); };
+  inline SceneID getSceneID(void) { return scene_id_; };
+  inline bool getRender(void) { return render_; };
 
   // public variables
   std::unordered_map<std::string, float> extra_info_;

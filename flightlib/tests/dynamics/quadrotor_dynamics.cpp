@@ -15,11 +15,9 @@ TEST(QuadrotorDynamics, Constructor) {
 
   QuadrotorDynamics quad_copy(quad);
 
-  Scalar mass = quad_copy.mass();
-  Matrix<3, 3> J = quad_copy.J();
-  Matrix<3, 3> J_inv = quad_copy.J_inv();
-
-  std::cout << J << std::endl;
+  Scalar mass = quad_copy.getMass();
+  Matrix<3, 3> J = quad_copy.getJ();
+  Matrix<3, 3> J_inv = quad_copy.getJInv();
 
   Matrix<3, 3> expected_J = (mass / 12.0 * ARM_LENGTH * ARM_LENGTH *
                              Vector<3>(2.25, 2.25, 4).asDiagonal());
@@ -29,6 +27,7 @@ TEST(QuadrotorDynamics, Constructor) {
   EXPECT_TRUE(J.isApprox(expected_J));
   EXPECT_TRUE(J_inv.isApprox(expected_J_inv));
 }
+
 
 TEST(QuadrotorDynamics, Dynamics) {
   QuadrotorDynamics quad(MASS, ARM_LENGTH);
@@ -67,8 +66,8 @@ TEST(QuadrotorDynamics, Dynamics) {
     derivative_manual.qx = 0.5 * Q_right(q_omega) * random_state.qx;
     derivative_manual.v = random_state.a;
     derivative_manual.w =
-      quad.J_inv() *
-      (random_state.tau - random_state.w.cross(quad.J() * random_state.w));
+      quad.getJInv() *
+      (random_state.tau - random_state.w.cross(quad.getJ() * random_state.w));
 
     // Compare the derivatives.
     EXPECT_TRUE(derivative_state.x.isApprox(derivative_manual.x));
@@ -90,4 +89,13 @@ TEST(QuadrotorDynamics, VectorReference) {
     EXPECT_TRUE(quad.dState(QuadState(states.col(i)), &derivate));
     EXPECT_TRUE(quad.dState(states_const.col(i), derivates.col(i)));
   }
+}
+
+TEST(QuadrotorDynamics, LoadParams) {
+  QuadrotorDynamics quad(MASS, ARM_LENGTH);
+  std::string cfg_path = getenv("FLIGHTMARE_PATH") +
+                         std::string("/flightlib/configs/quadrotor_env.yaml");
+
+  YAML::Node cfg = YAML::LoadFile(cfg_path);
+  EXPECT_TRUE(quad.updateParams(cfg));
 }

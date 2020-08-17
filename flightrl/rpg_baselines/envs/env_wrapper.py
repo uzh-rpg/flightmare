@@ -31,7 +31,6 @@ class EnvWrapper(gym.Env):
     self.env.setSeed(seed)
   
   def step(self, action):
-    action = np.float32(action)
     self.reward = self.env.step(action, self.observation)
     terminal_reward = 0.0
     self.done = self.env.isTerminalState(terminal_reward)

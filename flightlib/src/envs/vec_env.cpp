@@ -5,15 +5,12 @@ namespace flightlib {
 template<typename EnvBase>
 VecEnv<EnvBase>::VecEnv()
   : VecEnv(getenv("FLIGHTMARE_PATH") +
-           std::string("/flightlib/configs/quadrotor_env.yaml")) {}
+           std::string("/flightlib/configs/vec_env.yaml")) {}
 
 template<typename EnvBase>
 VecEnv<EnvBase>::VecEnv(const std::string& cfg_path) {
   // load environment configuration
   cfg_ = YAML::LoadFile(cfg_path);
-
-  // logger
-  // logger_ = std::make_unique<Logger>("VecEnv");
 
   if (cfg_["env"]["render"]) {
     unity_render_ = cfg_["env"]["render"].as<bool>();

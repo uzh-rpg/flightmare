@@ -7,7 +7,7 @@ namespace flightlib {
 // ------------ General Stuff-------------
 
 // Define the scalar type used.
-using Scalar = double;
+using Scalar = float;  // numpy float32
 
 // Define frame id for unity
 using FrameID = uint64_t;

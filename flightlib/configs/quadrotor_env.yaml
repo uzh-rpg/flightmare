@@ -1,23 +1,19 @@
-hello: 12
-render: no
-env:
-  seed: 1
-  scene_id: 0  # 0 warehouse, 1 garage, 3 natureforest
-  num_envs: 100
-  num_threads: 10
-  render: no
-  sim_dt: 0.02
-  max_time: 5.0
+quadrotor_env:
+   camera: no
+   sim_dt: 0.02 
 
-quadrotor:
+quadrotor_dynamics:
   mass: 0.73
-  arm_length: 0.17
-  rotor_drag_coeff: 0.016
-  inertia: [0.007, 0.007, 0.012]
-  camera: no
+  arm_l: 0.17
+  motor_omega_min: 150.0 # motor rpm min
+  motor_omega_max: 2000.0 # motor rpm max
+  motor_tau: 0.0001 # motor step response
+  thrust_map: [1.3298253500372892e-06, 0.0038360810526746033, -1.7689986848125325]
+  kappa: 0.016 # rotor drag coeff
+  omega_max: [6.0, 6.0, 6.0]  # body rate constraint (x, y, z) 
 
 rl:
   Q_pos: [-0.01, -0.01, -0.01]
   Q_ori: [-0.01, -0.01, -0.01]
   Q_lin_vel: [-0.001, -0.001, -0.001]
-  Q_act: [-0.0001, -0.0001, -0.0001, -0.0001]
+  Q_cmd: [-0.0001, -0.0001, -0.0001, -0.0001]
