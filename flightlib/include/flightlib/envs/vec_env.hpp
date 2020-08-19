@@ -19,7 +19,8 @@ template<typename EnvBase>
 class VecEnv {
  public:
   VecEnv();
-  VecEnv(const std::string& cfgs, const bool yaml_node = false);
+  VecEnv(const std::string& cfgs, const bool from_file = true);
+  VecEnv(const YAML::Node& cfgs_node);
   ~VecEnv();
 
   // - public OpenAI-gym style functions for vectorized environment
@@ -63,6 +64,7 @@ class VecEnv {
   };
 
  private:
+  void init(void);
   // step every environment
   void perAgentStep(int agent_id, Ref<MatrixRowMajor<>> act,
                     Ref<MatrixRowMajor<>> obs, Ref<Vector<>> reward,

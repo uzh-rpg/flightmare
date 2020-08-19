@@ -8,9 +8,15 @@ VecEnv<EnvBase>::VecEnv()
            std::string("/flightlib/configs/vec_env.yaml")) {}
 
 template<typename EnvBase>
-VecEnv<EnvBase>::VecEnv(const std::string& cfgs, const bool yaml_node) {
+VecEnv<EnvBase>::VecEnv(const YAML::Node& cfg_node) : cfg_(cfg_node) {
+  // initialization
+  init();
+}
+
+template<typename EnvBase>
+VecEnv<EnvBase>::VecEnv(const std::string& cfgs, const bool from_file) {
   // load environment configuration
-  if (!yaml_node) {
+  if (from_file) {
     // load directly from a yaml file
     cfg_ = YAML::LoadFile(cfgs);
   } else {
@@ -18,6 +24,12 @@ VecEnv<EnvBase>::VecEnv(const std::string& cfgs, const bool yaml_node) {
     cfg_ = YAML::Load(cfgs);
   }
 
+  // initialization
+  init();
+}
+
+template<typename EnvBase>
+void VecEnv<EnvBase>::init(void) {
   //
   unity_render_ = cfg_["env"]["render"].as<bool>();
   seed_ = cfg_["env"]["seed"].as<int>();
