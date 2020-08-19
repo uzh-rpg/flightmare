@@ -103,21 +103,6 @@ Scalar QuadrotorEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs) {
   return stage_reward + act_reward;
 }
 
-bool QuadrotorEnv::setFlightmare(bool render) {
-  render_ = render;
-  if (render_ && !unity_bridge_created_) {
-    logger_.info("Unity Rendering (Flightmare) is ON!\n");
-    // create unity bridge and initialize connection
-    unity_bridge_ = UnityBridge::getInstance();
-    unity_bridge_->initializeConnections();
-    connectFlightmare();
-
-    //
-    unity_bridge_created_ = true;
-  }
-  return true;
-}
-
 bool QuadrotorEnv::isTerminalState(Scalar &reward) {
   reward = 0.0;
   return false;
@@ -175,6 +160,10 @@ bool QuadrotorEnv::getAct(Command *const cmd) const {
   if (!cmd_.valid()) return false;
   *cmd = cmd_;
   return true;
+}
+
+void QuadrotorEnv::addObjectsToUnity(std::shared_ptr<UnityBridge> bridge) {
+  bridge->addQuadrotor(&quadrotor_);
 }
 
 }  // namespace flightlib

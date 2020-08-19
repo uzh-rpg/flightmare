@@ -5,6 +5,7 @@
 #include <cmath>
 
 // flightlib
+#include "flightlib/bridges/unity_bridge.hpp"
 #include "flightlib/common/command.hpp"
 #include "flightlib/common/logger.hpp"
 #include "flightlib/common/quad_state.hpp"
@@ -47,7 +48,7 @@ class QuadrotorEnv final : public EnvBase {
   Scalar step(const Ref<Vector<>> act, Ref<Vector<>> obs) override;
 
   // - public set functions
-  bool setFlightmare(bool on) override;
+  // bool setFlightmare(bool on) override;
   bool loadParam(const YAML::Node &cfg);
 
   // - public get functions
@@ -60,6 +61,7 @@ class QuadrotorEnv final : public EnvBase {
 
   // - auxiliar functions
   bool isTerminalState(Scalar &reward) override;
+  void addObjectsToUnity(std::shared_ptr<UnityBridge> bridge);
 
  private:
   // quadrotor

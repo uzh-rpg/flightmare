@@ -24,8 +24,8 @@ PYBIND11_MODULE(flightgym, m) {
     .def("close", &VecEnv<QuadrotorEnv>::close)
     .def("isTerminalState", &VecEnv<QuadrotorEnv>::isTerminalState)
     .def("curriculumUpdate", &VecEnv<QuadrotorEnv>::curriculumUpdate)
-    .def("connectFlightmare", &VecEnv<QuadrotorEnv>::connectFlightmare)
-    .def("disconnectFlightmare", &VecEnv<QuadrotorEnv>::disconnectFlightmare)
+    .def("connectUnity", &VecEnv<QuadrotorEnv>::connectUnity)
+    .def("disconnectUnity", &VecEnv<QuadrotorEnv>::disconnectUnity)
     .def("getNumOfEnvs", &VecEnv<QuadrotorEnv>::getNumOfEnvs)
     .def("getObsDim", &VecEnv<QuadrotorEnv>::getObsDim)
     .def("getActDim", &VecEnv<QuadrotorEnv>::getActDim)
@@ -33,20 +33,6 @@ PYBIND11_MODULE(flightgym, m) {
     .def("__repr__", [](const VecEnv<QuadrotorEnv>& a) {
       return "RPG Drone Racing Environment";
     });
-
-  py::class_<QuadrotorEnv>(m, "QuadrotorEnv_v0")
-    .def(py::init<>())
-    .def("reset", &QuadrotorEnv::reset)
-    .def("step", &QuadrotorEnv::step)
-    .def("setSeed", &QuadrotorEnv::setSeed)
-    .def("close", &QuadrotorEnv::close)
-    .def("isTerminalState", &QuadrotorEnv::isTerminalState)
-    .def("connectFlightmare", &QuadrotorEnv::connectFlightmare)
-    .def("disconnectFlightmare", &QuadrotorEnv::disconnectFlightmare)
-    .def("getObsDim", &QuadrotorEnv::getObsDim)
-    .def("getActDim", &QuadrotorEnv::getActDim)
-    .def("__repr__",
-         [](const QuadrotorEnv& a) { return "RPG Drone Racing Environment"; });
 
   py::class_<TestEnv<QuadrotorEnv>>(m, "TestEnv_v0")
     .def(py::init<>())

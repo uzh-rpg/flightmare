@@ -39,7 +39,7 @@ class UnityBridge {
   // public set functions
   bool setScene(const SceneID &scene_id);
 
-  //
+  // add object
   bool addQuadrotor(Quadrotor *quad);
 
   // public auxiliary functions
@@ -47,9 +47,9 @@ class UnityBridge {
   inline void setSubPort(const std::string &sub_port) { sub_port_ = sub_port; };
   // create unity bridge
   static std::shared_ptr<UnityBridge> getInstance(void) {
-    static std::shared_ptr<UnityBridge> bridge_ptr_ =
-      std::shared_ptr<UnityBridge>();
-    return bridge_ptr_;
+    static std::shared_ptr<UnityBridge> bridge_ptr =
+      std::make_shared<UnityBridge>();
+    return bridge_ptr;
   };
 
  private:

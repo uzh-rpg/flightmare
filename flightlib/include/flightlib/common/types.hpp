@@ -22,7 +22,7 @@ using SceneID = size_t;
 static constexpr int Dynamic = Eigen::Dynamic;
 
 // Using shorthand for `Matrix<ros, cols>` with scalar type.
-template<int rows = Dynamic, int cols = rows>
+template<int rows = Dynamic, int cols = Dynamic>
 using Matrix = Eigen::Matrix<Scalar, rows, cols>;
 
 // Using shorthand for `Matrix<ros, cols>` with scalar type.

@@ -14,7 +14,7 @@ UnityBridge::UnityBridge()
     unity_ready_(false) {}
 
 bool UnityBridge::initializeConnections() {
-  logger_.info("Initializing ZMQ connections...\n");
+  // logger_.info("Initializing ZMQ connection!");
 
   // create and bind an upload socket
   pub_.set(zmqpp::socket_option::send_high_water_mark, 6);
@@ -26,7 +26,7 @@ bool UnityBridge::initializeConnections() {
   // subscribe all messages from ZMQ
   sub_.subscribe("");
 
-  logger_.info("Initializing ZMQ connections done!\n");
+  // logger_.info("Initializing ZMQ connections done!");
   return true;
 }
 

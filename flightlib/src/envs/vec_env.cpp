@@ -8,30 +8,33 @@ VecEnv<EnvBase>::VecEnv()
            std::string("/flightlib/configs/vec_env.yaml")) {}
 
 template<typename EnvBase>
-VecEnv<EnvBase>::VecEnv(const std::string& cfg_path) {
+VecEnv<EnvBase>::VecEnv(const std::string& cfgs, const bool yaml_node) {
   // load environment configuration
-  cfg_ = YAML::LoadFile(cfg_path);
-
-  if (cfg_["env"]["render"]) {
-    unity_render_ = cfg_["env"]["render"].as<bool>();
+  if (!yaml_node) {
+    // load directly from a yaml file
+    cfg_ = YAML::LoadFile(cfgs);
+  } else {
+    // load from a string or dictionary
+    cfg_ = YAML::Load(cfgs);
   }
 
-  omp_set_num_threads(cfg_["env"]["num_threads"].as<int>());
+  //
+  unity_render_ = cfg_["env"]["render"].as<bool>();
+  seed_ = cfg_["env"]["seed"].as<int>();
   num_envs_ = cfg_["env"]["num_envs"].as<int>();
+  scene_id_ = cfg_["env"]["scene_id"].as<SceneID>();
+
+  // set threads
+  omp_set_num_threads(cfg_["env"]["num_threads"].as<int>());
 
   // create & setup environments
   const bool render = false;
   for (int i = 0; i < num_envs_; i++) {
     envs_.push_back(std::make_unique<EnvBase>());
-    // disable rendering for all environment
-    envs_.back()->setFlightmare(render);
   }
 
-  if (unity_render_) {
-    // enable rendering for only one environment
-    envs_[0]->setFlightmare(unity_render_);
-    logger_.info("Flightmare Unity Render is enabled!");
-  }
+  // set Unity
+  setUnity(unity_render_);
 
   obs_dim_ = envs_[0]->getObsDim();
   act_dim_ = envs_[0]->getActDim();
@@ -49,6 +52,7 @@ VecEnv<EnvBase>::~VecEnv() {}
 
 template<typename EnvBase>
 void VecEnv<EnvBase>::reset(Ref<MatrixRowMajor<>> obs) {
+  receive_id_ = 0;
   for (int i = 0; i < num_envs_; i++) {
     envs_[i]->reset(obs.row(i));
   }
@@ -61,6 +65,11 @@ void VecEnv<EnvBase>::step(Ref<MatrixRowMajor<>> act, Ref<MatrixRowMajor<>> obs,
 #pragma omp parallel for schedule(dynamic)
   for (int i = 0; i < num_envs_; i++) {
     perAgentStep(i, act, obs, reward, done, extra_info);
+  }
+
+  if (unity_render_) {
+    unity_bridge_->getRender(0);
+    unity_bridge_->handleOutput(unity_output_);
   }
 }
 
@@ -115,16 +124,60 @@ void VecEnv<EnvBase>::perAgentStep(int agent_id, Ref<MatrixRowMajor<>> act,
 }
 
 template<typename EnvBase>
+void VecEnv<EnvBase>::setUnity(bool render) {
+  unity_render_ = render;
+  if (unity_render_ && !unity_bridge_created_) {
+    unity_bridge_ = UnityBridge::getInstance();
+    unity_bridge_->initializeConnections();
+
+    for (int i = 0; i < num_envs_; i++) {
+      envs_[i]->addObjectsToUnity(unity_bridge_);
+    }
+
+    connectUnity();
+    //
+    unity_bridge_created_ = true;
+    logger_.info("Flightmare Unity is ON!");
+  }
+}
+
+template<typename EnvBase>
 void VecEnv<EnvBase>::isTerminalState(Ref<BoolVector<>> terminal_state) {}
 
 template<typename EnvBase>
-void VecEnv<EnvBase>::connectFlightmare(void) {}
+void VecEnv<EnvBase>::connectUnity(void) {
+  Scalar time_out_count = 0;
+  Scalar sleep_useconds = 0.2 * 1e5;
+  while (!unity_ready_) {
+    if (unity_bridge_ != nullptr) {
+      // connect unity
+      unity_bridge_->setScene(scene_id_);
+      unity_ready_ = unity_bridge_->connectUnity();
+    }
+    if (unity_ready_ || time_out_count / 1e6 > unity_connection_time_out_) {
+      break;
+    }
+    // sleep
+    usleep(0.2 * 1e5);
+    // incread time out counter
+    time_out_count += sleep_useconds;
+  }
+}
 
 template<typename EnvBase>
-void VecEnv<EnvBase>::disconnectFlightmare(void) {}
+void VecEnv<EnvBase>::disconnectUnity(void) {
+  if (unity_bridge_ != nullptr) {
+    unity_bridge_->disconnectUnity();
+    unity_ready_ = false;
+  } else {
+    logger_.warn("Flightmare Unity Bridge is not initialized.");
+  }
+}
 
 template<typename EnvBase>
-void VecEnv<EnvBase>::curriculumUpdate(void) {}
+void VecEnv<EnvBase>::curriculumUpdate(void) {
+  for (int i = 0; i < num_envs_; i++) envs_[i]->curriculumUpdate();
+}
 
 // IMPORTANT. Otherwise:
 // Segmentation fault (core dumped)
