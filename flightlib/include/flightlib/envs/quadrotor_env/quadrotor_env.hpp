@@ -48,7 +48,6 @@ class QuadrotorEnv final : public EnvBase {
   Scalar step(const Ref<Vector<>> act, Ref<Vector<>> obs) override;
 
   // - public set functions
-  // bool setFlightmare(bool on) override;
   bool loadParam(const YAML::Node &cfg);
 
   // - public get functions
@@ -70,7 +69,7 @@ class QuadrotorEnv final : public EnvBase {
   Command cmd_;
   Logger logger_{"QaudrotorEnv"};
 
-  // auxiliary variables
+  // observations and actions (for RL)
   Vector<CtlObsAct::kObsSize> quad_obs_;
   Vector<CtlObsAct::kActSize> quad_act_;
 
@@ -86,6 +85,7 @@ class QuadrotorEnv final : public EnvBase {
   Vector<CtlObsAct::kObsSize> obs_std_ = Vector<CtlObsAct::kObsSize>::Ones();
 
   YAML::Node cfg_;
+  Matrix<3, 2> world_box_;
 };
 
 }  // namespace flightlib

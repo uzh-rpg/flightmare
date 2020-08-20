@@ -63,17 +63,35 @@ template<typename EnvBase>
 VecEnv<EnvBase>::~VecEnv() {}
 
 template<typename EnvBase>
-void VecEnv<EnvBase>::reset(Ref<MatrixRowMajor<>> obs) {
+bool VecEnv<EnvBase>::reset(Ref<MatrixRowMajor<>> obs) {
+  if (obs.rows() != num_envs_ || obs.cols() != obs_dim_) {
+    logger_.error(
+      "Input matrix dimensions do not match with that of the environment.");
+    return false;
+  }
+
   receive_id_ = 0;
   for (int i = 0; i < num_envs_; i++) {
     envs_[i]->reset(obs.row(i));
   }
+  return true;
 }
 
 template<typename EnvBase>
-void VecEnv<EnvBase>::step(Ref<MatrixRowMajor<>> act, Ref<MatrixRowMajor<>> obs,
+bool VecEnv<EnvBase>::step(Ref<MatrixRowMajor<>> act, Ref<MatrixRowMajor<>> obs,
                            Ref<Vector<>> reward, Ref<BoolVector<>> done,
                            Ref<MatrixRowMajor<>> extra_info) {
+  if (act.rows() != num_envs_ || act.cols() != act_dim_ ||
+      obs.rows() != num_envs_ || obs.cols() != obs_dim_ ||
+      reward.rows() != num_envs_ || reward.cols() != 1 ||
+      done.rows() != num_envs_ || done.cols() != 1 ||
+      extra_info.rows() != num_envs_ ||
+      extra_info.cols() != extra_info_names_.size()) {
+    logger_.error(
+      "Input matrix dimensions do not match with that of the environment.");
+    return false;
+  }
+
 #pragma omp parallel for schedule(dynamic)
   for (int i = 0; i < num_envs_; i++) {
     perAgentStep(i, act, obs, reward, done, extra_info);
@@ -83,6 +101,7 @@ void VecEnv<EnvBase>::step(Ref<MatrixRowMajor<>> act, Ref<MatrixRowMajor<>> obs,
     unity_bridge_->getRender(0);
     unity_bridge_->handleOutput(unity_output_);
   }
+  return true;
 }
 
 template<typename EnvBase>
@@ -136,7 +155,7 @@ void VecEnv<EnvBase>::perAgentStep(int agent_id, Ref<MatrixRowMajor<>> act,
 }
 
 template<typename EnvBase>
-void VecEnv<EnvBase>::setUnity(bool render) {
+bool VecEnv<EnvBase>::setUnity(bool render) {
   unity_render_ = render;
   if (unity_render_ && !unity_bridge_created_) {
     unity_bridge_ = UnityBridge::getInstance();
@@ -151,13 +170,14 @@ void VecEnv<EnvBase>::setUnity(bool render) {
     unity_bridge_created_ = true;
     logger_.info("Flightmare Unity is ON!");
   }
+  return true;
 }
 
 template<typename EnvBase>
 void VecEnv<EnvBase>::isTerminalState(Ref<BoolVector<>> terminal_state) {}
 
 template<typename EnvBase>
-void VecEnv<EnvBase>::connectUnity(void) {
+bool VecEnv<EnvBase>::connectUnity(void) {
   Scalar time_out_count = 0;
   Scalar sleep_useconds = 0.2 * 1e5;
   while (!unity_ready_) {
@@ -167,6 +187,7 @@ void VecEnv<EnvBase>::connectUnity(void) {
       unity_ready_ = unity_bridge_->connectUnity();
     }
     if (unity_ready_ || time_out_count / 1e6 > unity_connection_time_out_) {
+      logger_.error("Flightmare Unity connection time out!");
       break;
     }
     // sleep
@@ -174,6 +195,7 @@ void VecEnv<EnvBase>::connectUnity(void) {
     // incread time out counter
     time_out_count += sleep_useconds;
   }
+  return true;
 }
 
 template<typename EnvBase>

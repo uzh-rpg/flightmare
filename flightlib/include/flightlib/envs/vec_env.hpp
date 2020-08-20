@@ -24,11 +24,11 @@ class VecEnv {
   ~VecEnv();
 
   // - public OpenAI-gym style functions for vectorized environment
-  void reset(Ref<MatrixRowMajor<>> obs);
-  void step(Ref<MatrixRowMajor<>> act, Ref<MatrixRowMajor<>> obs,
+  bool reset(Ref<MatrixRowMajor<>> obs);
+  bool step(Ref<MatrixRowMajor<>> act, Ref<MatrixRowMajor<>> obs,
             Ref<Vector<>> reward, Ref<BoolVector<>> done,
             Ref<MatrixRowMajor<>> extra_info);
-  void stepUnity(Ref<MatrixRowMajor<>> act, Ref<MatrixRowMajor<>> obs,
+  bool stepUnity(Ref<MatrixRowMajor<>> act, Ref<MatrixRowMajor<>> obs,
                  Ref<Vector<>> reward, Ref<BoolVector<>> done,
                  Ref<MatrixRowMajor<>> extra_info, uint64_t send_id);
   void close();
@@ -47,8 +47,8 @@ class VecEnv {
   void curriculumUpdate();
 
   // flightmare (visualization)
-  void setUnity(bool render);
-  void connectUnity();
+  bool setUnity(bool render);
+  bool connectUnity();
   void disconnectUnity();
 
   // public functions
@@ -64,18 +64,18 @@ class VecEnv {
   };
 
  private:
+  // initialization
   void init(void);
   // step every environment
   void perAgentStep(int agent_id, Ref<MatrixRowMajor<>> act,
                     Ref<MatrixRowMajor<>> obs, Ref<Vector<>> reward,
                     Ref<BoolVector<>> done, Ref<MatrixRowMajor<>> extra_info);
-
-  // objects
+  // create objects
   Logger logger_{"VecEnv"};
   std::vector<std::unique_ptr<EnvBase>> envs_;
   std::vector<std::string> extra_info_names_;
 
-  // Flightmare (Unity3D)
+  // Flightmare(Unity3D)
   const Scalar unity_connection_time_out_{10.0};  // seconds
   bool unity_ready_{false}, unity_render_{false}, unity_bridge_created_{false};
   std::shared_ptr<UnityBridge> unity_bridge_;

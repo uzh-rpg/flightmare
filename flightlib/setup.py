@@ -36,7 +36,9 @@ class CMakeBuild(build_ext):
         # required for auto-detection of auxiliary "native" libs
         if not extdir.endswith(os.path.sep):
             extdir += os.path.sep
-
+        # FLIGHTMARE_PATH = os.environ["FLIGHTMARE_PATH"] + "/flightlib/build"
+        # FLIGHTLIB_PATH = FLIGHTMARE_PATH + "/flightlib" 
+        # FLIGHTLIB_BUILD_PATH = FLIGHTLIB_PATH + "/build" 
         cmake_args = ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + extdir,
                       '-DPYTHON_EXECUTABLE=' + sys.executable]
 
@@ -50,7 +52,7 @@ class CMakeBuild(build_ext):
             build_args += ['--', '/m']
         else:
             cmake_args += ['-DCMAKE_BUILD_TYPE=' + cfg]
-            build_args += ['--', '-j10']
+            build_args += ['--', '-j4']
 
         env = os.environ.copy()
         env['CXXFLAGS'] = '{} -DVERSION_INFO=\\"{}\\"'.format(env.get('CXXFLAGS', ''),

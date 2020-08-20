@@ -213,12 +213,14 @@ if(FLIGHTLIB_GYM_SOURCES)
     ${FLIGHTLIB_GYM_SOURCES})
   if(EIGEN3_FOUND)
     target_include_directories(flightgym PRIVATE
-      ${PROJECT_SOURCE_DIR}/externals/pybind11-src/include
+      # ${PROJECT_SOURCE_DIR}/externals/pybind11-src/include
+      ${PYBIND11_INCLUDE_DIR}
       ${PROJECT_SOURCE_DIR}/include
       ${EIGEN3_INCLUDE_DIR})  
   else()
     target_include_directories(flightgym PRIVATE
-      ${PROJECT_SOURCE_DIR}/externals/pybind11-src/include
+      # ${PROJECT_SOURCE_DIR}/externals/pybind11-src/include
+      ${PYBIND11_INCLUDE_DIR}
       ${PROJECT_SOURCE_DIR}/externals/eigen/eigen3 #pybind11 use #include <Eigen/Core>, however, flightmare use #include <eigen3/Eigen/Core>
       ${PROJECT_SOURCE_DIR}/include)  
   endif()

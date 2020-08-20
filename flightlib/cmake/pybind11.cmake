@@ -25,7 +25,7 @@ endif()
 
 message(STATUS "Pybind11 downloaded!")
 
-# set(PYBIND11_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/externals/pybind11)
+set(PYBIND11_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/externals/pybind11-src/include)
 add_subdirectory(${PROJECT_SOURCE_DIR}/externals/pybind11-src
                  EXCLUDE_FROM_ALL)
 

@@ -24,6 +24,8 @@ QuadrotorEnv::QuadrotorEnv(const std::string &cfg_path)
   QuadrotorDynamics dynamics;
   dynamics.updateParams(cfg_);
   quadrotor_.updateDynamics(dynamics);
+  world_box_ << -10, 10, -10, 10, 0, 10;
+  quadrotor_.setWorldBox(world_box_);
 
   // define input and output dimension for the environment
   obs_dim_ = CtlObsAct::kObsSize;

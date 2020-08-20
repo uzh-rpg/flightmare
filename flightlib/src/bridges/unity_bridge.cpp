@@ -14,7 +14,7 @@ UnityBridge::UnityBridge()
     unity_ready_(false) {}
 
 bool UnityBridge::initializeConnections() {
-  // logger_.info("Initializing ZMQ connection!");
+  logger_.info("Initializing ZMQ connection!");
 
   // create and bind an upload socket
   pub_.set(zmqpp::socket_option::send_high_water_mark, 6);
@@ -26,7 +26,7 @@ bool UnityBridge::initializeConnections() {
   // subscribe all messages from ZMQ
   sub_.subscribe("");
 
-  // logger_.info("Initializing ZMQ connections done!");
+  logger_.info("Initializing ZMQ connections done!");
   return true;
 }
 
@@ -39,6 +39,13 @@ bool UnityBridge::connectUnity() {
     // check if setting is done
     unity_ready_ = handleSettings();
   }
+
+  // print connection messages
+  logger_ << "Fligtmare Unity is connected. "
+          << "Client address" << client_address_ << std::endl
+          << "Publish port : " << pub_port_ << std::endl
+          << "Subscriber port : " << sub_port_ << std::endl;
+
   return unity_ready_;
 }
 
