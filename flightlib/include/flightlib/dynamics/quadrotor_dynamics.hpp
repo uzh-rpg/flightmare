@@ -1,6 +1,7 @@
 #pragma once
 
 #include <yaml-cpp/yaml.h>
+#include <iostream>
 #include <memory>
 
 #include "flightlib/common/logger.hpp"
@@ -54,11 +55,14 @@ class QuadrotorDynamics : DynamicsBase {
   bool setArmLength(const Scalar arm_length);
   bool setMotortauInv(const Scalar tau_inv);
 
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const QuadrotorDynamics& quad_dymaics);
+
  private:
+  bool updateInertiaMarix();
   Scalar mass_;
   Scalar arm_l_;
   Matrix<3, 4> t_BM_;
-  Matrix<3, 4> BM_;
   Matrix<3, 3> J_;
   Matrix<3, 3> J_inv_;
 

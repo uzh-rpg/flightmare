@@ -94,8 +94,7 @@ TEST(Integrators, CheckEulerAgainstRungeKutta) {
   static constexpr int N = 16;  // Test not too often for speed in debug mode.
   static constexpr Scalar dt = 0.5;
   // Using lower tolerance for check because of accuracy of forward Euler.
-  static constexpr Scalar tol = 10;
-  std::cout << tol << std::endl;
+  static constexpr Scalar tol = 1;
 
   const QuadrotorDynamics quad(MASS, ARM_LENGTH);
   const IntegratorEuler euler(quad.getDynamicsFunction());

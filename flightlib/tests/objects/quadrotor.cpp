@@ -72,15 +72,11 @@ TEST(Quadrotor, ResetSimulator) {
 }
 
 TEST(Quadrotor, RunQuadCmdFeedThrough) {
-  Matrix<3, 4> BM =
-    (Matrix<3, 4>() << 1, -1, -1, 1, -1, -1, 1, 1, 1, -1, 1, -1).finished();
-  std::cout << BM.row(2) << std::endl;
   Quadrotor quad;
   QuadrotorDynamics dynamics = quad.getDynamics();
   Scalar inv_tau = 1.0 / 1e-6;
   dynamics.setMotortauInv(inv_tau);
   EXPECT_TRUE(quad.updateDynamics(dynamics));
-
   const Scalar ctl_dt = (1.0 / CTRL_UPDATE_FREQUENCY);
 
   QuadState quad_state;
@@ -131,6 +127,36 @@ TEST(Quadrotor, RunQuadCmdFeedThrough) {
   final_state.setZero();
   quad.getState(&final_state);
 
+  EXPECT_NEAR(final_state.t, quad_state.t, 1e-9);
+  EXPECT_TRUE(quad_state.x.isApprox(final_state.x));
+
+  // taking off
+  quad_state.setZero();
+  quad_state.p << 0.0, 0.0, 1.0;
+  quad.reset(quad_state);
+
+  //
+  cmd.t = 0.0;
+  cmd.thrusts = Vector<4>::Constant(-Gz * 2 * mass) / 4.0;
+
+  // compute acceleration
+  Vector<3> acc{0.0, 0.0, (cmd.thrusts.sum() + mass * Gz) / mass};
+
+  for (int i = 0; i < SIM_STEPS_N; i++) {
+    // run quadrotor simulator
+    quad.run(cmd, ctl_dt);
+
+    // manually update the state
+    // assume the orientation zero in all axes
+    quad_state.p += quad_state.v * ctl_dt + ctl_dt * ctl_dt / 2.0 * acc;
+    quad_state.v += ctl_dt * acc;
+    quad_state.a = acc;
+    quad_state.t += ctl_dt;
+  }
+
+  std::cout << quad_state << std::endl;
+  final_state.setZero();
+  quad.getState(&final_state);
   EXPECT_NEAR(final_state.t, quad_state.t, 1e-9);
   EXPECT_TRUE(quad_state.x.isApprox(final_state.x));
 }

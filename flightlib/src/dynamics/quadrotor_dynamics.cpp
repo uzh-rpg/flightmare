@@ -5,9 +5,10 @@ namespace flightlib {
 QuadrotorDynamics::QuadrotorDynamics(const Scalar mass, const Scalar arm_l)
   : mass_(mass),
     arm_l_(arm_l),
-    BM_(
-      (Matrix<3, 4>() << 1, -1, -1, 1, -1, -1, 1, 1, 1, -1, 1, -1).finished()),
-    J_(mass_ / 12.0 * arm_l_ * arm_l_ * Vector<3>(2.25, 2.25, 4).asDiagonal()),
+    t_BM_(
+      arm_l * sqrt(0.5) *
+      (Matrix<3, 4>() << -1, 1, -1, 1, -1, 1, 1, -1, 0, 0, 0, 0).finished()),
+    J_(mass / 12.0 * arm_l * arm_l * Vector<3>(2.25, 2.25, 4).asDiagonal()),
     J_inv_(J_.inverse()),
     motor_omega_min_(150.0),
     motor_omega_max_(2000.0),
@@ -18,9 +19,7 @@ QuadrotorDynamics::QuadrotorDynamics(const Scalar mass, const Scalar arm_l)
     thrust_min_(0.0),
     thrust_max_(motor_omega_max_ * motor_omega_max_ * thrust_map_(0) +
                 motor_omega_max_ * thrust_map_(1) + thrust_map_(2)),
-    omega_max_(Vector<3>::Constant(6.0)) {
-  t_BM_ = arm_l_ * sqrt(0.5) * BM_;
-}
+    omega_max_(Vector<3>::Constant(6.0)) {}
 
 QuadrotorDynamics::~QuadrotorDynamics() {}
 
@@ -60,8 +59,8 @@ bool QuadrotorDynamics::valid() const {
   bool check = true;
 
   check &= mass_ > 0.0;
+  check &= mass_ < 100.0;  // limit maximum mass
   check &= t_BM_.allFinite();
-  check &= BM_.allFinite();
   check &= J_.allFinite();
   check &= J_inv_.allFinite();
 
@@ -117,7 +116,7 @@ Vector<4> QuadrotorDynamics::motorThrustToOmega(
 
 Matrix<4, 4> QuadrotorDynamics::getAllocationMatrix() const {
   return (Matrix<4, 4>() << Vector<4>::Ones().transpose(), t_BM_.topRows<2>(),
-          kappa_ * BM_.row(2))
+          kappa_ * Vector<4>(-1, -1, 1, 1).transpose())
     .finished();
 }
 
@@ -128,8 +127,7 @@ bool QuadrotorDynamics::setMass(const Scalar mass) {
   }
   mass_ = mass;
   // update inertial matrix and its inverse
-  J_ = mass_ / 12.0 * arm_l_ * arm_l_ * Vector<3>(2.25, 2.25, 4).asDiagonal();
-  J_inv_ = J_.inverse();
+  updateInertiaMarix();
   return true;
 }
 
@@ -140,9 +138,7 @@ bool QuadrotorDynamics::setArmLength(const Scalar arm_length) {
   }
   arm_l_ = arm_length;
   // update torque mapping matrix, inertial matrix and its inverse
-  t_BM_ = arm_l_ * sqrt(0.5) * BM_;
-  J_ = mass_ / 12.0 * arm_l_ * arm_l_ * Vector<3>(2.25, 2.25, 4).asDiagonal();
-  J_inv_ = J_.inverse();
+  updateInertiaMarix();
   return true;
 }
 
@@ -177,12 +173,44 @@ bool QuadrotorDynamics::updateParams(const YAML::Node& params) {
     omega_max_ = Map<Vector<3>>(omega_max.data());
 
     // update relevant variables
-    t_BM_ = arm_l_ * sqrt(0.5) * BM_;
-    J_ = mass_ / 12.0 * arm_l_ * arm_l_ * Vector<3>(2.25, 2.25, 4).asDiagonal();
-    J_inv_ = J_.inverse();
+    updateInertiaMarix();
     return valid();
   } else {
     return false;
   }
 }
+
+bool QuadrotorDynamics::updateInertiaMarix() {
+  if (!valid()) return false;
+  t_BM_ = arm_l_ * sqrt(0.5) *
+          (Matrix<3, 4>() << -1, 1, -1, 1, -1, 1, 1, -1, 0, 0, 0, 0).finished();
+  J_ = mass_ / 12.0 * arm_l_ * arm_l_ * Vector<3>(2.25, 2.25, 4).asDiagonal();
+  J_inv_ = J_.inverse();
+  return true;
+}
+
+std::ostream& operator<<(std::ostream& os, const QuadrotorDynamics& quad) {
+  os.precision(3);
+  os << "Quadrotor Dynamics:\n"
+     << "mass =             [" << quad.mass_ << "]\n"
+     << "arm_l =            [" << quad.arm_l_ << "]\n"
+     << "t_BM =             [" << quad.t_BM_.row(0) << "]\n"
+     << "                   [" << quad.t_BM_.row(1) << "]\n"
+     << "                   [" << quad.t_BM_.row(2) << "]\n"
+     << "inertia =          [" << quad.J_.row(0) << "]\n"
+     << "                   [" << quad.J_.row(1) << "]\n"
+     << "                   [" << quad.J_.row(2) << "]\n"
+     << "motor_omega_min =  [" << quad.motor_omega_min_ << "]\n"
+     << "motor_omega_max =  [" << quad.motor_omega_max_ << "]\n"
+     << "motor_tau_inv =    [" << quad.motor_tau_inv_ << "]\n"
+     << "thrust_map =       [" << quad.thrust_map_.transpose() << "]\n"
+     << "kappa =            [" << quad.kappa_ << "]\n"
+     << "thrust_min =       [" << quad.thrust_min_ << "]\n"
+     << "thrust_max =       [" << quad.thrust_max_ << "]\n"
+     << "omega_max =        [" << quad.omega_max_.transpose() << "]"
+     << std::endl;
+  os.precision();
+  return os;
+}
+
 }  // namespace flightlib

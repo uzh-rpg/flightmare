@@ -1,4 +1,5 @@
 import os
+import shutil
 import re
 import sys
 import platform
@@ -36,9 +37,7 @@ class CMakeBuild(build_ext):
         # required for auto-detection of auxiliary "native" libs
         if not extdir.endswith(os.path.sep):
             extdir += os.path.sep
-        # FLIGHTMARE_PATH = os.environ["FLIGHTMARE_PATH"] + "/flightlib/build"
-        # FLIGHTLIB_PATH = FLIGHTMARE_PATH + "/flightlib" 
-        # FLIGHTLIB_BUILD_PATH = FLIGHTLIB_PATH + "/build" 
+        FLIGHTLIB_EXTERNAL_FILES = os.environ["FLIGHTMARE_PATH"] + "/flightlib/externals/"
         cmake_args = ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + extdir,
                       '-DPYTHON_EXECUTABLE=' + sys.executable]
 

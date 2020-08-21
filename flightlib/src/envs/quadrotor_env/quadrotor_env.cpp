@@ -24,6 +24,8 @@ QuadrotorEnv::QuadrotorEnv(const std::string &cfg_path)
   QuadrotorDynamics dynamics;
   dynamics.updateParams(cfg_);
   quadrotor_.updateDynamics(dynamics);
+
+  // define a bounding box
   world_box_ << -10, 10, -10, 10, 0, 10;
   quadrotor_.setWorldBox(world_box_);
 
@@ -45,8 +47,8 @@ bool QuadrotorEnv::reset(Ref<Vector<>> obs, const bool random) {
     // reset position
     quad_state_.x(QS::POSX) = uniform_dist_(random_gen_);
     quad_state_.x(QS::POSY) = uniform_dist_(random_gen_);
-    quad_state_.x(QS::POSZ) = uniform_dist_(random_gen_);
-    if (quad_state_.x(QS::POSZ) < -1.0)
+    quad_state_.x(QS::POSZ) = uniform_dist_(random_gen_) + 5;
+    if (quad_state_.x(QS::POSZ) < -0.0)
       quad_state_.x(QS::POSZ) = -quad_state_.x(QS::POSZ);
     // reset linear velocity
     quad_state_.x(QS::VELX) = uniform_dist_(random_gen_);
@@ -64,8 +66,9 @@ bool QuadrotorEnv::reset(Ref<Vector<>> obs, const bool random) {
 
   // reset control command
   cmd_.t = 0.0;
-  cmd_.collective_thrust = 0.0;
-  cmd_.omega = Vector<3>::Zero();
+  cmd_.thrusts.setZero();
+  // cmd_.collective_thrust = 0.0;
+  // cmd_.omega = Vector<3>::Zero();
 
   // obtain observations
   getObs(obs);
@@ -75,7 +78,7 @@ bool QuadrotorEnv::reset(Ref<Vector<>> obs, const bool random) {
 bool QuadrotorEnv::getObs(Ref<Vector<>> obs) {
   quadrotor_.getState(&quad_state_);
 
-  //
+  // convert quaternion to euler angle
   Vector<3> euler;
   quaternionToEuler(quad_state_.q(), euler);
   quad_obs_ << quad_state_.p, euler, quad_state_.v;
@@ -87,8 +90,9 @@ bool QuadrotorEnv::getObs(Ref<Vector<>> obs) {
 Scalar QuadrotorEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs) {
   quad_act_ = act.cwiseProduct(act_std_) + act_mean_;
   cmd_.t += sim_dt_;
-  cmd_.collective_thrust = quad_act_(0);
-  cmd_.omega = quad_act_.segment<3>(CtlObsAct::kOmegaX);
+  // cmd_.collective_thrust = quad_act_(0);
+  // cmd_.omega = quad_act_.segment<3>(CtlObsAct::kOmegaX);
+  cmd_.thrusts = quad_act_;
 
   // simulate quadrotor
   quadrotor_.run(cmd_, sim_dt_);
@@ -166,6 +170,23 @@ bool QuadrotorEnv::getAct(Command *const cmd) const {
 
 void QuadrotorEnv::addObjectsToUnity(std::shared_ptr<UnityBridge> bridge) {
   bridge->addQuadrotor(&quadrotor_);
+}
+
+std::ostream &operator<<(std::ostream &os, const QuadrotorEnv &quad_env) {
+  os.precision(3);
+  os << "Quadrotor Environment:\n"
+     << "obs dim =            [" << quad_env.obs_dim_ << "]\n"
+     << "act dim =            [" << quad_env.act_dim_ << "]\n"
+     << "sim dt =             [" << quad_env.sim_dt_ << "]\n"
+     << "act_mean =           [" << quad_env.act_mean_.transpose() << "]\n"
+     << "act_std =            [" << quad_env.act_std_.transpose() << "]\n"
+     << "obs_mean =           [" << quad_env.obs_mean_.transpose() << "]\n"
+     << "obs_std =            [" << quad_env.obs_std_.transpose() << "]\n"
+     << "Q =                  [" << quad_env.Q_.diagonal().transpose() << "]\n"
+     << "Q_act =              [" << quad_env.Q_act_.diagonal().transpose()
+     << "]" << std::endl;
+  os.precision();
+  return os;
 }
 
 }  // namespace flightlib

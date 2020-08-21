@@ -7,7 +7,7 @@
 
 using namespace flightlib;
 
-static constexpr Scalar MASS = 1.0;
+static constexpr Scalar MASS = 1.2;
 static constexpr Scalar ARM_LENGTH = 0.25;
 
 TEST(QuadrotorDynamics, Constructor) {
@@ -97,5 +97,16 @@ TEST(QuadrotorDynamics, LoadParams) {
                          std::string("/flightlib/configs/quadrotor_env.yaml");
 
   YAML::Node cfg = YAML::LoadFile(cfg_path);
+  const Scalar mass = cfg["quadrotor_dynamics"]["mass"].as<Scalar>();
+  const Scalar arm_l = cfg["quadrotor_dynamics"]["arm_l"].as<Scalar>();
+  const Scalar motor_tau_inv =
+    (1.0 / cfg["quadrotor_dynamics"]["motor_tau"].as<Scalar>());
+
   EXPECT_TRUE(quad.updateParams(cfg));
+  EXPECT_EQ(mass, quad.getMass());
+  EXPECT_EQ(arm_l, quad.getArmLength());
+  EXPECT_EQ(motor_tau_inv, quad.getMotorTauInv());
+
+  //
+  std::cout << quad << std::endl;
 }

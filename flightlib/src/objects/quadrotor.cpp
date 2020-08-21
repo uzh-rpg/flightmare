@@ -3,7 +3,10 @@
 namespace flightlib {
 
 Quadrotor::Quadrotor(const std::string &cfg_path)
-  : size_(1.0, 1.0, 1.0), collision_(false) {
+  : world_box_((Matrix<3, 2>() << -100, 100, -100, 100, -100, 100).finished()),
+    size_(1.0, 1.0, 1.0),
+    collision_(false) {
+  //
   YAML::Node cfg = YAML::LoadFile(cfg_path);
 
   // create quadrotor dynamics and update the parameters
@@ -15,7 +18,11 @@ Quadrotor::Quadrotor(const std::string &cfg_path)
 }
 
 Quadrotor::Quadrotor(const QuadrotorDynamics &dynamics)
-  : dynamics_(dynamics), size_(1.0, 1.0, 1.0), collision_(false) {
+  : world_box_((Matrix<3, 2>() << -100, 100, -100, 100, -100, 100).finished()),
+    dynamics_(dynamics),
+    size_(1.0, 1.0, 1.0),
+    collision_(false) {
+  // reset
   updateDynamics(dynamics_);
   reset();
 }
