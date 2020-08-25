@@ -26,7 +26,7 @@ QuadrotorEnv::QuadrotorEnv(const std::string &cfg_path)
   quadrotor_.updateDynamics(dynamics);
 
   // define a bounding box
-  world_box_ << -10, 10, -10, 10, 0, 10;
+  world_box_ << -20, 20, -20, 20, 0, 20;
   quadrotor_.setWorldBox(world_box_);
 
   // define input and output dimension for the environment
@@ -66,9 +66,9 @@ bool QuadrotorEnv::reset(Ref<Vector<>> obs, const bool random) {
 
   // reset control command
   cmd_.t = 0.0;
-  cmd_.thrusts.setZero();
-  // cmd_.collective_thrust = 0.0;
-  // cmd_.omega = Vector<3>::Zero();
+  // cmd_.thrusts.setZero();
+  cmd_.collective_thrust = 0.0;
+  cmd_.omega = Vector<3>::Zero();
 
   // obtain observations
   getObs(obs);
@@ -90,9 +90,8 @@ bool QuadrotorEnv::getObs(Ref<Vector<>> obs) {
 Scalar QuadrotorEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs) {
   quad_act_ = act.cwiseProduct(act_std_) + act_mean_;
   cmd_.t += sim_dt_;
-  // cmd_.collective_thrust = quad_act_(0);
-  // cmd_.omega = quad_act_.segment<3>(CtlObsAct::kOmegaX);
-  cmd_.thrusts = quad_act_;
+  cmd_.collective_thrust = quad_act_(0);
+  cmd_.omega = quad_act_.segment<3>(CtlObsAct::kOmegaX);
 
   // simulate quadrotor
   quadrotor_.run(cmd_, sim_dt_);
@@ -106,7 +105,12 @@ Scalar QuadrotorEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs) {
   Scalar act_reward =
     (quad_act_ - act_mean_).transpose() * Q_act_ * (quad_act_ - act_mean_);
 
-  return stage_reward + act_reward;
+  Scalar total_reward = stage_reward + act_reward;
+
+  if (quad_state_.p(QS::POSZ) <= 0.02) {
+    total_reward -= 0.02;
+  }
+  return total_reward;
 }
 
 bool QuadrotorEnv::isTerminalState(Scalar &reward) {

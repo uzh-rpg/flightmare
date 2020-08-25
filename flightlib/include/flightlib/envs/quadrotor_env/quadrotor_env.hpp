@@ -86,10 +86,10 @@ class QuadrotorEnv final : public EnvBase {
   Vector<CtlObsAct::kObsSize> goal_state_;
 
   // action and observation normalization (for learning)
-  // Vector<CtlObsAct::kActSize> act_mean_{-Gz, 0.0, 0.0, 0.0};
-  // Vector<CtlObsAct::kActSize> act_std_{10.0, 6.0, 6.0, 6.0};
-  Vector<CtlObsAct::kActSize> act_mean_{2.5, 2.5, 2.5, 2.5};
-  Vector<CtlObsAct::kActSize> act_std_{6.0, 6.0, 6.0, 6.0};
+  Vector<CtlObsAct::kActSize> act_mean_{-Gz, 0.0, 0.0, 0.0};
+  Vector<CtlObsAct::kActSize> act_std_{10.0, 6.0, 6.0, 6.0};
+  // Vector<CtlObsAct::kActSize> act_mean_{2.5, 2.5, 2.5, 2.5};
+  // Vector<CtlObsAct::kActSize> act_std_{6.0, 6.0, 6.0, 6.0};
   Vector<CtlObsAct::kObsSize> obs_mean_ = Vector<CtlObsAct::kObsSize>::Zero();
   Vector<CtlObsAct::kObsSize> obs_std_ = Vector<CtlObsAct::kObsSize>::Ones();
 

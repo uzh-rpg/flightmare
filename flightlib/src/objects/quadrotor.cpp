@@ -172,7 +172,7 @@ bool Quadrotor::constrainInWorldBox(const QuadState &old_state) {
     state_.x(QS::POSZ) = old_state.x(QS::POSZ);
 
     // reset velocity to zero
-    state_.v << 0.0, 0.0, 0.0;
+    state_.v.segment(QS::VEL, QS::NVEL - 1) << 0.0, 0.0;
     // reset acceleration to zero
     state_.a << 0.0, 0.0, 0.0;
     // reset angular velocity to zero
