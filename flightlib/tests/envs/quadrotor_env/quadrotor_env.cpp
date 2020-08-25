@@ -98,24 +98,24 @@ TEST(QuadrotorEnv, StepEnv) {
   Scalar reward = env.step(act, next_obs);
 
   // check control command
-  // Command cmd;
-  // EXPECT_TRUE(env.getAct(&cmd));
-  // if (cmd.isRatesThrust()) {
-  //   EXPECT_EQ(cmd.collective_thrust, -Gz);
-  //   EXPECT_TRUE(cmd.omega.allFinite());
-  // } else if (cmd.isSingleRotorThrusts()) {
-  //   // TODO: Not tested yet.
-  //   EXPECT_TRUE(cmd.thrusts.allFinite());
-  // }
+  Command cmd;
+  EXPECT_TRUE(env.getAct(&cmd));
+  if (cmd.isRatesThrust()) {
+    EXPECT_EQ(cmd.collective_thrust, -Gz);
+    EXPECT_TRUE(cmd.omega.allFinite());
+  } else if (cmd.isSingleRotorThrusts()) {
+    // TODO: Not tested yet.
+    EXPECT_TRUE(cmd.thrusts.allFinite());
+  }
 
-  // Vector<ACT_DIM> executed_act;
-  // EXPECT_TRUE(env.getAct(executed_act));
+  Vector<ACT_DIM> executed_act;
+  EXPECT_TRUE(env.getAct(executed_act));
 
-  // for (int i = 0; i < SIM_STEPS_N; i++) {
-  //   reward = env.step(act, next_obs);
-  // }
+  for (int i = 0; i < SIM_STEPS_N; i++) {
+    reward = env.step(act, next_obs);
+  }
 
-  // std::cout << reward << std::endl;
+  std::cout << reward << std::endl;
   // in case this failed, decrease motor_tau in the Quadrotor class.
   // EXPECT_TRUE(((next_obs - obs).norm() < 1.0));
 }

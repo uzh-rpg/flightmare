@@ -97,7 +97,7 @@ bool VecEnv<EnvBase>::step(Ref<MatrixRowMajor<>> act, Ref<MatrixRowMajor<>> obs,
     perAgentStep(i, act, obs, reward, done, extra_info);
   }
 
-  if (unity_render_) {
+  if (unity_render_ && unity_ready_) {
     unity_bridge_->getRender(0);
     unity_bridge_->handleOutput(unity_output_);
   }
