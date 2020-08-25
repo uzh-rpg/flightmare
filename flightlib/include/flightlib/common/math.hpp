@@ -37,12 +37,12 @@ void insert(const Matrix<>& from, Matrix<>* const into,
 
 void quaternionToEuler(const Quaternion& quat, Ref<Vector<3>> euler);
 
-std::vector<Scalar> ros2UnityTransformation(const Matrix<4>& ros_tran_mat);
+std::vector<Scalar> transformationRos2Unity(const Matrix<4>& ros_tran_mat);
 
-std::vector<Scalar> ros2UnityPosition(const Vector<3>& ros_pos_vec);
+std::vector<Scalar> positionRos2Unity(const Vector<3>& ros_pos_vec);
 
-std::vector<Scalar> ros2UnityQuaternion(const Quaternion& ros_quat);
+std::vector<Scalar> quaternionRos2Unity(const Quaternion& ros_quat);
 
-std::vector<Scalar> ros2UnityScalar(const Vector<3>& ros_size);
+std::vector<Scalar> scalarRos2Unity(const Vector<3>& ros_scale);
 
 }  // namespace flightlib

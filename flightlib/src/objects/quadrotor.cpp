@@ -2,9 +2,28 @@
 
 namespace flightlib {
 
+Quadrotor::Quadrotor(const std::string &cfg_path)
+  : world_box_((Matrix<3, 2>() << -100, 100, -100, 100, -100, 100).finished()),
+    size_(1.0, 1.0, 1.0),
+    collision_(false) {
+  //
+  YAML::Node cfg = YAML::LoadFile(cfg_path);
+
+  // create quadrotor dynamics and update the parameters
+  dynamics_.updateParams(cfg);
+
+  // reset
+  updateDynamics(dynamics_);
+  reset();
+}
+
 Quadrotor::Quadrotor(const QuadrotorDynamics &dynamics)
-  : dynamics_(dynamics), size_(1.0, 1.0, 1.0), collision_(false) {
-  updateDynamics(dynamics);
+  : world_box_((Matrix<3, 2>() << -100, 100, -100, 100, -100, 100).finished()),
+    dynamics_(dynamics),
+    size_(1.0, 1.0, 1.0),
+    collision_(false) {
+  // reset
+  updateDynamics(dynamics_);
   reset();
 }
 
@@ -19,6 +38,7 @@ bool Quadrotor::run(const Scalar ctl_dt) {
   if (!state_.valid()) return false;
   if (!cmd_.valid()) return false;
 
+  QuadState old_state = state_;
   QuadState next_state = state_;
   const Scalar max_dt = integrator_ptr_->dtMax();
   Scalar remain_ctl_dt = ctl_dt;
@@ -37,7 +57,7 @@ bool Quadrotor::run(const Scalar ctl_dt) {
 
     // Compute linear acceleration and body torque
     const Vector<3> force(0.0, 0.0, force_torques[0]);
-    state_.a = state_.R() * force / dynamics_.mass() + gz_;
+    state_.a = state_.R() * force / dynamics_.getMass() + gz_;
     state_.tau << force_torques.segment<3>(1);
 
     integrator_ptr_->step(state_.x, sim_dt, next_state.x);
@@ -47,6 +67,7 @@ bool Quadrotor::run(const Scalar ctl_dt) {
   }
 
   state_.t += ctl_dt;
+  constrainInWorldBox(old_state);
   return true;
 }
 
@@ -67,13 +88,13 @@ bool Quadrotor::reset(const QuadState &state) {
 
 Vector<4> Quadrotor::runFlightCtl(const Scalar sim_dt, const Vector<3> &omega,
                                   const Command &command) {
-  const Scalar force = dynamics_.mass() * command.collective_thrust;
+  const Scalar force = dynamics_.getMass() * command.collective_thrust;
 
   const Vector<3> omega_err = command.omega - omega;
 
   const Vector<3> body_torque_des =
-    dynamics_.J() * Kinv_ang_vel_tau_ * omega_err +
-    state_.w.cross(dynamics_.J() * state_.w);
+    dynamics_.getJ() * Kinv_ang_vel_tau_ * omega_err +
+    state_.w.cross(dynamics_.getJ() * state_.w);
 
   const Vector<4> thrust_and_torque(force, body_torque_des.x(),
                                     body_torque_des.y(), body_torque_des.z());
@@ -91,7 +112,7 @@ void Quadrotor::runMotors(const Scalar sim_dt,
     dynamics_.clampMotorOmega(motor_omega_des);
 
   // simulate motors as a first-order system
-  const Scalar c = std::exp(-sim_dt * dynamics_.motor_tau_inv());
+  const Scalar c = std::exp(-sim_dt * dynamics_.getMotorTauInv());
   motor_omega_ = c * motor_omega_ + (1.0 - c) * motor_omega_clamped;
 
   motor_thrusts_ = dynamics_.motorOmegaToThrust(motor_omega_);
@@ -115,9 +136,50 @@ bool Quadrotor::setCommand(const Command &cmd) {
 
 bool Quadrotor::setState(const QuadState &state) {
   if (!state.valid()) return false;
-
   state_ = state;
   return true;
+}
+
+bool Quadrotor::setWorldBox(const Ref<Matrix<3, 2>> box) {
+  if (box(0, 0) >= box(0, 1) || box(1, 0) >= box(1, 1) ||
+      box(2, 0) >= box(2, 1)) {
+    return false;
+  }
+  world_box_ = box;
+}
+
+
+bool Quadrotor::constrainInWorldBox(const QuadState &old_state) {
+  if (!old_state.valid()) return false;
+
+  // violate world box constraint in the x-axis
+  if (state_.x(QS::POSX) < world_box_(0, 0) ||
+      state_.x(QS::POSX) > world_box_(0, 1)) {
+    state_.x(QS::POSX) = old_state.x(QS::POSX);
+    state_.x(QS::VELX) = 0.0;
+  }
+
+  // violate world box constraint in the y-axis
+  if (state_.x(QS::POSY) < world_box_(1, 0) ||
+      state_.x(QS::POSY) > world_box_(1, 1)) {
+    state_.x(QS::POSY) = old_state.x(QS::POSY);
+    state_.x(QS::VELY) = 0.0;
+  }
+
+  // violate world box constraint in the x-axis
+  if (state_.x(QS::POSZ) < world_box_(2, 0) ||
+      state_.x(QS::POSZ) > world_box_(2, 1)) {
+    state_.x(QS::POSZ) = old_state.x(QS::POSZ);
+
+    // reset velocity to zero
+    state_.x(QS::VELX) = 0.0;
+    state_.x(QS::VELY) = 0.0;
+
+    // reset acceleration to zero
+    state_.a << 0.0, 0.0, 0.0;
+    // reset angular velocity to zero
+    state_.w << 0.0, 0.0, 0.0;
+  }
 }
 
 bool Quadrotor::getState(QuadState *const state) const {
@@ -143,10 +205,11 @@ bool Quadrotor::getDynamics(QuadrotorDynamics *const dynamics) const {
   return true;
 }
 
-const QuadrotorDynamics &Quadrotor::getDynamics() const { return dynamics_; }
+const QuadrotorDynamics &Quadrotor::getDynamics() { return dynamics_; }
 
 bool Quadrotor::updateDynamics(const QuadrotorDynamics &dynamics) {
   if (!dynamics.valid()) {
+    std::cout << "[Quadrotor] dynamics is not valid!" << std::endl;
     return false;
   }
   dynamics_ = dynamics;
@@ -158,8 +221,21 @@ bool Quadrotor::updateDynamics(const QuadrotorDynamics &dynamics) {
   return true;
 }
 
-Vector<3> Quadrotor::getSize(void) { return size_; }
+Vector<3> Quadrotor::getSize(void) const { return size_; }
 
-Vector<3> Quadrotor::getPosition(void) { return size_; }
+Vector<3> Quadrotor::getPosition(void) const { return state_.p; }
+
+std::vector<RGBCamera *> Quadrotor::getCameras(void) const {
+  return rgb_cameras_;
+};
+
+bool Quadrotor::getCamera(const size_t cam_id, RGBCamera *camera) {
+  if (cam_id <= rgb_cameras_.size()) {
+    return false;
+  }
+
+  camera = rgb_cameras_[cam_id];
+  return true;
+}
 
 }  // namespace flightlib

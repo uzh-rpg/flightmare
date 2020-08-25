@@ -3,33 +3,50 @@
 namespace flightlib {
 
 template<typename EnvBase>
-VecEnv<EnvBase>::VecEnv(const std::string cfg_path) {
+VecEnv<EnvBase>::VecEnv()
+  : VecEnv(getenv("FLIGHTMARE_PATH") +
+           std::string("/flightlib/configs/vec_env.yaml")) {}
+
+template<typename EnvBase>
+VecEnv<EnvBase>::VecEnv(const YAML::Node& cfg_node) : cfg_(cfg_node) {
+  // initialization
+  init();
+}
+
+template<typename EnvBase>
+VecEnv<EnvBase>::VecEnv(const std::string& cfgs, const bool from_file) {
   // load environment configuration
-  cfg_ = YAML::Load(cfg_path);
+  if (from_file) {
+    // load directly from a yaml file
+    cfg_ = YAML::LoadFile(cfgs);
+  } else {
+    // load from a string or dictionary
+    cfg_ = YAML::Load(cfgs);
+  }
 
-  // logger
-  logger_ = std::make_unique<Logger>("VecEnv");
+  // initialization
+  init();
+}
 
+template<typename EnvBase>
+void VecEnv<EnvBase>::init(void) {
   //
-  if (cfg_["env"]["render"])
-    unity_render_ = cfg_["env"]["render"].template as<bool>();
-  logger_->info("environment created.");
+  unity_render_ = cfg_["env"]["render"].as<bool>();
+  seed_ = cfg_["env"]["seed"].as<int>();
+  num_envs_ = cfg_["env"]["num_envs"].as<int>();
+  scene_id_ = cfg_["env"]["scene_id"].as<SceneID>();
 
-  omp_set_num_threads(cfg_["env"]["num_threads"].template as<int>());
-  num_envs_ = cfg_["env"]["num_envs"].template as<int>();
+  // set threads
+  omp_set_num_threads(cfg_["env"]["num_threads"].as<int>());
 
   // create & setup environments
   const bool render = false;
   for (int i = 0; i < num_envs_; i++) {
     envs_.push_back(std::make_unique<EnvBase>());
-    // disable rendering for all environment
-    envs_.back()->setFlightmare(render);
   }
 
-  if (unity_render_) {
-    // enable rendering for only one environment
-    envs_[0]->setFlightmare(unity_render_);
-  }
+  // set Unity
+  setUnity(unity_render_);
 
   obs_dim_ = envs_[0]->getObsDim();
   act_dim_ = envs_[0]->getActDim();
@@ -40,28 +57,51 @@ VecEnv<EnvBase>::VecEnv(const std::string cfg_path) {
   for (auto& re : envs_[0]->extra_info_) {
     extra_info_names_.push_back(re.first);
   }
-
-  std::cout << "Vec Env" << std::endl;
 }
 
 template<typename EnvBase>
 VecEnv<EnvBase>::~VecEnv() {}
 
 template<typename EnvBase>
-void VecEnv<EnvBase>::reset(Ref<MatrixRowMajor<>> obs) {
+bool VecEnv<EnvBase>::reset(Ref<MatrixRowMajor<>> obs) {
+  if (obs.rows() != num_envs_ || obs.cols() != obs_dim_) {
+    logger_.error(
+      "Input matrix dimensions do not match with that of the environment.");
+    return false;
+  }
+
+  receive_id_ = 0;
   for (int i = 0; i < num_envs_; i++) {
     envs_[i]->reset(obs.row(i));
   }
+  return true;
 }
 
 template<typename EnvBase>
-void VecEnv<EnvBase>::step(Ref<MatrixRowMajor<>> act, Ref<MatrixRowMajor<>> obs,
+bool VecEnv<EnvBase>::step(Ref<MatrixRowMajor<>> act, Ref<MatrixRowMajor<>> obs,
                            Ref<Vector<>> reward, Ref<BoolVector<>> done,
                            Ref<MatrixRowMajor<>> extra_info) {
+  if (act.rows() != num_envs_ || act.cols() != act_dim_ ||
+      obs.rows() != num_envs_ || obs.cols() != obs_dim_ ||
+      reward.rows() != num_envs_ || reward.cols() != 1 ||
+      done.rows() != num_envs_ || done.cols() != 1 ||
+      extra_info.rows() != num_envs_ ||
+      extra_info.cols() != extra_info_names_.size()) {
+    logger_.error(
+      "Input matrix dimensions do not match with that of the environment.");
+    return false;
+  }
+
 #pragma omp parallel for schedule(dynamic)
   for (int i = 0; i < num_envs_; i++) {
     perAgentStep(i, act, obs, reward, done, extra_info);
   }
+
+  if (unity_render_ && unity_ready_) {
+    unity_bridge_->getRender(0);
+    unity_bridge_->handleOutput(unity_output_);
+  }
+  return true;
 }
 
 template<typename EnvBase>
@@ -115,13 +155,84 @@ void VecEnv<EnvBase>::perAgentStep(int agent_id, Ref<MatrixRowMajor<>> act,
 }
 
 template<typename EnvBase>
+bool VecEnv<EnvBase>::setUnity(bool render) {
+  unity_render_ = render;
+  if (unity_render_ && !unity_bridge_created_) {
+    unity_bridge_ = UnityBridge::getInstance();
+    unity_bridge_->initializeConnections();
+
+    for (int i = 0; i < num_envs_; i++) {
+      envs_[i]->addObjectsToUnity(unity_bridge_);
+    }
+
+    connectUnity();
+    //
+    unity_bridge_created_ = true;
+    logger_.info("Flightmare Unity is ON!");
+  }
+  return true;
+}
+
+template<typename EnvBase>
 void VecEnv<EnvBase>::isTerminalState(Ref<BoolVector<>> terminal_state) {}
 
 template<typename EnvBase>
-void VecEnv<EnvBase>::connectFlightmare(void) {}
+bool VecEnv<EnvBase>::connectUnity(void) {
+  Scalar time_out_count = 0;
+  Scalar sleep_useconds = 0.2 * 1e5;
+  logger_.info("Trying to Connect Unity.");
+  std::cout << "[";
+  while (!unity_ready_) {
+    if (unity_bridge_ != nullptr) {
+      // connect unity
+      unity_bridge_->setScene(scene_id_);
+      unity_ready_ = unity_bridge_->connectUnity();
+    }
+    if (time_out_count / 1e6 > unity_connection_time_out_) {
+      std::cout << "]" << std::endl;
+      logger_.warn(
+        "Unity Connection time out! Make sure that Unity Standalone "
+        "or Unity Editor is running the Flightmare.");
+      return false;
+    }
+    // sleep
+    usleep(sleep_useconds);
+    // incread time out counter
+    time_out_count += sleep_useconds;
+    std::cout << ".";
+    std::cout.flush();
+  }
+  logger_.info("Unity Rendering is connected");
+  return true;
+}
 
 template<typename EnvBase>
-void VecEnv<EnvBase>::disconnectFlightmare(void) {}
+void VecEnv<EnvBase>::disconnectUnity(void) {
+  if (unity_bridge_ != nullptr) {
+    unity_bridge_->disconnectUnity();
+    unity_ready_ = false;
+  } else {
+    logger_.warn("Flightmare Unity Bridge is not initialized.");
+  }
+}
+
+template<typename EnvBase>
+void VecEnv<EnvBase>::curriculumUpdate(void) {
+  for (int i = 0; i < num_envs_; i++) envs_[i]->curriculumUpdate();
+}
+
+// template<typename EnvBase>
+// std::ostream& operator<<(std::ostream& os, const VecEnv<EnvBase>& env) {
+//   os.precision(3);
+//   os << "Vectorized Environment:\n"
+//      << "obs dim =            [" << env.obs_dim_ << "]\n"
+//      << "act dim =            [" << env.act_dim_ << "]\n"
+//      << "num_envs =           [" << env.num_envs_ << "]\n"
+//      << "seed =               [" << env.seed_ << "]\n"
+//      << "scene_id =           [" << env.scene_id_ << std::endl;
+//   os.precision();
+//   return os;
+// }
 
 // IMPORTANT. Otherwise:
 // Segmentation fault (core dumped)

@@ -1,4 +1,3 @@
-// """credit: FlightGoggles """
 #pragma once
 
 // std libs
@@ -8,15 +7,18 @@
 #include <string>
 #include <unordered_map>
 
-// Include ZMQ bindings for comms with Unity.
+// Include ZMQ bindings for communications with Unity.
 #include <zmqpp/zmqpp.hpp>
 
 // flightlib
 #include "flightlib/bridges/unity_message_types.hpp"
 #include "flightlib/common/logger.hpp"
+#include "flightlib/common/math.hpp"
 #include "flightlib/common/quad_state.hpp"
 #include "flightlib/common/types.hpp"
 #include "flightlib/objects/quadrotor.hpp"
+#include "flightlib/objects/unity_camera.hpp"
+#include "flightlib/sensors/rgb_camera.hpp"
 
 using json = nlohmann::json;
 
@@ -34,23 +36,24 @@ class UnityBridge {
   bool disconnectUnity(void);
 
   // public get functions
-  bool getRender(const FrameID &frame_id);
+  bool getRender(const FrameID frame_id);
   bool handleOutput(RenderMessage_t &output);
 
   // public set functions
   bool setScene(const SceneID &scene_id);
 
-  //
+  // add object
   bool addQuadrotor(Quadrotor *quad);
+  bool addCamera(UnityCamera *camera);
 
   // public auxiliary functions
   inline void setPubPort(const std::string &pub_port) { pub_port_ = pub_port; };
   inline void setSubPort(const std::string &sub_port) { sub_port_ = sub_port; };
   // create unity bridge
   static std::shared_ptr<UnityBridge> getInstance(void) {
-    static std::shared_ptr<UnityBridge> bridge_ptr_ =
-      std::shared_ptr<UnityBridge>();
-    return bridge_ptr_;
+    static std::shared_ptr<UnityBridge> bridge_ptr =
+      std::make_shared<UnityBridge>();
+    return bridge_ptr;
   };
 
  private:

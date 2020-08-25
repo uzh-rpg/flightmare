@@ -1,17 +1,22 @@
 #pragma once
 
+#include <yaml-cpp/yaml.h>
+
 // flightlib
 #include "flightlib/common/command.hpp"
 #include "flightlib/common/integrator_rk4.hpp"
 #include "flightlib/common/types.hpp"
 #include "flightlib/dynamics/quadrotor_dynamics.hpp"
 #include "flightlib/objects/object_base.hpp"
+#include "flightlib/sensors/imu.hpp"
+#include "flightlib/sensors/rgb_camera.hpp"
 
 namespace flightlib {
 
 class Quadrotor : ObjectBase {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  Quadrotor(const std::string& cfg_path);
   Quadrotor(const QuadrotorDynamics& dynamics = QuadrotorDynamics(1.0, 0.25));
   ~Quadrotor();
 
@@ -27,18 +32,19 @@ class Quadrotor : ObjectBase {
   bool getState(QuadState* const state) const;
   bool getMotorThrusts(Ref<Vector<4>> motor_thrusts) const;
   bool getMotorOmega(Ref<Vector<4>> motor_omega) const;
-  bool getDynamics(QuadrotorDynamics* const quad_dynamics) const;
-  const QuadrotorDynamics& getDynamics() const;
-  Vector<3> getSize(void);
-  Vector<3> getPosition(void);
-  Quaternion getQuaternion(void);
+  bool getDynamics(QuadrotorDynamics* const dynamics) const;
+
+  const QuadrotorDynamics& getDynamics();
+  Vector<3> getSize(void) const;
+  Vector<3> getPosition(void) const;
+  Quaternion getQuaternion(void) const;
+  std::vector<RGBCamera*> getCameras(void) const;
+  bool getCamera(const size_t cam_id, RGBCamera* const camera);
 
   // public set functions
   bool setState(const QuadState& state);
   bool setCommand(const Command& cmd);
   bool updateDynamics(const QuadrotorDynamics& dynamics);
-  void setSize(const Ref<Vector<3>> size) { size_ = size; };
-  void setCollision(const bool collision) { collision_ = collision; };
 
   // low-level controller
   Vector<4> runFlightCtl(const Scalar sim_dt, const Vector<3>& omega,
@@ -47,10 +53,21 @@ class Quadrotor : ObjectBase {
   // simulate motors
   void runMotors(const Scalar sim_dt, const Vector<4>& motor_thrust_des);
 
+  // constrain world box
+  bool setWorldBox(const Ref<Matrix<3, 2>> box);
+  bool constrainInWorldBox(const QuadState& old_state);
+
+  //
+  inline Scalar getMass(void) { return dynamics_.getMass(); };
+  inline void setSize(const Ref<Vector<3>> size) { size_ = size; };
+  inline void setCollision(const bool collision) { collision_ = collision; };
+
  private:
   // quadrotor dynamics, integrators
   QuadrotorDynamics dynamics_;
+  IMU imu_;
   std::unique_ptr<IntegratorRK4> integrator_ptr_;
+  std::vector<RGBCamera*> rgb_cameras_;
 
   // quad control command
   Command cmd_;
@@ -71,6 +88,9 @@ class Quadrotor : ObjectBase {
     Vector<3>(1.0 / 16.6, 1.0 / 16.6, 1.0 / 5.0).asDiagonal();
   // gravity
   const Vector<3> gz_{0.0, 0.0, Gz};
+
+  // auxiliary variables
+  Matrix<3, 2> world_box_;
 };
 
 }  // namespace flightlib

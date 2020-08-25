@@ -8,8 +8,8 @@
 
 using namespace flightlib;
 
-static constexpr Scalar m = 1.0;
-static constexpr Scalar l = 0.25;
+static constexpr Scalar MASS = 1.0;
+static constexpr Scalar ARM_LENGTH = 0.25;
 
 TEST(Integrators, ManualEulerAccelerationCheck) {
   static constexpr Scalar dt = 1.0;
@@ -19,7 +19,7 @@ TEST(Integrators, ManualEulerAccelerationCheck) {
   QuadState initial;
   initial.setZero();
 
-  const QuadrotorDynamics quad(m, l);
+  const QuadrotorDynamics quad(MASS, ARM_LENGTH);
 
   IntegratorEuler euler(quad.getDynamicsFunction());
 
@@ -43,7 +43,7 @@ TEST(Integrators, ManualRungeKuttaAccelerationCheck) {
   QuadState initial;
   initial.setZero();
 
-  const QuadrotorDynamics quad(m, l);
+  const QuadrotorDynamics quad(MASS, ARM_LENGTH);
 
   IntegratorRK4 rungekutta(quad.getDynamicsFunction());
 
@@ -56,7 +56,7 @@ TEST(Integrators, ManualRungeKuttaAccelerationCheck) {
   QuadState final;
 
   EXPECT_TRUE(rungekutta.integrate(initial.x, dt, final.x));
-  EXPECT_TRUE(final.x.isApprox(expected.x))
+  EXPECT_TRUE(final.x.isApprox(expected.x, 1e-3))
     << "expected state:   " << expected.x.transpose() << "\n"
     << "integrated state: " << final.x.transpose() << "\n";
 }
@@ -67,7 +67,7 @@ TEST(Integrators, QuadStateInterface) {
   QuadState initial;
   initial.setZero();
 
-  const QuadrotorDynamics quad(m, l);
+  const QuadrotorDynamics quad(MASS, ARM_LENGTH);
 
   QuadState int_euler;
   QuadState int_rungekutta;
@@ -94,9 +94,9 @@ TEST(Integrators, CheckEulerAgainstRungeKutta) {
   static constexpr int N = 16;  // Test not too often for speed in debug mode.
   static constexpr Scalar dt = 0.5;
   // Using lower tolerance for check because of accuracy of forward Euler.
-  static constexpr Scalar tol = 1e-3;
+  static constexpr Scalar tol = 1;
 
-  const QuadrotorDynamics quad(m, l);
+  const QuadrotorDynamics quad(MASS, ARM_LENGTH);
   const IntegratorEuler euler(quad.getDynamicsFunction());
   const IntegratorRK4 rungekutta(quad.getDynamicsFunction());
 

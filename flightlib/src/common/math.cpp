@@ -141,7 +141,7 @@ void quaternionToEuler(const Quaternion& quat, Ref<Vector<3>> euler) {
 }
 
 
-std::vector<Scalar> ros2UnityTransformation(const Matrix<4>& ros_tran_mat) {
+std::vector<Scalar> transformationRos2Unity(const Matrix<4>& ros_tran_mat) {
   /// [ Transformation Matrix ] from ROS coordinate system (right hand)
   /// to Unity coordinate system (left hand)
   Matrix<4, 4> tran_mat = Matrix<4, 4>::Zero();
@@ -157,7 +157,7 @@ std::vector<Scalar> ros2UnityTransformation(const Matrix<4>& ros_tran_mat) {
   return unity_tran_mat_vec;
 }
 
-std::vector<Scalar> ros2UnityQuaternion(const Quaternion& ros_quat) {
+std::vector<Scalar> quaternionRos2Unity(const Quaternion& ros_quat) {
   /// [ Quaternion ] from ROS coordinate system (right hand)
   /// to Unity coordinate system (left hand)
   Matrix<3, 3> rot_mat = Matrix<3, 3>::Zero();
@@ -173,7 +173,7 @@ std::vector<Scalar> ros2UnityQuaternion(const Quaternion& ros_quat) {
   return unity_quat_vec;
 }
 
-std::vector<Scalar> ros2UnityPosition(const Vector<3>& ros_pos_vec) {
+std::vector<Scalar> positionRos2Unity(const Vector<3>& ros_pos_vec) {
   /// [ Position Vector ] from ROS coordinate system (right hand)
   /// to Unity coordinate system (left hand)
   std::vector<Scalar> unity_position{ros_pos_vec(0), ros_pos_vec(2),
@@ -181,7 +181,7 @@ std::vector<Scalar> ros2UnityPosition(const Vector<3>& ros_pos_vec) {
   return unity_position;
 }
 
-std::vector<Scalar> ros2UnityScalar(const Vector<3>& ros_scalar) {
+std::vector<Scalar> scalarRos2Unity(const Vector<3>& ros_scalar) {
   /// [ Object Scalar Vector ] from ROS coordinate system (right hand)
   /// to Unity coordinate system (left hand)
   std::vector<Scalar> unity_scalar{ros_scalar(0), ros_scalar(2), ros_scalar(1)};

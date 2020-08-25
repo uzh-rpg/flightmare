@@ -7,7 +7,7 @@ namespace flightlib {
 // ------------ General Stuff-------------
 
 // Define the scalar type used.
-using Scalar = double;
+using Scalar = float;  // numpy float32
 
 // Define frame id for unity
 using FrameID = uint64_t;
@@ -15,7 +15,6 @@ using FrameID = uint64_t;
 // Define frame id for unity
 using SceneID = size_t;
 
-const Scalar Gz = -9.81;
 
 // ------------ Eigen Stuff-------------
 
@@ -23,11 +22,11 @@ const Scalar Gz = -9.81;
 static constexpr int Dynamic = Eigen::Dynamic;
 
 // Using shorthand for `Matrix<ros, cols>` with scalar type.
-template<int rows = Dynamic, int cols = rows>
+template<int rows = Dynamic, int cols = Dynamic>
 using Matrix = Eigen::Matrix<Scalar, rows, cols>;
 
 // Using shorthand for `Matrix<ros, cols>` with scalar type.
-template<int rows = Dynamic, int cols = rows>
+template<int rows = Dynamic, int cols = Dynamic>
 using MatrixRowMajor = Eigen::Matrix<Scalar, rows, cols, Eigen::RowMajor>;
 
 // Using shorthand for `Vector<ros>` with scalar type.
@@ -62,5 +61,8 @@ using Ref = Eigen::Ref<Derived>;
 // Using `Map`.
 template<class Derived>
 using Map = Eigen::Map<Derived>;
+
+static constexpr Scalar Gz = -9.81;
+const Vector<3> GVEC{0.0, 0.0, Gz};
 
 }  // namespace flightlib

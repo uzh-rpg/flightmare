@@ -27,6 +27,7 @@ if(EIGEN_FROM_SYSTTEM)
   find_package(Eigen3 3.3.4 QUIET)
   if(EIGEN3_FOUND)
     message(STATUS "Using system provided Eigen.")
+    message(${EIGEN3_INCLUDE_DIR})
   else()
     message(STATUS "No sufficient Eigen version (3.3.4) found.")
     message(STATUS "Restoring to download Eigen sources.")
@@ -37,6 +38,8 @@ elseif(EIGEN_ALTERNATIVE STREQUAL "")
 else()
   set(EIGEN_INCLUDE_DIR ${EIGEN_ALTERNATIVE})
 endif()
+
+message(STATUS "Eigen3 include dir: ${EIGEN3_INCLUDE_DIR}")
 
 # Including dependencies 
 include(cmake/pybind11.cmake)
@@ -89,8 +92,8 @@ if (NOT EXISTS ${CMAKE_BINARY_DIR}/CMakeCache.txt)
 endif()
 
 # Add c++ flags 
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -fPIC -Wall -DNDEBUG")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -fPIC -Wall -g ")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -fPIC -Wall -DNDEBUG  -fopenmp")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -fPIC -Wall -g -fopenmp")
 set(CMAKE_CXX_STANDARD 17)
 
 # Architectural flags
@@ -112,13 +115,6 @@ else()
   set(CMAKE_CXX_FAST_FLAGS " -O0")
 endif()
 
-# Parallelization Flags
-if(ENABLE_PARALLEL)
-  message(STATUS "Enabling parallelization!")
-  set(CMAKE_CXX_PAR_FLAGS " -fopenmp")
-else()
-  set(CMAKE_CXX_PAR_FLAGS " -DEIGEN_DONT_PARALLELIZE")
-endif()
 
 # BLAS Flags
 if(BLAS_FOUND AND LAPACK_FOUND)
@@ -130,7 +126,7 @@ endif()
 
 # Summarize Flags
 set(CMAKE_CXX_FLAGS_RELEASE
-  "${CMAKE_CXX_FLAGS_RELEASE} ${CMAKE_CXX_FAST_FLAGS} ${CMAKE_CXX_ARCH_FLAGS} ${CMAKE_CXX_PAR_FLAGS} ${CMAKE_CXX_BLAS_FLAGS}")
+  "${CMAKE_CXX_FLAGS_RELEASE} ${CMAKE_CXX_FAST_FLAGS} ${CMAKE_CXX_ARCH_FLAGS} ${CMAKE_CXX_PAR_FLAGS}")
 string(REPLACE "-DNDEBUG" "" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
 message(STATUS "The activated CXX RELEASE configuration is:\n ${CMAKE_CXX_FLAGS_RELEASE}")
 message(STATUS "The activated CXX DEBUG configuration is:\n ${CMAKE_CXX_FLAGS_DEBUG}")
@@ -198,7 +194,10 @@ if(NOT FLIGHTLIB_SOURCES)
 	set(LIBRARY_NAME)
 else()
   # flightlib
-	add_library(${PROJECT_NAME} ${FLIGHTLIB_SOURCES})
+  add_library(${PROJECT_NAME} ${FLIGHTLIB_SOURCES})
+  # target_include_directories(${PROJECT_NAME} PRIVATE
+  #   ${PROJECT_SOURCE_DIR}/externals/pybind11-src/include
+  # )
   target_link_libraries(${PROJECT_NAME} PRIVATE
     ${OpenCV_LIBRARIES}
     yaml-cpp
@@ -212,10 +211,20 @@ if(FLIGHTLIB_GYM_SOURCES)
   # flightlib_gym (python3 binding with Pybind11)
   pybind11_add_module(flightgym MODULE 
     ${FLIGHTLIB_GYM_SOURCES})
-  target_include_directories(flightgym PRIVATE
-    ${PROJECT_SOURCE_DIR}/externals/pybind11-src/include
-    ${PROJECT_SOURCE_DIR}/include)
-  target_link_libraries(flightgym PRIVATE ${LIBRARY_NAME})
+  if(EIGEN3_FOUND)
+    target_include_directories(flightgym PRIVATE
+      # ${PROJECT_SOURCE_DIR}/externals/pybind11-src/include
+      ${PYBIND11_INCLUDE_DIR}
+      ${PROJECT_SOURCE_DIR}/include
+      ${EIGEN3_INCLUDE_DIR})  
+  else()
+    target_include_directories(flightgym PRIVATE
+      # ${PROJECT_SOURCE_DIR}/externals/pybind11-src/include
+      ${PYBIND11_INCLUDE_DIR}
+      ${PROJECT_SOURCE_DIR}/externals/eigen/eigen3 #pybind11 use #include <Eigen/Core>, however, flightmare use #include <eigen3/Eigen/Core>
+      ${PROJECT_SOURCE_DIR}/include)  
+  endif()
+  target_link_libraries(flightgym PRIVATE ${LIBRARY_NAME} )
 endif()
 
 if(ENABLE_BLAS AND BLAS_FOUND AND LAPACK_FOUND)

@@ -1,0 +1,6 @@
+env:
+  seed: 1
+  scene_id: 0  # 0 warehouse, 1 garage, 3 natureforest
+  num_envs: 100
+  num_threads: 10 
+  render: no 

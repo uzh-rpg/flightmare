@@ -3,3 +3,4 @@
 # Except this file
 !.gitignore
 !.clang-format
+!setup.py

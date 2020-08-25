@@ -1,5 +1,10 @@
 #pragma once
 
+#include <yaml-cpp/yaml.h>
+#include <iostream>
+#include <memory>
+
+#include "flightlib/common/logger.hpp"
 #include "flightlib/common/math.hpp"
 #include "flightlib/common/quad_state.hpp"
 #include "flightlib/dynamics/dynamics_base.hpp"
@@ -7,10 +12,9 @@
 namespace flightlib {
 
 class QuadrotorDynamics : DynamicsBase {
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
  public:
-  QuadrotorDynamics(const Scalar mass, const Scalar arm_l);
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  QuadrotorDynamics(const Scalar mass = 1.0, const Scalar arm_l = 0.2);
   ~QuadrotorDynamics();
 
   // dynamics function
@@ -23,6 +27,8 @@ class QuadrotorDynamics : DynamicsBase {
 
   // help functions
   bool valid() const;
+  bool updateParams(const YAML::Node& params);
+
   // Helpers to apply limits.
   Vector<4> clampThrust(const Vector<4> thrusts) const;
   Scalar clampThrust(const Scalar thrust) const;
@@ -39,13 +45,23 @@ class QuadrotorDynamics : DynamicsBase {
   Matrix<4, 4> getAllocationMatrix() const;
 
   //
-  inline Scalar mass(void) { return mass_; }
-  inline Scalar motor_tau_inv() { return motor_tau_inv_; }
-  inline Matrix<3, 3> J(void) { return J_; }
-  inline Matrix<3, 3> J_inv(void) { return J_inv_; }
+  inline Scalar getMass(void) { return mass_; };
+  inline Scalar getArmLength(void) { return arm_l_; };
+  inline Scalar getMotorTauInv() { return motor_tau_inv_; };
+  inline Matrix<3, 3> getJ(void) { return J_; };
+  inline Matrix<3, 3> getJInv(void) { return J_inv_; };
+
+  bool setMass(const Scalar mass);
+  bool setArmLength(const Scalar arm_length);
+  bool setMotortauInv(const Scalar tau_inv);
+
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const QuadrotorDynamics& quad_dymaics);
 
  private:
+  bool updateInertiaMarix();
   Scalar mass_;
+  Scalar arm_l_;
   Matrix<3, 4> t_BM_;
   Matrix<3, 3> J_;
   Matrix<3, 3> J_inv_;
