@@ -223,4 +223,17 @@ Vector<3> Quadrotor::getSize(void) const { return size_; }
 
 Vector<3> Quadrotor::getPosition(void) const { return state_.p; }
 
+std::vector<RGBCamera *> Quadrotor::getCameras(void) const {
+  return rgb_cameras_;
+};
+
+bool Quadrotor::getCamera(const size_t cam_id, RGBCamera *camera) {
+  if (cam_id <= rgb_cameras_.size()) {
+    return false;
+  }
+
+  camera = rgb_cameras_[cam_id];
+  return true;
+}
+
 }  // namespace flightlib

@@ -110,15 +110,12 @@ TEST(QuadrotorEnv, StepEnv) {
 
   Vector<ACT_DIM> executed_act;
   EXPECT_TRUE(env.getAct(executed_act));
-  std::cout << "Executed Action: " << executed_act << std::endl;
 
   for (int i = 0; i < SIM_STEPS_N; i++) {
     reward = env.step(act, next_obs);
   }
+
+  std::cout << reward << std::endl;
   // in case this failed, decrease motor_tau in the Quadrotor class.
   // EXPECT_TRUE(((next_obs - obs).norm() < 1.0));
-
-  //
-  std::cout << (next_obs - obs).norm() << std::endl;
-  std::cout << "Reward : " << reward << std::endl;
 }

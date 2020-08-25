@@ -180,21 +180,29 @@ template<typename EnvBase>
 bool VecEnv<EnvBase>::connectUnity(void) {
   Scalar time_out_count = 0;
   Scalar sleep_useconds = 0.2 * 1e5;
+  logger_.info("Trying to Connect Unity.");
+  std::cout << "[";
   while (!unity_ready_) {
     if (unity_bridge_ != nullptr) {
       // connect unity
       unity_bridge_->setScene(scene_id_);
       unity_ready_ = unity_bridge_->connectUnity();
     }
-    if (unity_ready_ || time_out_count / 1e6 > unity_connection_time_out_) {
-      logger_.error("Flightmare Unity connection time out!");
-      break;
+    if (time_out_count / 1e6 > unity_connection_time_out_) {
+      std::cout << "]" << std::endl;
+      logger_.warn(
+        "Unity Connection time out! Make sure that Unity Standalone "
+        "or Unity Editor is running the Flightmare.");
+      return false;
     }
     // sleep
-    usleep(0.2 * 1e5);
+    usleep(sleep_useconds);
     // incread time out counter
     time_out_count += sleep_useconds;
+    std::cout << ".";
+    std::cout.flush();
   }
+  logger_.info("Unity Rendering is connected");
   return true;
 }
 
@@ -212,6 +220,19 @@ template<typename EnvBase>
 void VecEnv<EnvBase>::curriculumUpdate(void) {
   for (int i = 0; i < num_envs_; i++) envs_[i]->curriculumUpdate();
 }
+
+// template<typename EnvBase>
+// std::ostream& operator<<(std::ostream& os, const VecEnv<EnvBase>& env) {
+//   os.precision(3);
+//   os << "Vectorized Environment:\n"
+//      << "obs dim =            [" << env.obs_dim_ << "]\n"
+//      << "act dim =            [" << env.act_dim_ << "]\n"
+//      << "num_envs =           [" << env.num_envs_ << "]\n"
+//      << "seed =               [" << env.seed_ << "]\n"
+//      << "scene_id =           [" << env.scene_id_ << std::endl;
+//   os.precision();
+//   return os;
+// }
 
 // IMPORTANT. Otherwise:
 // Segmentation fault (core dumped)

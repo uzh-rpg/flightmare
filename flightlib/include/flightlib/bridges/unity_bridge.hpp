@@ -13,9 +13,12 @@
 // flightlib
 #include "flightlib/bridges/unity_message_types.hpp"
 #include "flightlib/common/logger.hpp"
+#include "flightlib/common/math.hpp"
 #include "flightlib/common/quad_state.hpp"
 #include "flightlib/common/types.hpp"
 #include "flightlib/objects/quadrotor.hpp"
+#include "flightlib/objects/unity_camera.hpp"
+#include "flightlib/sensors/rgb_camera.hpp"
 
 using json = nlohmann::json;
 
@@ -33,7 +36,7 @@ class UnityBridge {
   bool disconnectUnity(void);
 
   // public get functions
-  bool getRender(const FrameID &frame_id);
+  bool getRender(const FrameID frame_id);
   bool handleOutput(RenderMessage_t &output);
 
   // public set functions
@@ -41,6 +44,7 @@ class UnityBridge {
 
   // add object
   bool addQuadrotor(Quadrotor *quad);
+  bool addCamera(UnityCamera *camera);
 
   // public auxiliary functions
   inline void setPubPort(const std::string &pub_port) { pub_port_ = pub_port; };

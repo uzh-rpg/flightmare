@@ -97,6 +97,8 @@ TEST(VecEnv, StepEnv) {
   const int num_envs = vec_env.getNumOfEnvs();
   const std::vector<std::string> extra_info_names = vec_env.getExtraInfoNames();
 
+  vec_env.setUnity(true);
+
   // reset the environment
   MatrixRowMajor<> obs, act, extra_info;
   Vector<> reward;
@@ -116,6 +118,7 @@ TEST(VecEnv, StepEnv) {
   act = act.cwiseMax(-1).cwiseMin(1);
   for (int i = 0; i < SIM_STEPS_N; i++) {
     vec_env.step(act, obs, reward, done, extra_info);
+    usleep(0.1 * 1e5);
   }
   EXPECT_TRUE(act.allFinite());
   EXPECT_TRUE(obs.allFinite());

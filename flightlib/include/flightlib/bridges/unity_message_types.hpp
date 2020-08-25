@@ -28,7 +28,7 @@ enum UnityScene {
 // Unity Camera, should not be used alone.
 // has to be attached on a vehicle.
 struct Camera_t {
-  // std::string ID;
+  std::string ID;
   // frame Metadata
   int channels{3};
   int width{1024};
@@ -39,7 +39,7 @@ struct Camera_t {
   bool is_depth{false};
   int output_index{0};
   //
-  std::vector<std::string> post_processing;
+  std::vector<bool> enabled_layers;
   // Transformation matrix from camera to vehicle body 4 x 4
   // use 1-D vector for json convention
   std::vector<Scalar> T_BC{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -47,7 +47,7 @@ struct Camera_t {
 };
 
 struct Lidar_t {
-  // std::string ID;
+  std::string ID;
   int num_beams{10};
   Scalar max_distance{10.0};
   Scalar start_scan_angle{-M_PI / 2};
@@ -60,7 +60,7 @@ struct Lidar_t {
 
 // Unity Vechicle, e.g., quadrotor
 struct Vehicle_t {
-  // std::string ID;
+  std::string ID;
   // unity coordinate system left-handed, y up
   std::vector<Scalar> position{0.0, 0.0, 0.0};
   // unity quaternion (x, y, z, w)
@@ -75,7 +75,7 @@ struct Vehicle_t {
 
 // Unity object, e.g., gate, light, etc...
 struct Object_t {
-  // std::string ID;
+  std::string ID;
   std::string prefab_ID;
   // unity coordinate system left hand, y up
   std::vector<Scalar> position{0.0, 0.0, 0.0};
@@ -91,7 +91,6 @@ struct SettingsMessage_t {
   //
   std::vector<Vehicle_t> vehicles;
   std::vector<Object_t> objects;
-  //
 };
 
 struct PubMessage_t {
@@ -118,21 +117,21 @@ struct SubMessage_t {
  *********************/
 // Camera_t
 inline void to_json(json &j, const Camera_t &o) {
-  j = json{//{"ID", o.ID},
+  j = json{{"ID", o.ID},
            {"channels", o.channels},
            {"width", o.width},
            {"height", o.height},
            {"fov", o.fov},
            {"T_BC", o.T_BC},
            {"isDepth", o.is_depth},
-           {"post_processing", o.post_processing},
+           {"enabledLayers", o.enabled_layers},
            {"depthScale", o.depth_scale},
            {"outputIndex", o.output_index}};
 }
 
 // Lidar
 inline void to_json(json &j, const Lidar_t &o) {
-  j = json{//{"ID", o.ID},
+  j = json{{"ID", o.ID},
            {"num_beams", o.num_beams},
            {"max_distance", o.max_distance},
            {"start_angle", o.start_scan_angle},
@@ -141,16 +140,18 @@ inline void to_json(json &j, const Lidar_t &o) {
 }
 // Vehicle_t
 inline void to_json(json &j, const Vehicle_t &o) {
-  j = json{
-    //{"ID", o.ID},
-    {"position", o.position}, {"rotation", o.rotation},
-    {"size", o.size},         {"cameras", o.cameras},
-    {"lidars", o.lidars},     {"hasCollisionCheck", o.has_collision_check}};
+  j = json{{"ID", o.ID},
+           {"position", o.position},
+           {"rotation", o.rotation},
+           {"size", o.size},
+           {"cameras", o.cameras},
+           {"lidars", o.lidars},
+           {"hasCollisionCheck", o.has_collision_check}};
 }
 
 // Object_t
 inline void to_json(json &j, const Object_t &o) {
-  j = json{//{"ID", o.ID},
+  j = json{{"ID", o.ID},
            {"prefabID", o.prefab_ID},
            {"position", o.position},
            {"rotation", o.rotation},

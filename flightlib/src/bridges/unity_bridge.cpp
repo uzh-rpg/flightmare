@@ -23,6 +23,7 @@ bool UnityBridge::initializeConnections() {
   // create and bind a download_socket
   sub_.set(zmqpp::socket_option::receive_high_water_mark, 6);
   sub_.bind(client_address_ + ":" + sub_port_);
+
   // subscribe all messages from ZMQ
   sub_.subscribe("");
 
@@ -31,20 +32,13 @@ bool UnityBridge::initializeConnections() {
 }
 
 bool UnityBridge::connectUnity() {
-  // // initialize ZMQ connection
-  // initializeConnections();
+  // try to connect unity
   if (!unity_ready_) {
     // initialize Scene settings
     sendInitialSettings();
     // check if setting is done
     unity_ready_ = handleSettings();
   }
-
-  // print connection messages
-  logger_ << "Fligtmare Unity is connected. "
-          << "Client address" << client_address_ << std::endl
-          << "Publish port : " << pub_port_ << std::endl
-          << "Subscriber port : " << sub_port_ << std::endl;
 
   return unity_ready_;
 }
@@ -84,17 +78,16 @@ bool UnityBridge::handleSettings(void) {
     }
     done = json::parse(metadata_string).at("ready").get<bool>();
   }
-  std::cout << "Ready ? : " << done << std::endl;
   return done;
 };
 
-bool UnityBridge::getRender(const FrameID& frame_id) {
+bool UnityBridge::getRender(const FrameID frame_id) {
   pub_msg_.frame_id = frame_id;
   QuadState quad_state;
   for (size_t idx = 0; idx < pub_msg_.vehicles.size(); idx++) {
     unity_quadrotors_[idx]->getState(&quad_state);
-    pub_msg_.vehicles[idx].position = ros2UnityPosition(quad_state.p);
-    pub_msg_.vehicles[idx].rotation = ros2UnityQuaternion(quad_state.q());
+    pub_msg_.vehicles[idx].position = positionRos2Unity(quad_state.p);
+    pub_msg_.vehicles[idx].rotation = quaternionRos2Unity(quad_state.q());
   }
 
   // for (size_t idx = 0; idx < pub_msg_.objects.size(); idx++) {
@@ -117,8 +110,10 @@ bool UnityBridge::getRender(const FrameID& frame_id) {
 
 bool UnityBridge::setScene(const SceneID& scene_id) {
   if (scene_id >= UnityScene::SceneNum) {
+    logger_.warn("Scene ID is not defined, cannot set scene.");
     return false;
   }
+  // logger_.info("Scene ID is set to %d.", scene_id);
   settings_.scene_id = scene_id;
   return true;
 }
@@ -129,27 +124,28 @@ bool UnityBridge::addQuadrotor(Quadrotor* quad) {
   QuadState quad_state;
   if (!quad->getState(&quad_state)) return false;
 
-  vehicle_t.position = ros2UnityPosition(quad_state.p);
-  vehicle_t.rotation = ros2UnityQuaternion(quad_state.q());
-  vehicle_t.size = ros2UnityScalar(quad->getSize());
-  // //
-  // if (quad->hasCamera()) {
-  //   RGBCamera cam = quad_rgb->getRGBCamera(ID::Sensor::MonoRGBCamera);
-  //   Camera_t camera_t;
-  //   camera_t.ID = cam->getID();
-  //   camera_t.T_BC = matrix44ROS2Unity(cam->getRelPose());
-  //   camera_t.channels = cam->getChannel();
-  //   camera_t.width = cam->getWidth();
-  //   camera_t.height = cam->getHeight();
-  //   camera_t.fov = (T)cam->getFov();
-  //   camera_t.depth_scale = (T)cam->getDepthScale();
-  //   camera_t.post_processing = cam->getPostProcessing();
-  //   camera_t.is_depth = false;
-  //   camera_t.output_index = 0;
-  //   vehicle_t.cameras.push_back(camera_t);
-  //   unity_cameras_.emplace(vehicle_t.ID + "_" + camera_t.ID, cam);
-  // }
-  //
+  vehicle_t.ID = std::to_string(settings_.vehicles.size());
+  vehicle_t.position = positionRos2Unity(quad_state.p);
+  vehicle_t.rotation = quaternionRos2Unity(quad_state.q());
+  vehicle_t.size = scalarRos2Unity(quad->getSize());
+
+  // get camera
+  std::vector<RGBCamera*> rgb_camera = quad->getCameras();
+  for (size_t cam_idx = 0; cam_idx < rgb_camera.size(); cam_idx++) {
+    RGBCamera* cam = rgb_camera[cam_idx];
+    Camera_t camera_t;
+    camera_t.ID = std::to_string(cam_idx);
+    camera_t.T_BC = transformationRos2Unity(cam->getRelPose());
+    camera_t.channels = cam->getChannels();
+    camera_t.width = cam->getWidth();
+    camera_t.height = cam->getHeight();
+    camera_t.fov = cam->getFOV();
+    camera_t.depth_scale = cam->getDepthScale();
+    camera_t.enabled_layers = cam->getEnabledLayers();
+    camera_t.is_depth = false;
+    camera_t.output_index = cam_idx;
+    vehicle_t.cameras.push_back(camera_t);
+  }
   unity_quadrotors_.push_back(quad);
 
   //
@@ -157,7 +153,6 @@ bool UnityBridge::addQuadrotor(Quadrotor* quad) {
   pub_msg_.vehicles.push_back(vehicle_t);
   return true;
 }
-
 
 bool UnityBridge::handleOutput(RenderMessage_t& output) {
   // create new message object

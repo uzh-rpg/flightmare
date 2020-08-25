@@ -159,6 +159,7 @@ TEST(Quadrotor, RunQuadCmdFeedThrough) {
   quad.getState(&final_state);
   EXPECT_NEAR(final_state.t, quad_state.t, 1e-9);
   EXPECT_TRUE(quad_state.x.isApprox(final_state.x));
+  EXPECT_GT(quad_state.x(QS::POSZ), 1.0);
 }
 
 TEST(Quadrotor, RunSimulatorBodyRate) {

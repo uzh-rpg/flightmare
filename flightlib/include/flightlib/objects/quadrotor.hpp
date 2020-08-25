@@ -8,6 +8,8 @@
 #include "flightlib/common/types.hpp"
 #include "flightlib/dynamics/quadrotor_dynamics.hpp"
 #include "flightlib/objects/object_base.hpp"
+#include "flightlib/sensors/imu.hpp"
+#include "flightlib/sensors/rgb_camera.hpp"
 
 namespace flightlib {
 
@@ -31,10 +33,13 @@ class Quadrotor : ObjectBase {
   bool getMotorThrusts(Ref<Vector<4>> motor_thrusts) const;
   bool getMotorOmega(Ref<Vector<4>> motor_omega) const;
   bool getDynamics(QuadrotorDynamics* const dynamics) const;
+
   const QuadrotorDynamics& getDynamics();
   Vector<3> getSize(void) const;
   Vector<3> getPosition(void) const;
   Quaternion getQuaternion(void) const;
+  std::vector<RGBCamera*> getCameras(void) const;
+  bool getCamera(const size_t cam_id, RGBCamera* const camera);
 
   // public set functions
   bool setState(const QuadState& state);
@@ -60,7 +65,9 @@ class Quadrotor : ObjectBase {
  private:
   // quadrotor dynamics, integrators
   QuadrotorDynamics dynamics_;
+  IMU imu_;
   std::unique_ptr<IntegratorRK4> integrator_ptr_;
+  std::vector<RGBCamera*> rgb_cameras_;
 
   // quad control command
   Command cmd_;

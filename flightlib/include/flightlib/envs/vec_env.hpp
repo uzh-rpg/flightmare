@@ -63,6 +63,9 @@ class VecEnv {
     return extra_info_names_;
   };
 
+  // friend std::ostream& operator<<(std::ostream& os,
+  //                                 const VecEnv<EnvBase>& vec_env);
+
  private:
   // initialization
   void init(void);
