@@ -33,6 +33,11 @@ QuadrotorEnv::QuadrotorEnv(const std::string &cfg_path)
   obs_dim_ = CtlObsAct::kObsSize;
   act_dim_ = CtlObsAct::kActSize;
 
+
+  Scalar mass = quadrotor_.getMass();
+  act_mean_ = Vector<4>::Ones() * (-mass * Gz) / 4;
+  act_std_ = Vector<4>::Ones() * (-mass * 3 * Gz) / 4;
+
   // load parameters
   loadParam(cfg_);
 }
@@ -41,6 +46,7 @@ QuadrotorEnv::~QuadrotorEnv() {}
 
 bool QuadrotorEnv::reset(Ref<Vector<>> obs, const bool random) {
   quad_state_.setZero();
+  quad_act_.setZero();
 
   if (random) {
     // randomly reset the quadrotor state
@@ -66,9 +72,9 @@ bool QuadrotorEnv::reset(Ref<Vector<>> obs, const bool random) {
 
   // reset control command
   cmd_.t = 0.0;
-  // cmd_.thrusts.setZero();
-  cmd_.collective_thrust = 0.0;
-  cmd_.omega = Vector<3>::Zero();
+  cmd_.thrusts.setZero();
+  // cmd_.collective_thrust = 0.0;
+  // cmd_.omega = Vector<3>::Zero();
 
   // obtain observations
   getObs(obs);
@@ -90,8 +96,9 @@ bool QuadrotorEnv::getObs(Ref<Vector<>> obs) {
 Scalar QuadrotorEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs) {
   quad_act_ = act.cwiseProduct(act_std_) + act_mean_;
   cmd_.t += sim_dt_;
-  cmd_.collective_thrust = quad_act_(0);
-  cmd_.omega = quad_act_.segment<3>(CtlObsAct::kOmegaX);
+  cmd_.thrusts = quad_act_;
+  // cmd_.collective_thrust = quad_act_(0);
+  // cmd_.omega = quad_act_.segment<3>(CtlObsAct::kOmegaX);
 
   // simulate quadrotor
   quadrotor_.run(cmd_, sim_dt_);
@@ -107,13 +114,18 @@ Scalar QuadrotorEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs) {
 
   Scalar total_reward = stage_reward + act_reward;
 
-  if (quad_state_.p(QS::POSZ) <= 0.02) {
-    total_reward -= 0.02;
+  if (quad_state_.x(QS::POSZ) <= 0.02) {
+    total_reward = total_reward - 0.02;
   }
+
   return total_reward;
 }
 
 bool QuadrotorEnv::isTerminalState(Scalar &reward) {
+  // if (quad_state_.x(QS::POSZ) <= 0.02) {
+  //   reward = -0.02;
+  //   return true;
+  // }
   reward = 0.0;
   return false;
 }

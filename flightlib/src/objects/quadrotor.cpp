@@ -40,6 +40,8 @@ bool Quadrotor::run(const Scalar ctl_dt) {
 
   QuadState old_state = state_;
   QuadState next_state = state_;
+
+  // time
   const Scalar max_dt = integrator_ptr_->dtMax();
   Scalar remain_ctl_dt = ctl_dt;
 
@@ -65,7 +67,6 @@ bool Quadrotor::run(const Scalar ctl_dt) {
 
     remain_ctl_dt -= sim_dt;
   }
-
   state_.t += ctl_dt;
   constrainInWorldBox(old_state);
   return true;
@@ -180,6 +181,7 @@ bool Quadrotor::constrainInWorldBox(const QuadState &old_state) {
     // reset angular velocity to zero
     state_.w << 0.0, 0.0, 0.0;
   }
+  return true;
 }
 
 bool Quadrotor::getState(QuadState *const state) const {

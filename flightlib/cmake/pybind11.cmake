@@ -6,18 +6,19 @@ set(PYBIND11_PYTHON_VERSION ${PYTHON_VERSION_STRING})
 
 configure_file(
   cmake/pybind11_download.cmake
-  ${PROJECT_SOURCE_DIR}/externals/pybind11/CMakeLists.txt)
+  ${PROJECT_SOURCE_DIR}/externals/pybind11-download/CMakeLists.txt)
 
-execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
+execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" . 
   RESULT_VARIABLE result
-  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/externals/pybind11
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/externals/pybind11-download
   OUTPUT_QUIET)
 if(result)
-  message(FATAL_ERROR "Download of Pybind11 failed: ${result}")
+  message(FATAL_ERROR "Cmake Step for Pybind11 failed: ${result}")
 endif()
+
 execute_process(COMMAND ${CMAKE_COMMAND} --build .
   RESULT_VARIABLE result
-  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/externals/pybind11
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/externals/pybind11-download
   OUTPUT_QUIET)
 if(result)
   message(FATAL_ERROR "Build step for eigen failed: ${result}")

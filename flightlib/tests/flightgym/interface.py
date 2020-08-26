@@ -15,7 +15,5 @@ def main():
   quad_env1.reset(obs)
   print(obs)
 
-  print(os.environ("FLIGHTMARE_PATH"))
-
 if __name__ == "__main__":
     main()

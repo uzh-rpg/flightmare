@@ -84,7 +84,6 @@ TEST(VecEnv, ResetEnv) {
   EXPECT_TRUE(vec_env.reset(obs));
   EXPECT_TRUE(obs.allFinite());
 
-
   obs.resize(vec_num_env, vec_obs_dim + 1);
   EXPECT_FALSE(vec_env.reset(obs));
 }
@@ -97,7 +96,7 @@ TEST(VecEnv, StepEnv) {
   const int num_envs = vec_env.getNumOfEnvs();
   const std::vector<std::string> extra_info_names = vec_env.getExtraInfoNames();
 
-  vec_env.setUnity(true);
+  // vec_env.setUnity(true);
 
   // reset the environment
   MatrixRowMajor<> obs, act, extra_info;
@@ -114,9 +113,9 @@ TEST(VecEnv, StepEnv) {
   EXPECT_TRUE(obs.allFinite());
 
   // test step function
-  act.setRandom();
-  act = act.cwiseMax(-1).cwiseMin(1);
   for (int i = 0; i < SIM_STEPS_N; i++) {
+    act.setRandom();
+    act = act.cwiseMax(-1).cwiseMin(1);
     vec_env.step(act, obs, reward, done, extra_info);
   }
   EXPECT_TRUE(act.allFinite());

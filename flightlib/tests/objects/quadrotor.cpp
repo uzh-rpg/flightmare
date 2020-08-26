@@ -182,7 +182,7 @@ TEST(Quadrotor, RunSimulatorBodyRate) {
   Command cmd;
   cmd.t = 0.0;
   cmd.collective_thrust = -Gz;
-  cmd.omega = Vector<3>::Zero();
+  cmd.omega << 0.0, 0.0, 0.0;
 
   for (int i = 0; i < SIM_STEPS_N; i++) {
     // run quadrotor simulator

@@ -5,7 +5,7 @@ configure_file(
   cmake/yaml_download.cmake
   ${PROJECT_SOURCE_DIR}/externals/yaml-download/CMakeLists.txt)
 
-execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
+execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" . 
   RESULT_VARIABLE result
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/externals/yaml-download
   OUTPUT_QUIET

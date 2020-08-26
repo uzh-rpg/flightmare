@@ -85,7 +85,7 @@ class Quadrotor : ObjectBase {
 
   // P gain for body-rate control
   const Matrix<3, 3> Kinv_ang_vel_tau_ =
-    Vector<3>(1.0 / 16.6, 1.0 / 16.6, 1.0 / 5.0).asDiagonal();
+    Vector<3>(16.6, 16.6, 5.0).asDiagonal();
   // gravity
   const Vector<3> gz_{0.0, 0.0, Gz};
 
