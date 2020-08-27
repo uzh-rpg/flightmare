@@ -9,13 +9,13 @@ QuadrotorEnv::QuadrotorEnv()
 QuadrotorEnv::QuadrotorEnv(const std::string &cfg_path)
   : EnvBase(),
     Q_((Vector<CtlObsAct::kObsSize>() << -1e-2, -1e-2, -1e-2, -1e-2, -1e-2,
-        -1e-2, -1e-3, -1e-3, -1e-3)
+        -1e-2, -1e-3, -1e-3, -1e-3, -1e-3, -1e-3, -1e-3)
          .finished()
          .asDiagonal()),
     Q_act_(
       Vector<CtlObsAct::kActSize>(-1e-4, -1e-4, -1e-4, -1e-4).asDiagonal()),
-    goal_state_((Vector<CtlObsAct::kObsSize>() << 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
-                 0.0, 0.0, 0.0)
+    goal_state_((Vector<CtlObsAct::kObsSize>() << 0.0, 0.0, 5.0, 0.0, 0.0, 0.0,
+                 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
                   .finished()) {
   // load configuration file
   YAML::Node cfg_ = YAML::LoadFile(cfg_path);
@@ -36,7 +36,7 @@ QuadrotorEnv::QuadrotorEnv(const std::string &cfg_path)
 
   Scalar mass = quadrotor_.getMass();
   act_mean_ = Vector<4>::Ones() * (-mass * Gz) / 4;
-  act_std_ = Vector<4>::Ones() * (-mass * 3 * Gz) / 4;
+  act_std_ = Vector<4>::Ones() * (-mass * 2 * Gz) / 4;
 
   // load parameters
   loadParam(cfg_);
@@ -73,8 +73,6 @@ bool QuadrotorEnv::reset(Ref<Vector<>> obs, const bool random) {
   // reset control command
   cmd_.t = 0.0;
   cmd_.thrusts.setZero();
-  // cmd_.collective_thrust = 0.0;
-  // cmd_.omega = Vector<3>::Zero();
 
   // obtain observations
   getObs(obs);
@@ -85,9 +83,9 @@ bool QuadrotorEnv::getObs(Ref<Vector<>> obs) {
   quadrotor_.getState(&quad_state_);
 
   // convert quaternion to euler angle
-  Vector<3> euler;
-  quaternionToEuler(quad_state_.q(), euler);
-  quad_obs_ << quad_state_.p, euler, quad_state_.v;
+  Vector<3> euler = quad_state_.q().toRotationMatrix().eulerAngles(0, 1, 2);
+  // quaternionToEuler(quad_state_.q(), euler);
+  quad_obs_ << quad_state_.p, euler, quad_state_.v, quad_state_.w;
 
   obs.segment<CtlObsAct::kObsSize>(kObs) = quad_obs_;
   return true;
@@ -97,8 +95,6 @@ Scalar QuadrotorEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs) {
   quad_act_ = act.cwiseProduct(act_std_) + act_mean_;
   cmd_.t += sim_dt_;
   cmd_.thrusts = quad_act_;
-  // cmd_.collective_thrust = quad_act_(0);
-  // cmd_.omega = quad_act_.segment<3>(CtlObsAct::kOmegaX);
 
   // simulate quadrotor
   quadrotor_.run(cmd_, sim_dt_);
@@ -112,20 +108,16 @@ Scalar QuadrotorEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs) {
   Scalar act_reward =
     (quad_act_ - act_mean_).transpose() * Q_act_ * (quad_act_ - act_mean_);
 
-  Scalar total_reward = stage_reward + act_reward;
-
-  if (quad_state_.x(QS::POSZ) <= 0.02) {
-    total_reward = total_reward - 0.02;
-  }
+  Scalar total_reward = stage_reward + act_reward + 1;
 
   return total_reward;
 }
 
 bool QuadrotorEnv::isTerminalState(Scalar &reward) {
-  // if (quad_state_.x(QS::POSZ) <= 0.02) {
-  //   reward = -0.02;
-  //   return true;
-  // }
+  if (quad_state_.x(QS::POSZ) <= 0.02) {
+    reward = -0.02;
+    return true;
+  }
   reward = 0.0;
   return false;
 }
@@ -133,6 +125,7 @@ bool QuadrotorEnv::isTerminalState(Scalar &reward) {
 bool QuadrotorEnv::loadParam(const YAML::Node &cfg) {
   if (cfg["quadrotor_env"]) {
     sim_dt_ = cfg["quadrotor_env"]["sim_dt"].as<Scalar>();
+    max_t_ = cfg["quadrotor_env"]["max_t"].as<Scalar>();
   } else {
     return false;
   }
@@ -194,6 +187,7 @@ std::ostream &operator<<(std::ostream &os, const QuadrotorEnv &quad_env) {
      << "obs dim =            [" << quad_env.obs_dim_ << "]\n"
      << "act dim =            [" << quad_env.act_dim_ << "]\n"
      << "sim dt =             [" << quad_env.sim_dt_ << "]\n"
+     << "max_t =              [" << quad_env.max_t_ << "]\n"
      << "act_mean =           [" << quad_env.act_mean_.transpose() << "]\n"
      << "act_std =            [" << quad_env.act_std_.transpose() << "]\n"
      << "obs_mean =           [" << quad_env.obs_mean_.transpose() << "]\n"

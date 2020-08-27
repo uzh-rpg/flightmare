@@ -8,7 +8,7 @@
 
 using namespace flightlib;
 
-static constexpr int OBS_DIM = 9;
+static constexpr int OBS_DIM = 12;
 static constexpr int ACT_DIM = 4;
 static constexpr int SIM_STEPS_N = 20;
 static constexpr Scalar TOL = 1e-3;

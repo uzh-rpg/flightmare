@@ -38,6 +38,7 @@ class VecEnv {
 
   // public get functions
   void getObs(Ref<MatrixRowMajor<>> obs);
+  size_t getEpisodeLength(void);
 
   // - auxiliary functions
   void isTerminalState(Ref<BoolVector<>> terminal_state);

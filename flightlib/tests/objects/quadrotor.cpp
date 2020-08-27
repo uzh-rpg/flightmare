@@ -128,6 +128,8 @@ TEST(Quadrotor, RunQuadCmdFeedThrough) {
   quad.getState(&final_state);
 
   EXPECT_NEAR(final_state.t, quad_state.t, 1e-9);
+  std::cout << quad_state.x << std::endl;
+  std::cout << final_state.x << std::endl;
   EXPECT_TRUE(quad_state.x.isApprox(final_state.x));
 
   // taking off

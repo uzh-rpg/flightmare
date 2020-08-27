@@ -29,13 +29,11 @@ enum CtlObsAct {
   kObsOriSize = 3,
   kObsLinVel = 6,
   kObsLinVelSize = 3,
-  kObsSize = 9,
+  kObsAngVel = 9,
+  kObsAngVelSize = 3,
+  kObsSize = 12,
   // control actions
   kAct = 0,
-  kCollectiveThrust = 0,
-  kOmegaX = 1,
-  kOmegaY = 2,
-  kOmegaZ = 3,
   kActSize = 4,
 };
 
