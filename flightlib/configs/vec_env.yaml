@@ -3,4 +3,4 @@ env:
   scene_id: 0  # 0 warehouse, 1 garage, 3 natureforest
   num_envs: 1
   num_threads: 1 
-  render: yes 
+  render: no 
