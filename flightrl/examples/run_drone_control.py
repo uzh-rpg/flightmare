@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
+from ruamel.yaml import YAML, dump, RoundTripDumper
 
+#
 import os
 import math
 import argparse
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
 
 #
 from stable_baselines import logger
 
 #
 from rpg_baselines.common.policies import MlpPolicy
-from rpg_baselines.common.util import ConfigurationSaver, TensorboardLauncher
+from rpg_baselines.common.util import ConfigurationSaver, TensorboardLauncher, configure_random_seed
 from rpg_baselines.ppo.ppo2 import PPO2
 from rpg_baselines.ppo.ppo2_test import test_model
 from rpg_baselines.envs import vec_env_wrapper as wrapper
@@ -29,32 +31,30 @@ def parser():
                         help="To train new model or simply test pre-trained model")
     parser.add_argument('--save_dir', type=str, default=os.path.dirname(os.path.realpath(__file__)),
                         help="Directory where to save the checkpoints and training metrics")
-    parser.add_argument('--env', type=str, default="QuadrotorEnv_v1",
-                        help="environment name")
     parser.add_argument('--seed', type=int, default=0,
                         help="Random seed")
-    parser.add_argument('--load_dir', type=str,
-                        help="Directory where to load weights")
-    parser.add_argument('-m', '--mode', type=str, default='train',
-                        help='set mode either train or test')
-    parser.add_argument('-w', '--weight', type=str, default='./saved/2020-08-28-13-54-34_Iteration_393.zip',
+    parser.add_argument('-w', '--weight', type=str, default='./saved/quadrotor_env.zip',
                         help='trained weight path')
     return parser
 
 
 def main():
     args = parser().parse_args()
-    mode = args.mode
+    cfg = YAML().load(open(os.environ["FLIGHTMARE_PATH"] +
+                           "/flightlib/configs/vec_env.yaml", 'r'))
+    if not args.train:
+        cfg["env"]["num_envs"] = 1
+        cfg["env"]["num_threads"] = 1
+        cfg["env"]["render"] = "yes"
 
-    env = wrapper.FlightEnvVec(QuadrotorEnv_v1())
+    env = wrapper.FlightEnvVec(QuadrotorEnv_v1(
+        dump(cfg, Dumper=RoundTripDumper), False))
 
     # set random seed
-    env.seed(args.seed)
-    np.random.seed(args.seed)
-    tf.set_random_seed(args.seed)
+    configure_random_seed(args.seed, env=env)
 
     #
-    if mode == 'train':
+    if args.train:
         # save the configuration and other files
         rsg_root = os.path.dirname(os.path.abspath(__file__))
         log_dir = rsg_root + '/saved'

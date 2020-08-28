@@ -41,12 +41,12 @@ TEST(QuadState, Accessors) {
   EXPECT_EQ(state.tau(0), x(16));
   EXPECT_EQ(state.tau(1), x(17));
   EXPECT_EQ(state.tau(2), x(18));
-  // EXPECT_EQ(state.bw(0), x(19));
-  // EXPECT_EQ(state.bw(1), x(20));
-  // EXPECT_EQ(state.bw(2), x(21));
-  // EXPECT_EQ(state.ba(0), x(22));
-  // EXPECT_EQ(state.ba(1), x(23));
-  // EXPECT_EQ(state.ba(2), x(24));
+  EXPECT_EQ(state.bw(0), x(19));
+  EXPECT_EQ(state.bw(1), x(20));
+  EXPECT_EQ(state.bw(2), x(21));
+  EXPECT_EQ(state.ba(0), x(22));
+  EXPECT_EQ(state.ba(1), x(23));
+  EXPECT_EQ(state.ba(2), x(24));
 
   x += Vector<>::Ones(QuadState::SIZE);
   state.p += Vector<3>::Ones();
@@ -55,8 +55,8 @@ TEST(QuadState, Accessors) {
   state.w += Vector<3>::Ones();
   state.a += Vector<3>::Ones();
   state.tau += Vector<3>::Ones();
-  // state.bw += Vector<3>::Ones();
-  // state.ba += Vector<3>::Ones();
+  state.bw += Vector<3>::Ones();
+  state.ba += Vector<3>::Ones();
 
   EXPECT_EQ(state.p(0), x(0));
   EXPECT_EQ(state.p(1), x(1));
@@ -77,12 +77,12 @@ TEST(QuadState, Accessors) {
   EXPECT_EQ(state.tau(0), x(16));
   EXPECT_EQ(state.tau(1), x(17));
   EXPECT_EQ(state.tau(2), x(18));
-  // EXPECT_EQ(state.bw(0), x(19));
-  // EXPECT_EQ(state.bw(1), x(20));
-  // EXPECT_EQ(state.bw(2), x(21));
-  // EXPECT_EQ(state.ba(0), x(22));
-  // EXPECT_EQ(state.ba(1), x(23));
-  // EXPECT_EQ(state.ba(2), x(24));
+  EXPECT_EQ(state.bw(0), x(19));
+  EXPECT_EQ(state.bw(1), x(20));
+  EXPECT_EQ(state.bw(2), x(21));
+  EXPECT_EQ(state.ba(0), x(22));
+  EXPECT_EQ(state.ba(1), x(23));
+  EXPECT_EQ(state.ba(2), x(24));
 
   EXPECT_TRUE(state.x.isApprox(x));
 }

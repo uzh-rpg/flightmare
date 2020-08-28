@@ -4,7 +4,6 @@
 
 // flightlib
 #include "flightlib/common/command.hpp"
-#include "flightlib/common/integrator_euler.hpp"
 #include "flightlib/common/integrator_rk4.hpp"
 #include "flightlib/common/types.hpp"
 #include "flightlib/dynamics/quadrotor_dynamics.hpp"
@@ -68,7 +67,6 @@ class Quadrotor : ObjectBase {
   QuadrotorDynamics dynamics_;
   IMU imu_;
   std::unique_ptr<IntegratorRK4> integrator_ptr_;
-  // std::unique_ptr<IntegratorEuler> integrator_ptr_;
   std::vector<RGBCamera*> rgb_cameras_;
 
   // quad control command
