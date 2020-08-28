@@ -38,6 +38,7 @@ class EnvBase {
   inline int getActDim() { return act_dim_; };
   inline Scalar getSimTimeStep() { return sim_dt_; };
   inline int getExtraInfoDim() { return extra_info_.size(); };
+  inline Scalar getMaxT() { return max_t_; };
 
   // public variables
   std::unordered_map<std::string, float> extra_info_;
@@ -48,7 +49,8 @@ class EnvBase {
   int act_dim_;
 
   // control time step
-  Scalar sim_dt_;
+  Scalar sim_dt_{0.02};
+  Scalar max_t_{5.0};
 
   // random variable generator
   std::normal_distribution<Scalar> norm_dist_{0.0, 1.0};

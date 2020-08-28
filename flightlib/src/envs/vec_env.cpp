@@ -131,6 +131,16 @@ void VecEnv<EnvBase>::getObs(Ref<MatrixRowMajor<>> obs) {
   for (int i = 0; i < num_envs_; i++) envs_[i]->getObs(obs.row(i));
 }
 
+
+template<typename EnvBase>
+size_t VecEnv<EnvBase>::getEpisodeLength(void) {
+  if (envs_.size() <= 0) {
+    return 0;
+  } else {
+    return (size_t)envs_[0]->getMaxT() / envs_[0]->getSimTimeStep();
+  }
+}
+
 template<typename EnvBase>
 void VecEnv<EnvBase>::perAgentStep(int agent_id, Ref<MatrixRowMajor<>> act,
                                    Ref<MatrixRowMajor<>> obs,

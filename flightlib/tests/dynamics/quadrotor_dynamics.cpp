@@ -20,12 +20,14 @@ TEST(QuadrotorDynamics, Constructor) {
   Matrix<3, 3> J_inv = quad_copy.getJInv();
 
   Matrix<3, 3> expected_J = (mass / 12.0 * ARM_LENGTH * ARM_LENGTH *
-                             Vector<3>(2.25, 2.25, 4).asDiagonal());
+                             Vector<3>(4.5, 4.5, 7).asDiagonal());
   Matrix<3, 3> expected_J_inv = expected_J.inverse();
 
   EXPECT_EQ(mass, MASS);
   EXPECT_TRUE(J.isApprox(expected_J));
   EXPECT_TRUE(J_inv.isApprox(expected_J_inv));
+  std::cout << quad << std::endl;
+  std::cout << quad.getAllocationMatrix() << std::endl;
 }
 
 

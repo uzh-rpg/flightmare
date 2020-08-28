@@ -45,11 +45,11 @@ class QuadrotorDynamics : DynamicsBase {
   Matrix<4, 4> getAllocationMatrix() const;
 
   //
-  inline Scalar getMass(void) { return mass_; };
-  inline Scalar getArmLength(void) { return arm_l_; };
-  inline Scalar getMotorTauInv() { return motor_tau_inv_; };
-  inline Matrix<3, 3> getJ(void) { return J_; };
-  inline Matrix<3, 3> getJInv(void) { return J_inv_; };
+  inline Scalar getMass(void) const { return mass_; };
+  inline Scalar getArmLength(void) const { return arm_l_; };
+  inline Scalar getMotorTauInv() const { return motor_tau_inv_; };
+  inline Matrix<3, 3> getJ(void) const { return J_; };
+  inline Matrix<3, 3> getJInv(void) const { return J_inv_; };
 
   bool setMass(const Scalar mass);
   bool setArmLength(const Scalar arm_length);

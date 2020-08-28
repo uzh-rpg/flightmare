@@ -102,7 +102,7 @@ TEST(Quadrotor, RunQuadCmdFeedThrough) {
   quad.getState(&final_state);
 
   EXPECT_NEAR(final_state.t, quad_state.t, 1e-9);
-  EXPECT_TRUE(quad_state.x.isApprox(final_state.x));
+  EXPECT_TRUE(quad_state.x.isApprox(final_state.x, 1e-3));
 
   // free fall
   quad_state.setZero();
@@ -128,7 +128,7 @@ TEST(Quadrotor, RunQuadCmdFeedThrough) {
   quad.getState(&final_state);
 
   EXPECT_NEAR(final_state.t, quad_state.t, 1e-9);
-  EXPECT_TRUE(quad_state.x.isApprox(final_state.x));
+  EXPECT_TRUE(quad_state.x.isApprox(final_state.x, 1e-3));
 
   // taking off
   quad_state.setZero();
@@ -154,11 +154,10 @@ TEST(Quadrotor, RunQuadCmdFeedThrough) {
     quad_state.t += ctl_dt;
   }
 
-  std::cout << quad_state << std::endl;
   final_state.setZero();
   quad.getState(&final_state);
   EXPECT_NEAR(final_state.t, quad_state.t, 1e-9);
-  EXPECT_TRUE(quad_state.x.isApprox(final_state.x));
+  EXPECT_TRUE(quad_state.x.isApprox(final_state.x, 1e-3));
   EXPECT_GT(quad_state.x(QS::POSZ), 1.0);
 }
 
@@ -182,7 +181,7 @@ TEST(Quadrotor, RunSimulatorBodyRate) {
   Command cmd;
   cmd.t = 0.0;
   cmd.collective_thrust = -Gz;
-  cmd.omega = Vector<3>::Zero();
+  cmd.omega << 0.0, 0.0, 0.0;
 
   for (int i = 0; i < SIM_STEPS_N; i++) {
     // run quadrotor simulator

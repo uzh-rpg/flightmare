@@ -2,6 +2,7 @@ import numpy as np
 from gym import spaces
 from stable_baselines.common.vec_env import VecEnv
 
+
 class FlightEnvVec(VecEnv):
     #
     def __init__(self, impl):
@@ -10,29 +11,29 @@ class FlightEnvVec(VecEnv):
         self.num_acts = self.wrapper.getActDim()
         print(self.num_obs, self.num_acts)
         self._observation_space = spaces.Box(
-          np.ones(self.num_obs) * -np.Inf, 
-          np.ones(self.num_obs) * np.Inf, dtype=np.float32)
+            np.ones(self.num_obs) * -np.Inf,
+            np.ones(self.num_obs) * np.Inf, dtype=np.float32)
         self._action_space = spaces.Box(
-          low=np.ones(self.num_acts) * -1.,
-          high=np.ones(self.num_acts) * 1.,
-          dtype=np.float32)
-        self._observation = np.zeros([self.num_envs, self.num_obs], 
-          dtype=np.float32)
+            low=np.ones(self.num_acts) * -1.,
+            high=np.ones(self.num_acts) * 1.,
+            dtype=np.float32)
+        self._observation = np.zeros([self.num_envs, self.num_obs],
+                                     dtype=np.float32)
         self._reward = np.zeros(self.num_envs, dtype=np.float32)
         self._done = np.zeros((self.num_envs), dtype=np.bool)
         self._extraInfoNames = self.wrapper.getExtraInfoNames()
-        self._extraInfo = np.zeros([self.num_envs, 
-          len(self._extraInfoNames)], dtype=np.float32)
+        self._extraInfo = np.zeros([self.num_envs,
+                                    len(self._extraInfoNames)], dtype=np.float32)
         self.rewards = [[] for _ in range(self.num_envs)]
-        
-        self._max_episode_steps = 300
+
+        self.max_episode_steps = 300
 
     def seed(self, seed=0):
         self.wrapper.setSeed(seed)
 
     def step(self, action):
-        self.wrapper.step(action, self._observation, 
-          self._reward, self._done, self._extraInfo)
+        self.wrapper.step(action, self._observation,
+                          self._reward, self._done, self._extraInfo)
 
         if len(self._extraInfoNames) is not 0:
             info = [{'extra_info': {
@@ -51,11 +52,11 @@ class FlightEnvVec(VecEnv):
                 self.rewards[i].clear()
 
         return self._observation.copy(), self._reward.copy(), \
-          self._done.copy(), info.copy()
-          
+            self._done.copy(), info.copy()
+
     def stepUnity(self, action, send_id):
-        receive_id = self.wrapper.stepUnity(action, self._observation, 
-                self._reward, self._done, self._extraInfo, send_id)
+        receive_id = self.wrapper.stepUnity(action, self._observation,
+                                            self._reward, self._done, self._extraInfo, send_id)
 
         return receive_id
 
@@ -92,10 +93,10 @@ class FlightEnvVec(VecEnv):
         self.wrapper.close()
 
     def connectFlightmare(self):
-      self.wrapper.connectFlightmare()
+        self.wrapper.connectFlightmare()
 
     def disconnectFlightmare(self):
-      self.wrapper.disconnectFlightmare()
+        self.wrapper.disconnectFlightmare()
 
     @property
     def num_envs(self):

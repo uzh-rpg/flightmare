@@ -7,8 +7,8 @@ QuadrotorDynamics::QuadrotorDynamics(const Scalar mass, const Scalar arm_l)
     arm_l_(arm_l),
     t_BM_(
       arm_l * sqrt(0.5) *
-      (Matrix<3, 4>() << -1, 1, -1, 1, -1, 1, 1, -1, 0, 0, 0, 0).finished()),
-    J_(mass / 12.0 * arm_l * arm_l * Vector<3>(2.25, 2.25, 4).asDiagonal()),
+      (Matrix<3, 4>() << 1, -1, -1, 1, -1, -1, 1, 1, 0, 0, 0, 0).finished()),
+    J_(mass / 12.0 * arm_l * arm_l * Vector<3>(4.5, 4.5, 7).asDiagonal()),
     J_inv_(J_.inverse()),
     motor_omega_min_(150.0),
     motor_omega_max_(2000.0),
@@ -30,19 +30,28 @@ bool QuadrotorDynamics::dState(const QuadState& state,
 
 bool QuadrotorDynamics::dState(const Ref<const Vector<QuadState::SIZE>> state,
                                Ref<Vector<QuadState::SIZE>> dstate) const {
-  if (!state.segment<QS::DYN>(0).allFinite()) return false;
+  if (!state.segment<QS::NDYM>(0).allFinite()) return false;
 
   dstate.setZero();
+  //
   const Vector<3> omega(state(QS::OMEX), state(QS::OMEY), state(QS::OMEZ));
   const Quaternion q_omega(0, omega.x(), omega.y(), omega.z());
+  const Vector<3> body_torque = state.segment<QS::NTAU>(QS::TAU);
 
+  // linear velocity = dx / dt
   dstate.segment<QS::NPOS>(QS::POS) = state.segment<QS::NVEL>(QS::VEL);
+
+  // differentiate quaternion = dq / dt
   dstate.segment<QS::NATT>(QS::ATT) =
     0.5 * Q_right(q_omega) * state.segment<QS::NATT>(QS::ATT);
-  dstate.segment<QS::NVEL>(QS::VEL) = state.segment<QS::NACC>(QS::ACC);
-  dstate.segment<QS::NOME>(QS::OME) =
-    J_inv_ * (state.segment<QS::NTAU>(QS::TAU) - omega.cross(J_ * omega));
 
+  // linear acceleration = dv / dt
+  dstate.segment<QS::NVEL>(QS::VEL) = state.segment<QS::NACC>(QS::ACC);
+
+  // angular accleration = domega / dt
+  dstate.segment<QS::NOME>(QS::OME) =
+    J_inv_ * (body_torque - omega.cross(J_ * omega));
+  //
   return true;
 }
 
@@ -116,7 +125,7 @@ Vector<4> QuadrotorDynamics::motorThrustToOmega(
 
 Matrix<4, 4> QuadrotorDynamics::getAllocationMatrix() const {
   return (Matrix<4, 4>() << Vector<4>::Ones().transpose(), t_BM_.topRows<2>(),
-          kappa_ * Vector<4>(-1, -1, 1, 1).transpose())
+          kappa_ * Vector<4>(1, -1, 1, -1).transpose())
     .finished();
 }
 
@@ -183,8 +192,8 @@ bool QuadrotorDynamics::updateParams(const YAML::Node& params) {
 bool QuadrotorDynamics::updateInertiaMarix() {
   if (!valid()) return false;
   t_BM_ = arm_l_ * sqrt(0.5) *
-          (Matrix<3, 4>() << -1, 1, -1, 1, -1, 1, 1, -1, 0, 0, 0, 0).finished();
-  J_ = mass_ / 12.0 * arm_l_ * arm_l_ * Vector<3>(2.25, 2.25, 4).asDiagonal();
+          (Matrix<3, 4>() << 1, -1, -1, 1, -1, -1, 1, 1, 0, 0, 0, 0).finished();
+  J_ = mass_ / 12.0 * arm_l_ * arm_l_ * Vector<3>(4.5, 4.5, 7).asDiagonal();
   J_inv_ = J_.inverse();
   return true;
 }
