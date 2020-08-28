@@ -227,8 +227,6 @@ bool Quadrotor::updateDynamics(const QuadrotorDynamics &dynamics) {
   dynamics_ = dynamics;
   integrator_ptr_ =
     std::make_unique<IntegratorRK4>(dynamics_.getDynamicsFunction(), 2.5e-3);
-  // integrator_ptr_ =
-  //   std::make_unique<IntegratorEuler>(dynamics_.getDynamicsFunction(), 2.5e-3);
 
   B_allocation_ = dynamics_.getAllocationMatrix();
   B_allocation_inv_ = B_allocation_.inverse();

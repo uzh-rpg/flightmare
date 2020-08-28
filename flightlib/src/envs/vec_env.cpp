@@ -207,7 +207,7 @@ bool VecEnv<EnvBase>::connectUnity(void) {
     }
     // sleep
     usleep(sleep_useconds);
-    // incread time out counter
+    // increase time out counter
     time_out_count += sleep_useconds;
     std::cout << ".";
     std::cout.flush();

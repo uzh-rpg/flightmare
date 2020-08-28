@@ -41,26 +41,27 @@ struct QuadState {
     ACCY = 14,
     ACCZ = 15,
     NACC = 3,
-    //
+    // body-torque
     TAU = 16,
     TAUX = 16,
     TAUY = 17,
     TAUZ = 18,
     NTAU = 3,
     //
-    SIZE = 19,
+    BOME = 19,
+    BOMEX = 19,
+    BOMEY = 20,
+    BOMEZ = 21,
+    NBOME = 3,
+    //
+    BACC = 22,
+    BACCX = 22,
+    BACCY = 23,
+    BACCZ = 24,
+    NBACC = 3,
+    //
+    SIZE = 25,
     NDYM = 19
-    // BOME = 19,
-    // BOMEX = 19,
-    // BOMEY = 20,
-    // BOMEZ = 21,
-    // NBOME = 3,
-    // BACC = 22,
-    // BACCX = 22,
-    // BACCY = 23,
-    // BACCZ = 24,
-    // NBACC = 3,
-    // SIZE = 25,
   };
 
   QuadState();
@@ -91,10 +92,10 @@ struct QuadState {
   Ref<Vector<3>> a{x.segment<IDX::NACC>(IDX::ACC)};
   // body torque
   Ref<Vector<3>> tau{x.segment<IDX::NTAU>(IDX::TAU)};
-
   //
-  // Ref<Vector<3>> bw{x.segment<IDX::NBOME>(IDX::BOME)};
-  // Ref<Vector<3>> ba{x.segment<IDX::NBACC>(IDX::BACC)};
+  Ref<Vector<3>> bw{x.segment<IDX::NBOME>(IDX::BOME)};
+  //
+  Ref<Vector<3>> ba{x.segment<IDX::NBACC>(IDX::BACC)};
 
   bool operator==(const QuadState& rhs) const {
     return t == rhs.t && x.isApprox(rhs.x, 1e-5);

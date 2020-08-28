@@ -55,41 +55,42 @@ def test_model(env, model, render=False):
         #
         t = np.arange(0, pos.shape[0])
         ax_x.step(t, pos[:, 0], color="C{0}".format(
-            n_roll), label="px -- trail: {0}".format(n_roll))
+            n_roll), label="trail: {0}".format(n_roll))
         ax_y.step(t, pos[:, 1], color="C{0}".format(
-            n_roll), label="py -- trail: {0}".format(n_roll))
+            n_roll), label="trail: {0}".format(n_roll))
         ax_z.step(t, pos[:, 2], color="C{0}".format(
-            n_roll), label="pz -- trail: {0}".format(n_roll))
+            n_roll), label="pos [x, y, z] -- trail: {0}".format(n_roll))
         #
         ax_dx.step(t, dpos[:, 0], color="C{0}".format(
-            n_roll), label=r"$vx$ -- trail: {0}".format(n_roll))
+            n_roll), label="trail: {0}".format(n_roll))
         ax_dy.step(t, dpos[:, 1], color="C{0}".format(
-            n_roll), label=r"$vy$ -- trail: {0}".format(n_roll))
+            n_roll), label="trail: {0}".format(n_roll))
         ax_dz.step(t, dpos[:, 2], color="C{0}".format(
-            n_roll), label=r"$vz$ -- trail: {0}".format(n_roll))
+            n_roll), label="vel [x, y, z] -- trail: {0}".format(n_roll))
         #
         ax_euler_x.step(t, euler[:, -1], color="C{0}".format(
-            n_roll), label=r"$\theta_x$ -- trail: {0}".format(n_roll))
+            n_roll), label="trail: {0}".format(n_roll))
         ax_euler_y.step(t, euler[:, 0], color="C{0}".format(
-            n_roll), label=r"$\theta_y$ -- trail :{0}".format(n_roll))
+            n_roll), label="trail :{0}".format(n_roll))
         ax_euler_z.step(t, euler[:, 1], color="C{0}".format(
-            n_roll), label=r"$\theta_z$ -- trail: {0}".format(n_roll))
+            n_roll), label="trail: {0}".format(n_roll))
         #
         ax_euler_vx.step(t, deuler[:, -1], color="C{0}".format(
-            n_roll), label=r"$\theta_x$ -- trail: {0}".format(n_roll))
+            n_roll), label="trail: {0}".format(n_roll))
         ax_euler_vy.step(t, deuler[:, 0], color="C{0}".format(
-            n_roll), label=r"$\theta_y$ -- trail :{0}".format(n_roll))
+            n_roll), label="trail :{0}".format(n_roll))
         ax_euler_vz.step(t, deuler[:, 1], color="C{0}".format(
-            n_roll), label=r"$\theta_z$ -- trail: {0}".format(n_roll))
+            n_roll), label=r"$\theta$ [x, y, z] -- trail: {0}".format(n_roll))
         #
         ax_action0.step(t, actions[:, 0], color="C{0}".format(
-            n_roll), label=r"$a_0$ -- trail: {0}".format(n_roll))
+            n_roll), label="trail: {0}".format(n_roll))
         ax_action1.step(t, actions[:, 1], color="C{0}".format(
-            n_roll), label=r"$a_1$ -- trail: {0}".format(n_roll))
+            n_roll), label="trail: {0}".format(n_roll))
         ax_action2.step(t, actions[:, 2], color="C{0}".format(
-            n_roll), label=r"$a_2$ -- trail: {0}".format(n_roll))
+            n_roll), label="trail: {0}".format(n_roll))
         ax_action3.step(t, actions[:, 3], color="C{0}".format(
-            n_roll), label=r"$a_3$ -- trail: {0}".format(n_roll))
+            n_roll), label="act [0, 1, 2, 3] -- trail: {0}".format(n_roll))
+    #
     ax_z.legend()
     ax_dz.legend()
     ax_euler_z.legend()

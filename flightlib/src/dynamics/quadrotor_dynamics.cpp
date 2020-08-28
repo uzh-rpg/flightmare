@@ -131,7 +131,6 @@ Matrix<4, 4> QuadrotorDynamics::getAllocationMatrix() const {
 
 bool QuadrotorDynamics::setMass(const Scalar mass) {
   if (mass < 0.0 || mass >= 100.) {
-    // logger_.error("Quadrotor mass value is not valid %1.3f", mass);
     return false;
   }
   mass_ = mass;
@@ -142,7 +141,6 @@ bool QuadrotorDynamics::setMass(const Scalar mass) {
 
 bool QuadrotorDynamics::setArmLength(const Scalar arm_length) {
   if (arm_length < 0.0) {
-    // logger_.error("Quadrotor mass value is not valid %1.3f", mass);
     return false;
   }
   arm_l_ = arm_length;
@@ -153,7 +151,6 @@ bool QuadrotorDynamics::setArmLength(const Scalar arm_length) {
 
 bool QuadrotorDynamics::setMotortauInv(const Scalar tau_inv) {
   if (tau_inv < 1.0) {
-    // logger_.error("Qaudrotor motor tau inv is not valid %1.3f", tau_inv);
     return false;
   }
   motor_tau_inv_ = tau_inv;

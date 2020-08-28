@@ -32,7 +32,6 @@ QuadrotorEnv::QuadrotorEnv(const std::string &cfg_path)
   obs_dim_ = quadenv::kNObs;
   act_dim_ = quadenv::kNAct;
 
-
   Scalar mass = quadrotor_.getMass();
   act_mean_ = Vector<quadenv::kNAct>::Ones() * (-mass * Gz) / 4;
   act_std_ = Vector<quadenv::kNAct>::Ones() * (-mass * 2 * Gz) / 4;
@@ -195,8 +194,7 @@ std::ostream &operator<<(std::ostream &os, const QuadrotorEnv &quad_env) {
      << "act_mean =           [" << quad_env.act_mean_.transpose() << "]\n"
      << "act_std =            [" << quad_env.act_std_.transpose() << "]\n"
      << "obs_mean =           [" << quad_env.obs_mean_.transpose() << "]\n"
-     << "obs_std =            [" << quad_env.obs_std_.transpose() << "]\n"
-     << "]" << std::endl;
+     << "obs_std =            [" << quad_env.obs_std_.transpose() << std::endl;
   os.precision();
   return os;
 }
