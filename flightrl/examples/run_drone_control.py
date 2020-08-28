@@ -37,7 +37,7 @@ def parser():
                         help="Directory where to load weights")
     parser.add_argument('-m', '--mode', type=str, default='train',
                         help='set mode either train or test')
-    parser.add_argument('-w', '--weight', type=str, default='./saved/2020-08-27-21-48-07.zip',
+    parser.add_argument('-w', '--weight', type=str, default='./saved/2020-08-28-13-54-34_Iteration_393.zip',
                         help='trained weight path')
     return parser
 

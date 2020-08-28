@@ -36,34 +36,16 @@ TEST(QuadrotorEnv, Constructor) {
 
   // evaluate parameters
   Scalar expect_sim_dt = cfg["quadrotor_env"]["sim_dt"].as<Scalar>();
-  std::vector<Scalar> Q_pos(3), Q_ori(3), Q_lin_vel(3), Q_cmd(4);
-  Q_pos = cfg["rl"]["Q_pos"].as<std::vector<Scalar>>();
-  Q_ori = cfg["rl"]["Q_ori"].as<std::vector<Scalar>>();
-  Q_lin_vel = cfg["rl"]["Q_lin_vel"].as<std::vector<Scalar>>();
-  Q_cmd = cfg["rl"]["Q_cmd"].as<std::vector<Scalar>>();
-  Matrix<OBS_DIM, OBS_DIM> expect_Q =
-    (Vector<OBS_DIM>() << Q_pos[0], Q_pos[1], Q_pos[2], Q_ori[0], Q_ori[1],
-     Q_ori[2], Q_lin_vel[0], Q_lin_vel[1], Q_lin_vel[2])
-      .finished()
-      .asDiagonal();
-  Matrix<ACT_DIM, ACT_DIM> expect_Q_act =
-    (Vector<ACT_DIM>() << Q_cmd[0], Q_cmd[1], Q_cmd[2], Q_cmd[3])
-      .finished()
-      .asDiagonal();
 
   const int obs_dim1 = env1.getObsDim();
   const int act_dim1 = env1.getActDim();
   const Scalar sim_dt = env1.getSimTimeStep();
   Matrix<OBS_DIM, OBS_DIM> Q;
   Matrix<ACT_DIM, ACT_DIM> Q_act;
-  env1.getQ(Q);
-  env1.getQAct(Q_act);
 
   EXPECT_EQ(obs_dim1, OBS_DIM);
   EXPECT_EQ(act_dim1, ACT_DIM);
   EXPECT_EQ(expect_sim_dt, sim_dt);
-  EXPECT_TRUE(Q.isApprox(expect_Q));
-  EXPECT_TRUE(Q_act.isApprox(expect_Q_act));
 
   //
   std::cout << env1 << std::endl;
@@ -85,6 +67,8 @@ TEST(QuadrotorEnv, ResetEnv) {
   EXPECT_EQ(obs(0), 0.0);
   EXPECT_EQ(obs(1), 0.0);
   EXPECT_EQ(obs(2), 0.0);
+
+  env.reset(obs);
 }
 
 TEST(QuadrotorEnv, StepEnv) {

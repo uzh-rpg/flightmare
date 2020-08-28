@@ -69,7 +69,8 @@ bool Quadrotor::run(const Scalar ctl_dt) {
     integrator_ptr_->step(state_.x, sim_dt, next_state.x);
 
     // update state and sim time
-    next_state.qx.normalize();
+    state_.qx /= state_.qx.norm();
+
     //
     state_.x = next_state.x;
     remain_ctl_dt -= sim_dt;
@@ -224,10 +225,10 @@ bool Quadrotor::updateDynamics(const QuadrotorDynamics &dynamics) {
     return false;
   }
   dynamics_ = dynamics;
-  // integrator_ptr_ =
-  //   std::make_unique<IntegratorRK4>(dynamics_.getDynamicsFunction(), 2.5e-3);
   integrator_ptr_ =
-    std::make_unique<IntegratorEuler>(dynamics_.getDynamicsFunction(), 2.5e-3);
+    std::make_unique<IntegratorRK4>(dynamics_.getDynamicsFunction(), 2.5e-3);
+  // integrator_ptr_ =
+  //   std::make_unique<IntegratorEuler>(dynamics_.getDynamicsFunction(), 2.5e-3);
 
   B_allocation_ = dynamics_.getAllocationMatrix();
   B_allocation_inv_ = B_allocation_.inverse();

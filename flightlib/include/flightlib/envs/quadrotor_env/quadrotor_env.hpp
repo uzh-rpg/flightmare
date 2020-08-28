@@ -19,24 +19,26 @@
 
 namespace flightlib {
 
-enum CtlObsAct {
+namespace quadenv {
+
+enum Ctl : int {
   // observations
   kObs = 0,
   //
-  kObsPos = 0,
-  kObsPosSize = 3,
-  kObsOri = 3,
-  kObsOriSize = 3,
-  kObsLinVel = 6,
-  kObsLinVelSize = 3,
-  kObsAngVel = 9,
-  kObsAngVelSize = 3,
-  kObsSize = 12,
+  kPos = 0,
+  kNPos = 3,
+  kOri = 3,
+  kNOri = 3,
+  kLinVel = 6,
+  kNLinVel = 3,
+  kAngVel = 9,
+  kNAngVel = 3,
+  kNObs = 12,
   // control actions
   kAct = 0,
-  kActSize = 4,
+  kNAct = 4,
 };
-
+};
 class QuadrotorEnv final : public EnvBase {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -56,9 +58,6 @@ class QuadrotorEnv final : public EnvBase {
   bool getObs(Ref<Vector<>> obs) override;
   bool getAct(Ref<Vector<>> act) const;
   bool getAct(Command *const cmd) const;
-  void getQ(Ref<Matrix<CtlObsAct::kObsSize, CtlObsAct::kObsSize>> Q) const;
-  void getQAct(
-    Ref<Matrix<CtlObsAct::kActSize, CtlObsAct::kActSize>> Q_act) const;
 
   // - auxiliar functions
   bool isTerminalState(Scalar &reward) override;
@@ -74,22 +73,21 @@ class QuadrotorEnv final : public EnvBase {
   Command cmd_;
   Logger logger_{"QaudrotorEnv"};
 
+  // Define reward for training
+  Scalar pos_coeff_, ori_coeff_, lin_vel_coeff_, ang_vel_coeff_, act_coeff_;
+
   // observations and actions (for RL)
-  Vector<CtlObsAct::kObsSize> quad_obs_;
-  Vector<CtlObsAct::kActSize> quad_act_;
+  Vector<quadenv::kNObs> quad_obs_;
+  Vector<quadenv::kNAct> quad_act_;
 
   // reward function design (for model-free reinforcement learning)
-  Matrix<CtlObsAct::kObsSize, CtlObsAct::kObsSize> Q_;
-  Matrix<CtlObsAct::kActSize, CtlObsAct::kActSize> Q_act_;
-  Vector<CtlObsAct::kObsSize> goal_state_;
+  Vector<quadenv::kNObs> goal_state_;
 
   // action and observation normalization (for learning)
-  // Vector<CtlObsAct::kActSize> act_mean_{-Gz, 0.0, 0.0, 0.0};
-  // Vector<CtlObsAct::kActSize> act_std_{10.0, 6.0, 6.0, 6.0};
-  Vector<CtlObsAct::kActSize> act_mean_;
-  Vector<CtlObsAct::kActSize> act_std_;
-  Vector<CtlObsAct::kObsSize> obs_mean_ = Vector<CtlObsAct::kObsSize>::Zero();
-  Vector<CtlObsAct::kObsSize> obs_std_ = Vector<CtlObsAct::kObsSize>::Ones();
+  Vector<quadenv::kNAct> act_mean_;
+  Vector<quadenv::kNAct> act_std_;
+  Vector<quadenv::kNObs> obs_mean_ = Vector<quadenv::kNObs>::Zero();
+  Vector<quadenv::kNObs> obs_std_ = Vector<quadenv::kNObs>::Ones();
 
   YAML::Node cfg_;
   Matrix<3, 2> world_box_;

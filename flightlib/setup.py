@@ -21,6 +21,7 @@ class CMakeBuild(build_ext):
     def run(self):
         FLIGHTLIB_EXTERNAL_FILES = os.environ["FLIGHTMARE_PATH"] + \
             "/flightlib/externals/"
+        # --------------------------------
         # remove cached external files
         # a hack to solve some cmake error when using "pip install ."
         try:
@@ -29,6 +30,7 @@ class CMakeBuild(build_ext):
                 print("Removing some cache file: ", p)
         except:
             pass
+        # --------------------------------
         try:
             out = subprocess.check_output(['cmake', '--version'])
         except OSError:

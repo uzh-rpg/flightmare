@@ -102,7 +102,7 @@ TEST(Quadrotor, RunQuadCmdFeedThrough) {
   quad.getState(&final_state);
 
   EXPECT_NEAR(final_state.t, quad_state.t, 1e-9);
-  EXPECT_TRUE(quad_state.x.isApprox(final_state.x));
+  EXPECT_TRUE(quad_state.x.isApprox(final_state.x, 1e-3));
 
   // free fall
   quad_state.setZero();
@@ -128,9 +128,7 @@ TEST(Quadrotor, RunQuadCmdFeedThrough) {
   quad.getState(&final_state);
 
   EXPECT_NEAR(final_state.t, quad_state.t, 1e-9);
-  std::cout << quad_state.x << std::endl;
-  std::cout << final_state.x << std::endl;
-  EXPECT_TRUE(quad_state.x.isApprox(final_state.x));
+  EXPECT_TRUE(quad_state.x.isApprox(final_state.x, 1e-3));
 
   // taking off
   quad_state.setZero();
@@ -156,11 +154,10 @@ TEST(Quadrotor, RunQuadCmdFeedThrough) {
     quad_state.t += ctl_dt;
   }
 
-  std::cout << quad_state << std::endl;
   final_state.setZero();
   quad.getState(&final_state);
   EXPECT_NEAR(final_state.t, quad_state.t, 1e-9);
-  EXPECT_TRUE(quad_state.x.isApprox(final_state.x));
+  EXPECT_TRUE(quad_state.x.isApprox(final_state.x, 1e-3));
   EXPECT_GT(quad_state.x(QS::POSZ), 1.0);
 }
 

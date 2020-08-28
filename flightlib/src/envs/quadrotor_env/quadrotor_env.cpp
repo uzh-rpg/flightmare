@@ -8,14 +8,13 @@ QuadrotorEnv::QuadrotorEnv()
 
 QuadrotorEnv::QuadrotorEnv(const std::string &cfg_path)
   : EnvBase(),
-    Q_((Vector<CtlObsAct::kObsSize>() << -1e-2, -1e-2, -1e-2, -1e-2, -1e-2,
-        -1e-2, -1e-3, -1e-3, -1e-3, -1e-3, -1e-3, -1e-3)
-         .finished()
-         .asDiagonal()),
-    Q_act_(
-      Vector<CtlObsAct::kActSize>(-1e-4, -1e-4, -1e-4, -1e-4).asDiagonal()),
-    goal_state_((Vector<CtlObsAct::kObsSize>() << 0.0, 0.0, 5.0, 0.0, 0.0, 0.0,
-                 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+    pos_coeff_(0.0),
+    ori_coeff_(0.0),
+    lin_vel_coeff_(0.0),
+    ang_vel_coeff_(0.0),
+    act_coeff_(0.0),
+    goal_state_((Vector<quadenv::kNObs>() << 0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0,
+                 0.0, 0.0, 0.0, 0.0, 0.0)
                   .finished()) {
   // load configuration file
   YAML::Node cfg_ = YAML::LoadFile(cfg_path);
@@ -30,13 +29,13 @@ QuadrotorEnv::QuadrotorEnv(const std::string &cfg_path)
   quadrotor_.setWorldBox(world_box_);
 
   // define input and output dimension for the environment
-  obs_dim_ = CtlObsAct::kObsSize;
-  act_dim_ = CtlObsAct::kActSize;
+  obs_dim_ = quadenv::kNObs;
+  act_dim_ = quadenv::kNAct;
 
 
   Scalar mass = quadrotor_.getMass();
-  act_mean_ = Vector<4>::Ones() * (-mass * Gz) / 4;
-  act_std_ = Vector<4>::Ones() * (-mass * 2 * Gz) / 4;
+  act_mean_ = Vector<quadenv::kNAct>::Ones() * (-mass * Gz) / 4;
+  act_std_ = Vector<quadenv::kNAct>::Ones() * (-mass * 2 * Gz) / 4;
 
   // load parameters
   loadParam(cfg_);
@@ -83,11 +82,11 @@ bool QuadrotorEnv::getObs(Ref<Vector<>> obs) {
   quadrotor_.getState(&quad_state_);
 
   // convert quaternion to euler angle
-  Vector<3> euler = quad_state_.q().toRotationMatrix().eulerAngles(0, 1, 2);
+  Vector<3> euler_zyx = quad_state_.q().toRotationMatrix().eulerAngles(2, 1, 0);
   // quaternionToEuler(quad_state_.q(), euler);
-  quad_obs_ << quad_state_.p, euler, quad_state_.v, quad_state_.w;
+  quad_obs_ << quad_state_.p, euler_zyx, quad_state_.v, quad_state_.w;
 
-  obs.segment<CtlObsAct::kObsSize>(kObs) = quad_obs_;
+  obs.segment<quadenv::kNObs>(quadenv::kObs) = quad_obs_;
   return true;
 }
 
@@ -102,13 +101,38 @@ Scalar QuadrotorEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs) {
   // update observations
   getObs(obs);
 
-  // reward function design
-  Scalar stage_reward =
-    (quad_obs_ - goal_state_).transpose() * Q_ * (quad_obs_ - goal_state_);
-  Scalar act_reward =
-    (quad_act_ - act_mean_).transpose() * Q_act_ * (quad_act_ - act_mean_);
+  Matrix<3, 3> rot = quad_state_.q().toRotationMatrix();
 
-  Scalar total_reward = stage_reward + act_reward + 1;
+  // ---------------------- reward function design
+  // - position tracking
+  Scalar pos_reward =
+    pos_coeff_ * (quad_obs_.segment<quadenv::kNPos>(quadenv::kPos) -
+                  goal_state_.segment<quadenv::kNPos>(quadenv::kPos))
+                   .squaredNorm();
+  // - orientation tracking
+  Scalar ori_reward =
+    ori_coeff_ * (quad_obs_.segment<quadenv::kNOri>(quadenv::kOri) -
+                  goal_state_.segment<quadenv::kNOri>(quadenv::kOri))
+                   .squaredNorm();
+  // - linear velocity tracking
+  Scalar lin_vel_reward =
+    lin_vel_coeff_ * (quad_obs_.segment<quadenv::kNLinVel>(quadenv::kLinVel) -
+                      goal_state_.segment<quadenv::kNLinVel>(quadenv::kLinVel))
+                       .squaredNorm();
+  // - angular velocity tracking
+  Scalar ang_vel_reward =
+    ang_vel_coeff_ * (quad_obs_.segment<quadenv::kNAngVel>(quadenv::kAngVel) -
+                      goal_state_.segment<quadenv::kNAngVel>(quadenv::kAngVel))
+                       .squaredNorm();
+
+  // - control action penalty
+  Scalar act_reward = act_coeff_ * act.cast<Scalar>().norm();
+
+  Scalar total_reward =
+    pos_reward + ori_reward + lin_vel_reward + ang_vel_reward + act_reward;
+
+  // survival reward
+  total_reward += 0.1;
 
   return total_reward;
 }
@@ -132,35 +156,15 @@ bool QuadrotorEnv::loadParam(const YAML::Node &cfg) {
 
   if (cfg["rl"]) {
     // load reinforcement learning related parameters
-    std::vector<Scalar> Q_pos(3), Q_ori(3), Q_lin_vel(3), Q_cmd(4);
-    Q_pos = cfg["rl"]["Q_pos"].as<std::vector<Scalar>>();
-    Q_ori = cfg["rl"]["Q_ori"].as<std::vector<Scalar>>();
-    Q_lin_vel = cfg["rl"]["Q_lin_vel"].as<std::vector<Scalar>>();
-    Q_cmd = cfg["rl"]["Q_cmd"].as<std::vector<Scalar>>();
-
-    Q_ =
-      (Vector<CtlObsAct::kObsSize>() << Q_pos[0], Q_pos[1], Q_pos[2], Q_ori[0],
-       Q_ori[1], Q_ori[2], Q_lin_vel[0], Q_lin_vel[1], Q_lin_vel[2])
-        .finished()
-        .asDiagonal();
-    Q_act_ =
-      (Vector<CtlObsAct::kActSize>() << Q_cmd[0], Q_cmd[1], Q_cmd[2], Q_cmd[3])
-        .finished()
-        .asDiagonal();
+    pos_coeff_ = cfg["rl"]["pos_coeff"].as<Scalar>();
+    ori_coeff_ = cfg["rl"]["ori_coeff"].as<Scalar>();
+    lin_vel_coeff_ = cfg["rl"]["lin_vel_coeff"].as<Scalar>();
+    ang_vel_coeff_ = cfg["rl"]["ang_vel_coeff"].as<Scalar>();
+    act_coeff_ = cfg["rl"]["act_coeff"].as<Scalar>();
   } else {
     return false;
   }
   return true;
-}
-
-void QuadrotorEnv::getQ(
-  Ref<Matrix<CtlObsAct::kObsSize, CtlObsAct::kObsSize>> Q) const {
-  Q = Q_;
-}
-
-void QuadrotorEnv::getQAct(
-  Ref<Matrix<CtlObsAct::kActSize, CtlObsAct::kActSize>> Q_act) const {
-  Q_act = Q_act_;
 }
 
 bool QuadrotorEnv::getAct(Ref<Vector<>> act) const {
@@ -192,8 +196,6 @@ std::ostream &operator<<(std::ostream &os, const QuadrotorEnv &quad_env) {
      << "act_std =            [" << quad_env.act_std_.transpose() << "]\n"
      << "obs_mean =           [" << quad_env.obs_mean_.transpose() << "]\n"
      << "obs_std =            [" << quad_env.obs_std_.transpose() << "]\n"
-     << "Q =                  [" << quad_env.Q_.diagonal().transpose() << "]\n"
-     << "Q_act =              [" << quad_env.Q_act_.diagonal().transpose()
      << "]" << std::endl;
   os.precision();
   return os;

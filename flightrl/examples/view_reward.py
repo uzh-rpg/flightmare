@@ -18,7 +18,7 @@ def plot_reward(save_dir, varname, ylabel, save_fig=False):
 
 
 if __name__ == "__main__":
-    logger_dir = "./saved/2020-08-27-21-48-07/"
+    logger_dir = "./saved/2020-08-28-13-54-34/"
     ppo_var_names = ["ep_reward_mean", "ep_len_mean", "policy_entropy"]
     ppo_y_labels = ["Reward", "Episode Length", "Policy Entropy"]
     #
