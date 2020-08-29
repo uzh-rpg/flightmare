@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>flightros</name>
+  <name>flightlib</name>
   <version>0.0.1</version>
-  <description>ROS-Wrapper for flightlib</description>
+  <description>Flightmare: An Open Flexible Quadrotor</description>
 
   <maintainer email="song@ifi.uzh.ch">Yunlong Song</maintainer>
 
@@ -11,10 +11,6 @@
   <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>catkin_simple</buildtool_depend>
 
-  <depend>flightlib</depend>
-  <depend>roscpp</depend>
-  <depend>autopilot</depend>
-  <depend>quadrotor_common</depend>
-  <depend>nav_msgs</depend>
+  <depend>gtest</depend>
 
 </package>
