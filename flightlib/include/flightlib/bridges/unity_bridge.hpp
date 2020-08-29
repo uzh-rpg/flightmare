@@ -1,6 +1,7 @@
 #pragma once
 
 // std libs
+#include <unistd.h>
 #include <chrono>
 #include <fstream>
 #include <map>
@@ -31,8 +32,7 @@ class UnityBridge {
   ~UnityBridge(){};
 
   // connect function
-  bool initializeConnections(void);
-  bool connectUnity(void);
+  bool connectUnity(const SceneID scene_id);
   bool disconnectUnity(void);
 
   // public get functions
@@ -57,6 +57,8 @@ class UnityBridge {
   };
 
  private:
+  bool initializeConnections(void);
+
   //
   SettingsMessage_t settings_;
   PubMessage_t pub_msg_;
@@ -80,11 +82,8 @@ class UnityBridge {
   int64_t last_download_debug_utime_;
   int64_t u_packet_latency_;
 
-  // connecting symbols
-  bool unity_ready_;
-
-  // auxiliary variables
-  std::vector<uint8_t> input_buffer_;
+  // axuiliary variables
+  const Scalar unity_connection_time_out_{10.0};
+  bool unity_ready_{false};
 };
-
 }  // namespace flightlib

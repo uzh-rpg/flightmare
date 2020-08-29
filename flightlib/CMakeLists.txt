@@ -195,9 +195,6 @@ if(NOT FLIGHTLIB_SOURCES)
 else()
   # flightlib
   add_library(${PROJECT_NAME} ${FLIGHTLIB_SOURCES})
-  # target_include_directories(${PROJECT_NAME} PRIVATE
-  #   ${PROJECT_SOURCE_DIR}/externals/pybind11-src/include
-  # )
   target_link_libraries(${PROJECT_NAME} PRIVATE
     ${OpenCV_LIBRARIES}
     yaml-cpp

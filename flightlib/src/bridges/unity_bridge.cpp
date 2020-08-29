@@ -11,7 +11,10 @@ UnityBridge::UnityBridge()
     last_downloaded_utime_(0),
     last_download_debug_utime_(0),
     u_packet_latency_(0),
-    unity_ready_(false) {}
+    unity_ready_(false) {
+  // initialize connections upon creating unity bridge
+  initializeConnections();
+}
 
 bool UnityBridge::initializeConnections() {
   logger_.info("Initializing ZMQ connection!");
@@ -31,15 +34,34 @@ bool UnityBridge::initializeConnections() {
   return true;
 }
 
-bool UnityBridge::connectUnity() {
+bool UnityBridge::connectUnity(const SceneID scene_id) {
+  Scalar time_out_count = 0;
+  Scalar sleep_useconds = 0.2 * 1e5;
+  setScene(scene_id);
   // try to connect unity
-  if (!unity_ready_) {
+  logger_.info("Trying to Connect Unity.");
+  std::cout << "[";
+  while (!unity_ready_) {
+    // if time out
+    if (time_out_count / 1e6 > unity_connection_time_out_) {
+      std::cout << "]" << std::endl;
+      logger_.warn(
+        "Unity Connection time out! Make sure that Unity Standalone "
+        "or Unity Editor is running the Flightmare.");
+      return false;
+    }
     // initialize Scene settings
     sendInitialSettings();
     // check if setting is done
     unity_ready_ = handleSettings();
+    // sleep
+    usleep(sleep_useconds);
+    // increase time out counter
+    time_out_count += sleep_useconds;
+    // print something
+    std::cout << ".";
+    std::cout.flush();
   }
-
   return unity_ready_;
 }
 
@@ -122,7 +144,10 @@ bool UnityBridge::addQuadrotor(Quadrotor* quad) {
   Vehicle_t vehicle_t;
   // get quadrotor state
   QuadState quad_state;
-  if (!quad->getState(&quad_state)) return false;
+  if (!quad->getState(&quad_state)) {
+    logger_.error("Cannot get Quadrotor state.");
+    return false;
+  }
 
   vehicle_t.ID = std::to_string(settings_.vehicles.size());
   vehicle_t.position = positionRos2Unity(quad_state.p);
