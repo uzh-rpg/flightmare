@@ -2,6 +2,7 @@ quadrotor_env:
    camera: no
    sim_dt: 0.02 
    max_t: 5.0
+   add_camera: yes
 
 quadrotor_dynamics:
   mass: 0.73

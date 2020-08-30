@@ -15,12 +15,7 @@
 
 namespace flightlib {
 
-enum CameraLayer {
-  RGBImage = 0,
-  DepthMap = 1,
-  Segmentation = 2,
-  OpticalFlow = 3
-};
+enum CameraLayer { DepthMap = 1, Segmentation = 2, OpticalFlow = 3 };
 
 
 class RGBCamera : SensorBase {
@@ -75,7 +70,7 @@ class RGBCamera : SensorBase {
   std::deque<cv::Mat> opticalflow_queue_;
   std::deque<cv::Mat> segmentation_queue_;
 
-  // [rgb, depth, segmentation, optical flow]
+  // [depth, segmentation, optical flow]
   std::vector<bool> enabled_layers_;
 };
 
