@@ -9,8 +9,8 @@ enabled: true
     {% if site.cover %}style="background-image: url({{ site.cover | prepend: site.baseurl }});" {% endif %}>
     <div class="scrim {% if site.cover %}has-cover{% endif %}">
       <header class="site-header">
-        <h1 class="title">{{ site.title }}</h1>
-        {% if site.subtitle %}<p class="subtitle">{{ site.subtitle }}</p>{% endif %}
+        <h1 class="title" style=font-size:80px>{{ site.title }}</h1>
+        {% if site.subtitle %}<p class="title" style=font-size:30px>{{ site.subtitle }}</p>{% endif %}
       </header>
     </div>
   </div>

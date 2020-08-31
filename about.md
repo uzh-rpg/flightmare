@@ -15,8 +15,10 @@ main_nav: true
     </a>
   </div>
   <div class="inline-block">
+    <a href="https://www.linkedin.com/in/selim-naji-706094171/?originalSubdomain=ch">
     <img class="circular--square" src="{{site.baseurl}}/assets/people/selim.jpg" style="width: 200px">
     <p style="text-align:center"><strong>Selim Naji</strong></p>
+    </a>
   </div>
   <div class="inline-block">
     <a href="https://kelia.github.io/">

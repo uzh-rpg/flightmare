@@ -1,6 +1,6 @@
 <header class="navigation" role="banner">
   <div class="navigation-wrapper">
-    <a href="{{ site.baseurl }}/" class="logo">
+    <a href="http://rpg.ifi.uzh.ch/" class="logo">
       {% if site.logo %}
       <img src="{{ site.logo | prepend: site.baseurl }}" alt="{{ site.title }}">
       {% else %}
@@ -12,7 +12,8 @@
     </a>
     <nav role="navigation">
       <ul id="js-navigation-menu" class="navigation-menu show">
-				{% include nav_links.html %}
+        {% include nav_links.html %}
+        <li class="nav-link"><a href="https://github.com/uzh-rpg/flightmare">GitHub</a>
       </ul>
     </nav>
   </div>
