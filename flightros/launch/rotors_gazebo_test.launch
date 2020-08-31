@@ -5,5 +5,7 @@
       <remap from="flight_pilot/state_estimate" to="ground_truth/odometry" />
     </node>
 
+    <node pkg="flightrender" type="RPG_Flightmare.x86_64" name="rpg_flightmare_render">
+    </node>
 
 </launch>

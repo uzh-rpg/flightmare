@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>flightrender</name>
+  <version>0.0.1</version>
+  <description>Flightmare Render Engine built on Unity</description>
+
+  <maintainer email="song@ifi.uzh.ch">Yunlong Song</maintainer>
+
+  <license>GNU GPL</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>catkin_simple</buildtool_depend>
+
+</package>
