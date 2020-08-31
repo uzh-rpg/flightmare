@@ -1,4 +1,6 @@
 .sass-cache
+_posts
+_site
 .vscode/*
 !.vscode/extensions.json
 externals/*
