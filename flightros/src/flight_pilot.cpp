@@ -19,9 +19,22 @@ FlightPilot::FlightPilot(const ros::NodeHandle &nh, const ros::NodeHandle &pnh)
   }
 
   // quad initialization
-  quad_ = new Quadrotor;
+  quad_ptr_ = std::make_shared<Quadrotor>();
+
+  // add mono camera
+  rgb_camera_ = std::make_shared<RGBCamera>();
+  Vector<3> B_r_BC(0.0, 0.0, 0.3);
+  Matrix<3, 3> R_BC = Quaternion(1.0, 0.0, 0.0, 0.0).toRotationMatrix();
+  std::cout << R_BC << std::endl;
+  rgb_camera_->setFOV(90);
+  rgb_camera_->setWidth(720);
+  rgb_camera_->setHeight(480);
+  rgb_camera_->setRelPose(B_r_BC, R_BC);
+  quad_ptr_->addRGBCamera(rgb_camera_);
+
+  // initialization
   quad_state_.setZero();
-  quad_->reset(quad_state_);
+  quad_ptr_->reset(quad_state_);
 
 
   // initialize subscriber call backs
@@ -36,7 +49,7 @@ FlightPilot::FlightPilot(const ros::NodeHandle &nh, const ros::NodeHandle &pnh)
   ros::Duration(5.0).sleep();
 
   // connect unity
-  setUnity(true);
+  setUnity(unity_render_);
   connectUnity();
 }
 
@@ -45,10 +58,9 @@ FlightPilot::~FlightPilot() {}
 void FlightPilot::poseCallback(const nav_msgs::Odometry::ConstPtr &msg) {
   state_est_ = quadrotor_common::QuadStateEstimate(*msg);
 
-  std::cout << "pose callback" << std::endl;
-
-  quad_state_.p << state_est_.position.cast<Scalar>();
-  quad_->setState(quad_state_);
+  quad_state_.p = state_est_.position.cast<Scalar>();
+  quad_state_.qx = state_est_.orientation.coeffs().cast<Scalar>();
+  quad_ptr_->setState(quad_state_);
 
   if (unity_render_ && unity_ready_) {
     unity_bridge_ptr_->getRender(0);
@@ -65,14 +77,14 @@ bool FlightPilot::setUnity(const bool render) {
   if (unity_render_ && unity_bridge_ptr_ == nullptr) {
     // create unity bridge
     unity_bridge_ptr_ = UnityBridge::getInstance();
-    unity_bridge_ptr_->addQuadrotor(quad_);
+    unity_bridge_ptr_->addQuadrotor(quad_ptr_);
     ROS_INFO("[%s] Unity Bridge is created.", pnh_.getNamespace().c_str());
   }
   return true;
 }
 
 bool FlightPilot::connectUnity() {
-  if (unity_bridge_ptr_ == nullptr) return false;
+  if (!unity_render_ || unity_bridge_ptr_ == nullptr) return false;
   unity_ready_ = unity_bridge_ptr_->connectUnity(scene_id_);
   return unity_ready_;
 }
@@ -80,6 +92,7 @@ bool FlightPilot::connectUnity() {
 bool FlightPilot::loadParams(void) {
   // load parameters
   quadrotor_common::getParam("main_loop_freq", main_loop_freq_, pnh_);
+  quadrotor_common::getParam("unity_render", unity_render_, pnh_);
 
   return true;
 }

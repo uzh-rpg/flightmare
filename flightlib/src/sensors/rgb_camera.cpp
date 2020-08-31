@@ -8,7 +8,7 @@ RGBCamera::RGBCamera()
     height_(720),
     fov_{70.0},
     depth_scale_{0.2},
-    enabled_layers_({true, false, false, false}) {}
+    enabled_layers_({false, false, false}) {}
 
 RGBCamera::~RGBCamera() {}
 
@@ -16,7 +16,7 @@ bool RGBCamera::feedImageQueue(const int image_layer,
                                const cv::Mat& image_mat) {
   queue_mutex_.lock();
   switch (image_layer) {
-    case CameraLayer::RGBImage:
+    case 0:  // rgb image
       if (rgb_queue_.size() > queue_size_) rgb_queue_.resize(queue_size_);
       rgb_queue_.push_back(image_mat);
       break;
@@ -48,8 +48,8 @@ bool RGBCamera::setRelPose(const Ref<Vector<3>> B_r_BC,
     return false;
   }
   B_r_BC_ = B_r_BC;
-  T_BC_.block(0, 0, 3, 3) = R_BC;
-  T_BC_.block(0, 3, 3, 1) = B_r_BC;
+  T_BC_.block<3, 3>(0, 0) = R_BC;
+  T_BC_.block<3, 1>(0, 3) = B_r_BC;
   T_BC_.row(3) << 0.0, 0.0, 0.0, 1.0;
   return true;
 }

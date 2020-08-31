@@ -11,10 +11,7 @@ Quadrotor::Quadrotor(const std::string &cfg_path)
 
   // create quadrotor dynamics and update the parameters
   dynamics_.updateParams(cfg);
-
-  // reset
-  updateDynamics(dynamics_);
-  reset();
+  init();
 }
 
 Quadrotor::Quadrotor(const QuadrotorDynamics &dynamics)
@@ -22,9 +19,7 @@ Quadrotor::Quadrotor(const QuadrotorDynamics &dynamics)
     dynamics_(dynamics),
     size_(1.0, 1.0, 1.0),
     collision_(false) {
-  // reset
-  updateDynamics(dynamics_);
-  reset();
+  init();
 }
 
 Quadrotor::~Quadrotor() {}
@@ -79,6 +74,12 @@ bool Quadrotor::run(const Scalar ctl_dt) {
   //
   constrainInWorldBox(old_state);
   return true;
+}
+
+void Quadrotor::init(void) {
+  // reset
+  updateDynamics(dynamics_);
+  reset();
 }
 
 bool Quadrotor::reset(void) {
@@ -233,15 +234,21 @@ bool Quadrotor::updateDynamics(const QuadrotorDynamics &dynamics) {
   return true;
 }
 
+bool Quadrotor::addRGBCamera(std::shared_ptr<RGBCamera> camera) {
+  rgb_cameras_.push_back(camera);
+  return true;
+}
+
 Vector<3> Quadrotor::getSize(void) const { return size_; }
 
 Vector<3> Quadrotor::getPosition(void) const { return state_.p; }
 
-std::vector<RGBCamera *> Quadrotor::getCameras(void) const {
+std::vector<std::shared_ptr<RGBCamera>> Quadrotor::getCameras(void) const {
   return rgb_cameras_;
 };
 
-bool Quadrotor::getCamera(const size_t cam_id, RGBCamera *camera) {
+bool Quadrotor::getCamera(const size_t cam_id,
+                          std::shared_ptr<RGBCamera> camera) const {
   if (cam_id <= rgb_cameras_.size()) {
     return false;
   }

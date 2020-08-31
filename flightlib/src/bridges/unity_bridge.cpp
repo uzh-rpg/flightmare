@@ -62,6 +62,7 @@ bool UnityBridge::connectUnity(const SceneID scene_id) {
     std::cout << ".";
     std::cout.flush();
   }
+  logger_.info("Flightmare Unity is connected.");
   return unity_ready_;
 }
 
@@ -140,7 +141,7 @@ bool UnityBridge::setScene(const SceneID& scene_id) {
   return true;
 }
 
-bool UnityBridge::addQuadrotor(Quadrotor* quad) {
+bool UnityBridge::addQuadrotor(std::shared_ptr<Quadrotor> quad) {
   Vehicle_t vehicle_t;
   // get quadrotor state
   QuadState quad_state;
@@ -149,27 +150,30 @@ bool UnityBridge::addQuadrotor(Quadrotor* quad) {
     return false;
   }
 
-  vehicle_t.ID = std::to_string(settings_.vehicles.size());
+  vehicle_t.ID = "quadrotor" + std::to_string(settings_.vehicles.size());
   vehicle_t.position = positionRos2Unity(quad_state.p);
   vehicle_t.rotation = quaternionRos2Unity(quad_state.q());
   vehicle_t.size = scalarRos2Unity(quad->getSize());
 
   // get camera
-  std::vector<RGBCamera*> rgb_camera = quad->getCameras();
-  for (size_t cam_idx = 0; cam_idx < rgb_camera.size(); cam_idx++) {
-    RGBCamera* cam = rgb_camera[cam_idx];
+  std::vector<std::shared_ptr<RGBCamera>> rgb_cameras = quad->getCameras();
+  for (size_t cam_idx = 0; cam_idx < rgb_cameras.size(); cam_idx++) {
+    std::shared_ptr<RGBCamera> cam = rgb_cameras[cam_idx];
     Camera_t camera_t;
-    camera_t.ID = std::to_string(cam_idx);
-    camera_t.T_BC = transformationRos2Unity(cam->getRelPose());
-    camera_t.channels = cam->getChannels();
-    camera_t.width = cam->getWidth();
-    camera_t.height = cam->getHeight();
-    camera_t.fov = cam->getFOV();
-    camera_t.depth_scale = cam->getDepthScale();
-    camera_t.enabled_layers = cam->getEnabledLayers();
+    camera_t.ID = vehicle_t.ID + "_" + std::to_string(cam_idx);
+    camera_t.T_BC = transformationRos2Unity(rgb_cameras[cam_idx]->getRelPose());
+    camera_t.channels = rgb_cameras[cam_idx]->getChannels();
+    camera_t.width = rgb_cameras[cam_idx]->getWidth();
+    camera_t.height = rgb_cameras[cam_idx]->getHeight();
+    camera_t.fov = rgb_cameras[cam_idx]->getFOV();
+    camera_t.depth_scale = rgb_cameras[cam_idx]->getDepthScale();
+    camera_t.enabled_layers = rgb_cameras[cam_idx]->getEnabledLayers();
     camera_t.is_depth = false;
     camera_t.output_index = cam_idx;
     vehicle_t.cameras.push_back(camera_t);
+
+    // add rgb_cameras
+    rgb_cameras_.push_back(rgb_cameras[cam_idx]);
   }
   unity_quadrotors_.push_back(quad);
 
@@ -191,8 +195,7 @@ bool UnityBridge::handleOutput(RenderMessage_t& output) {
   // ensureBufferIsAllocated(sub_msg);
   for (size_t idx = 0; idx < settings_.vehicles.size(); idx++) {
     // update vehicle collision flag
-    Quadrotor* quad = unity_quadrotors_[idx];
-    quad->setCollision(sub_msg.sub_vehicles[idx].collision);
+    unity_quadrotors_[idx]->setCollision(sub_msg.sub_vehicles[idx].collision);
   }
   return true;
 }

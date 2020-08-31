@@ -43,8 +43,8 @@ class UnityBridge {
   bool setScene(const SceneID &scene_id);
 
   // add object
-  bool addQuadrotor(Quadrotor *quad);
-  bool addCamera(UnityCamera *camera);
+  bool addQuadrotor(std::shared_ptr<Quadrotor> quad);
+  bool addCamera(std::shared_ptr<UnityCamera> unity_camera);
 
   // public auxiliary functions
   inline void setPubPort(const std::string &pub_port) { pub_port_ = pub_port; };
@@ -64,7 +64,8 @@ class UnityBridge {
   PubMessage_t pub_msg_;
   Logger logger_{"UnityBridge"};
 
-  std::vector<Quadrotor *> unity_quadrotors_;
+  std::vector<std::shared_ptr<Quadrotor>> unity_quadrotors_;
+  std::vector<std::shared_ptr<RGBCamera>> rgb_cameras_;
 
   // ZMQ variables and functions
   std::string client_address_;

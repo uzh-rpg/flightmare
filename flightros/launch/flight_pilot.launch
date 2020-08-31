@@ -1,6 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-
-  <node pkg="flightros" type="flight_pilot_node" name="flight_pilot_node" output="screen">
-  </node>
-</launch>
