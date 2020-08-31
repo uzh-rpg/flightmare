@@ -1,37 +1,19 @@
-<header class="header">
-
-  <div class="overlay">
-
-    <span>
-
-    </span>
-
-    <div class="container">
-
-      <nav class="navbar">
-        <a href="#" class="menu-icon">
-          <span></span>
-          <span></span>
-          <span></span>
-        </a>
-
-        <ul class="nav">
-          {% for page in site.pages %}
-          {% if page.title and page.title != 'Home' %}
-          <li><a href="{{ page.url | prepend: site.baseurl }}">{{ page.title }}</a></li>
-          {% endif %}
-          {% endfor %}
-          <li><a href="{{ site.github }}" target="_blank">Github</a></li>
-        </ul>
-      </nav>
-    </div>
-
-    {% if page.slug == 'home' %}
-    <h2 class="txt-center">
-      <strong>{{ site.title }}</strong>
-    </h2>
-    {% endif %}
-
+<header class="navigation" role="banner">
+  <div class="navigation-wrapper">
+    <a href="{{ site.baseurl }}/" class="logo">
+      {% if site.logo %}
+      <img src="{{ site.logo | prepend: site.baseurl }}" alt="{{ site.title }}">
+      {% else %}
+      <span>{{ site.title }}</span>
+      {% endif %}
+    </a>
+    <a href="javascript:void(0)" class="navigation-menu-button" id="js-mobile-menu">
+      <i class="fa fa-bars"></i>
+    </a>
+    <nav role="navigation">
+      <ul id="js-navigation-menu" class="navigation-menu show">
+				{% include nav_links.html %}
+      </ul>
+    </nav>
   </div>
-
 </header>

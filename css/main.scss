@@ -3,12 +3,11 @@
 ---
 @charset "utf-8";
 
-@import "variables";
-@import "mixins";
-@import "placeholders";
-
-@import "normalize";
-@import "globals";
-@import "helpers";
-@import "layout";
-@import "syntax";
+// Import partials from `sass_dir` (defaults to `_sass`)
+// Includes Bourbon, Neat, and Bitters (thanks, thoughtbot!)
+@import
+  "bourbon/bourbon",
+  "base/base",
+  "neat/neat",
+  "layout"
+;

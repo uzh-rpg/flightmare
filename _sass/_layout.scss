@@ -1,357 +1,453 @@
+// Primary site layout for Centrarium Theme
 
-//
-// container
-.container {
-  max-width: -webkit-calc(#{$content-width} - (#{$spacing-unit} * 2));
-  max-width:         calc(#{$content-width} - (#{$spacing-unit} * 2));
-  margin-right: auto;
+/*
+*	Variables
+*/
+$b3: 480px;
+$mobile: $b3;
+$b2: 768px;
+$tablet: $b2;
+$b1: 960px;
+$desktop: $b1;
+
+/*
+*	Globals
+*/
+html, body {
+	margin: 0;
+	padding: 0;
+	width: 100%;
+}
+
+ol.default {
+  @extend %default-ol;
+}
+
+ul.default {
+	@extend %default-ul;
+}
+
+code {
+	background-color: #eee;
+	display: inline-block;
+	border-radius: 3px;
+	padding: 0 3px;
+}
+
+blockquote {
+	color: $medium-gray;
+	font-style: italic;
+	border-left: 2px solid $light-gray;
+	margin-left: 0;
+	padding-left: 3em;
+}
+
+pre code.hljs {
+	font-size: modular-scale(-1);
+}
+
+.page-divider {
+	$divider-color: $light-gray;
+  display: block;
+  width: 50%;
   margin-left: auto;
-  padding-right: $spacing-unit;
-  padding-left: $spacing-unit;
-  @extend %clearfix;
-
-  @include media-query($on-laptop) {
-    max-width: -webkit-calc(#{$content-width} - (#{$spacing-unit}));
-    max-width:         calc(#{$content-width} - (#{$spacing-unit}));
-    padding-right: $spacing-unit / 2;
-    padding-left: $spacing-unit / 2;
-  }
-}
-
-.card {
-  padding: $spacing-unit;
-  background-color: #fff;
-  box-shadow: 0px 1px 2px rgba(#000, .2);
-}
-
-.readmore {
-  @include transition(color .2s linear);
-
-  &:hover,
-  &:focus {
-    color: lighten($primary-color, 10%);
-    text-decoration: none;
-  }
-}
-
-
-//
-// Site header
-.header {
-  background: url(../images/flightmare_envs.png) no-repeat 100% 0px;
-  @include background-size(cover);
-  border-bottom: 1px solid $gray-color-light;
-  border-top: 3px solid $primary-color;
-  min-height: 60px;
-  position: center;
-  @extend %clearfix;
-  padding: 60px 0;
-  margin-bottom: 30px;
-
-  .overlay {
-    background: rgba(rgba(10, 10, 10, 0), .2);
-    z-index: 1;
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-  }
-
-  a {
-    color: $white-color;
-  }
-
-  @include media-query($on-phone) {
-    text-align: center;
-  }
-
-  .txt-center {
-    color: $white-color;
-    margin-top: 160px;
-    font-weight: 300;
-  }
-}
-
-.home .header {
-  padding: 260px 0 200px;
-}
-
-//
-// site title
-.title {
-  font-size: 32px;
-  line-height: 65px;
-  letter-spacing: -1px;
-  margin: 0;
-  float: left;
-  color: darken($white-color, 10%);
-  font-family: $font-family-base;
-
-  @include media-query($on-phone) {
-    float: none;
+  margin-right: auto;
+  border-top: 1px solid $divider-color;
+  .one {
+    position: relative;
+    top: -9px;
     display: block;
-    width: 100%;
+    background: $divider-color;
+    width: 18px;
+    height: 18px;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 50%;
   }
-
-  & a:hover,
-  & a:focus {
-    color: lighten($white-color, 10%);
-    text-decoration: none;
-    border-color: lighten($white-color, 10%);
+  .two {
+    position: relative;
+    top: -26px;
+    display: block;
+    background: $white;
+    width: 16px;
+    height: 16px;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 50%;
   }
 }
 
-//
-// navbar
-.navbar {
-  float: right;
-
-  @include media-query($on-phone) {
-    float: none;
-  }
+.tooltip {
+	border-bottom: 1px dotted $medium-gray;
 }
 
-//
-// ul nav
-.nav {
-  list-style: none;
-  padding: 0;
-  margin: 0;
 
-  li {
-    padding: 20px;
+.site-header-container, .post-header-container {
+	width: 100%;
+	text-align: center;
+	&.has-cover {
+		color: $white;
+		text-shadow: 0 2px 1px rgba(0,0,0,0.67) !important;
+		background-position: 50% 50%;
+		background-size: cover;
+		.title {
+			font-size: modular-scale(6);
+		}
+		.subtitle, .info {
+			font-size: modular-scale(1);
+		}
+	}
+	.scrim {
+		padding: 3em 1em;
+		&.has-cover {
+			background-color: rgba(0,0,0,0.2);
+			padding: 6em 1em !important;
+			@include media($tablet) {
+				padding: 9em 1em !important;
+			}
+		}
+	}
+}
+
+/*
+*	Header
+*/
+.navigation {
+	box-shadow: 0 2px $highlight-color;
+	padding: 0 1em;
+	margin: 0;
+	// Remove this to make header scrollable again
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	background: $white;
+	z-index: 1;
+	/*
+	*	Navigation Menu - http://refills.bourbon.io/unstyled/ (see "Navigation")
+	*/
+  // Mobile view
+  .navigation-menu-button {
+    display: block;
+    float: right;
     margin: 0;
-    text-transform: lowercase;
+    font-size: 1.5em;
+    padding-top: 0.5em;
+    @include media ($tablet) {
+      display: none;
+    }
+  }
+  // Nav menu
+  .navigation-wrapper {
+  	@include outer-container;
+    @include clearfix;
+    position: relative;
+  }
+  .logo {
     float: left;
-    display: inline-block;
-    @include transition(background .2s linear);
-
-    &:last-child {
-      padding-right: 0;
+    height: 4em;
+    @include media ($tablet) {
+    	padding-left: $em-base;
     }
-
-    @include media-query($on-phone) {
-      float: left;
-      width: percentage(1/3);
-      text-align: center;
+    img {
+      max-height: 2.5em;
+      margin-top: 0.75em;
+      padding-right: 1em;
+    }
+    span {
+    	font-size: 1.25em;
     }
   }
-
-  a {
+  nav {
+    float: none;
+    padding: 1.25em 0;
+    @include media ($tablet) {
+      float: right;
+      line-height: 1.5em;
+    }
+  }
+  ul.navigation-menu {
+    clear: both;
+    display: none;
+    margin: 0 auto;
+    overflow: visible;
     padding: 0;
-    display: inline-block;
-    text-decoration: none;
-    color: darken($white-color, 25%);
-    @include transition(color .2s linear);
-  }
-
-  li.active a,
-  li:hover a,
-  li:focus a {
-    color: lighten($primary-color, 10%);
-    text-decoration: none;
-  }
-}
-
-//
-// menu icon
-.menu-icon {
-  display: none;
-}
-
-//
-// post
-.post {
-  .post-header {
-    h1 {
-      margin-bottom: 10px;
-      // text-transform: uppercase;
-      line-height: 1.3em;
-      font-size: 1.8rem;
-    }
-
-    a {
-      color: $text-color;
-      @include transition(color .2s linear);
-
-      &:hover,
-      &:focus {
-        color: $primary-color;
-        text-decoration: none;
-      }
-    }
-  }
-
-  .post-meta {
-    font-size: 14px;
-    margin-top: 0;
-    font-weight: 300;
-    font-family: $font-family-serif;
-    margin-bottom: 1rem;
-    font-style: italic;
-    color: #9a9a9a;
-  }
-
-  img {
-    max-width: 100%;
-    vertical-align: middle;
-  }
-}
-
-.single {
-  .post-header {
-    margin-bottom: $spacing-unit;
-  }
-}
-
-.share {
-  @extend %clearfix;
-  text-align: right;
-
-  span, a {
-    font-size: 1em;
-    color: #999;
-  }
-}
-
-.post-list {
-  .post {
-    padding-bottom: $spacing-unit;
-    margin-bottom: $spacing-unit;
-    border-bottom: 1px solid $gray-color-light;
-
-    &:last-child {
-      border-bottom: none;
-      margin-bottom: 0;
-    }
-
-    .post-content {
-      margin-top: .8em;
-    }
-  }
-}
-
-// Social
-//
-.social-icons {
-  @extend %clearfix;
-  margin-bottom: 15px;
-
-  li:first-child {
-    margin-right: 5px;
-  }
-
-  ul {
-    margin: 0;
-    padding: 0;
-  }
-
-  li {
-    display: inline-block;
-    text-align: center;
-    margin-right: 0;
-
-    a {
-      font-size: 30px;
+    width: 100%;
+    @include media ($tablet) {
+      display: block;
       margin: 0;
-      color: #9D9D9D;
-      font-weight: 400;
-      text-shadow: none;
-      -webkit-transition: all .5s ease-in;
-      -moz-transition: all .5s ease-in;
-      -o-transition: all .5s ease-in;
-      transition: all .5s ease-in;
-      padding-right: 0;
+      padding: 0;
+    }
+    &.show {
+      display: block;
     }
   }
-
-  i {
-    font-size: 20px;
-    width: 35px;
-    height: 35px;
-    padding: 7px;
-    background: #DADADA;
-    text-align: center;
-    color: #494949;
-    transition: all .2s ease-in;
-    -webkit-transition: all .2s ease-in;
-    -moz-transition: all .2s ease-in;
-  }
-
-  a:hover i.fa-facebook {
-    background-color: #3A5897;
-    color: #fff;
-  }
-  a:hover i.fa-twitter {
-    background-color: #00ABEC;
-    color: #fff;
-  }
-}
-
-// Pagination
-//
-.pagination {
-  display: inline-block;
-  width: 100%;
-  text-align: center;
-  margin: 0 0 20px;
-  padding-left: 0;
-  position: relative;
-
-  ul {
-    display: inline-block;
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-  }
-
-  .page-number {
-    color: #999;
-    font-size: .8em;
-  }
-  .page-number, a {
-    height: 38px;
-    line-height: 38px;
-    display: inline-block;
-    text-align: center;
-  }
-
-  li {
-    display: inline-block;
-    padding: 0 5px;
-
-    a {
-      width: 38px;
-      position: relative;
-      border: 1px solid rgba(0,0,0,0.1);
-      border-radius: 2px;
-      margin: 0;
-      color: #636363;
-      font-size: 1.4em;
+  // Nav items
+  ul li.nav-link {
+    display: block;
+    text-align: right;
+    width: 100%;
+    padding: 0.25em 0;
+    @include media ($tablet) {
+      background: transparent;
+      display: inline;
       text-decoration: none;
-      cursor: pointer;
-      background: #fff;
-
-      &:hover {
-        background: $primary-color;
-        border: none;
-        color: #fff;
-      }
+      width: auto;
     }
-
+  }
+  li.nav-link {
+  	a {
+	    display: inline-block;
+	    @include media ($tablet) {
+	      padding-right: 1.5em;
+	    }
+	  }
+	  &:last-child a {
+	  	@include media ($tablet) {
+    		padding-right: 1em;
+    	}
+    }
   }
 }
 
-//
-// footer
-.footer {
-  border-top: 1px solid $gray-color-light;
-  background-color: $background-color;
-  margin-top: 30px;
-  padding: 30px 0;
+/*
+*	Body
+*/
+.page-content {
+	// Remove this to make header scrollable again
+	margin-top: 66px;
+	.wrapper {
+		@include outer-container;
+		padding: 1em;
+	}
+	/*
+	*	index.html
+	*/
+	.post-list {
+		padding-top: 1em !important;
+		@extend %default-ul;
+	}
+	.post-meta {
+		@include outer-container;
+		// padding: 1em 0;
+		color: $medium-gray;
+		.post-date {
+			@include span-columns(6);
+			text-align: left;
+			font-size: 0.9em;
+		}
+		.post-categories {
+			@include span-columns(6);
+			margin-right: 0;
+			text-align: right;
+			font-size: 0.9em;
+		}
+	}
+	.pagination {
+		padding-top: 2em;
+		text-align: center;
+		color: $medium-gray;
+		.page-number {
+			padding: 0 1em;
+		}
+    a.newer-posts {
+      text-decoration: none;
+    }
+	}
+	.site-header-container {
+		color: $white;
+		text-shadow: 0 2px 1px rgba(0,0,0,0.33);
+		background-color: $highlight-color;
+		.site-header{
+			.title {
+				font-size: modular-scale(6);
+			}
+			.subtitle {
+				font-style: italic;
+				font-size: modular-scale(1);
+			}
+		}
+	}
+	img {
+		display: block;
+		margin: auto;
+		width: 90%;
+	}
+	/*
+	*	Posts
+	*/
+	.post {
+		ul {
+			margin-bottom: 1em;
+		}
+		.post-header-container {
+			.scrim {
+				padding: 2em 1em 1em 1em;
+			}
+		}
+		.post-meta {
+			padding-bottom: 1em;
+		}
+		.post-content {
+			padding: 1em 0;
+		}
+		.tags {
+			font-size: 0.9em;
+		}
+		.rss {
+			margin: 1em 0 0 0;
+			@include span-columns(12);
+			@include media ($tablet) {
+				margin: 1em 0;
+				@include span-columns(6);
+			}
+		}
+		.share {
+			font-weight: bold;
+			margin: 0 0 1em 0;
+			@include span-columns(12);
+			@include media ($tablet) {
+				@include span-columns(6);
+				margin: 1em 0;
+				text-align: right;
+			}
+			a {
+				width: 1em;
+				padding: 0 0.25em;
+				text-decoration: none;
+			}
+		}
+		.disqus {
+			@include span-columns(12);
+		}
+		.post-navigation {
+			font-size: 0.9em;
+			display: block;
+			width: auto;
+			.prev-post {
+				display: block;
+				width: 50%;
+				float: left;
+				margin: 1em 0;
+			}
+			.next-post {
+				display: block;
+				width: 50%;
+				float: left;
+				margin: 1em 0;
+				text-align: right;
+			}
+		}
+	}
+	/*
+	*	Pages
+	*/
+	.page {
+		.post-header {
+			padding: 0.5em 1em 1em 1em;
+			text-align: center;
+		}
+		.posts-list {
+			@extend %default-ul;
+			li {
+				padding: modular-scale(-4);
+				padding-left: 0;
+			}
+			.desc {
+				font-size: 0.9em;
+			}
+			.post-date {
+				color: $medium-gray;
+			}
+		}
+		.profile {
+			max-width: 320px;
+			margin: auto;
+			padding-bottom: 0.5em;
+ 		}
+	}
+}
 
-  small {
-    color: darken($gray-color-light, 25%);
-    font-size: 12px;
-  }
+/*
+*	Footer
+*/
+.site-footer {
+	$link-color: $white;
+	padding: 1em 1em 2em 1em;
+	background-color: $highlight-color;
+	color: $white;
+	a {
+	  color: $link-color;
+	  &:active,
+	  &:focus,
+	  &:hover {
+	    color: darken($link-color, 10%);
+	  }
+	  &:active,
+	  &:focus {
+	    outline: none;
+	  }
+	}
+	.wrapper {
+		@include outer-container;
+	}
+	.footer-heading {
+
+	}
+	/*
+	*	Site Navigation (left)
+	*/
+	.site-navigation {
+		@include span-columns(12);
+		@include media ($mobile) {
+			@include span-columns(6);
+		}
+		@include media ($tablet) {
+			@include span-columns(4);
+		}
+		font-size: 0.9em;
+		ul {
+			@extend %default-ul;
+		}
+	}
+	/*
+	*	Contact Info (center)
+	*/
+	.site-contact {
+		margin-top: 1em;
+		@include span-columns(12);
+		@include media ($mobile) {
+			@include span-columns(6);
+			margin-top: 0;
+			margin-right: 0;
+		}
+		@include media ($tablet) {
+			@include span-columns(4);
+			margin-top: 0;
+		}
+		font-size: 0.9em;
+		i {
+			width: 1.25em;
+			text-align: center;
+		}
+		ul {
+			@extend %default-ul;
+		}
+	}
+	/*
+	*	Site Description/Signature (right)
+	*/
+	.site-signature {
+		margin-top: 1em;
+		@include span-columns(12);
+		@include media ($tablet) {
+			@include span-columns(4);
+			margin-right: 0;
+			margin-top: 0;
+		}
+		font-size: 0.9em;
+		a {
+			text-decoration: underline;
+		}
+	}
 }
