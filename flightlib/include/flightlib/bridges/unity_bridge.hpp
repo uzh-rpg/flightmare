@@ -1,6 +1,7 @@
 #pragma once
 
 // std libs
+#include <unistd.h>
 #include <chrono>
 #include <fstream>
 #include <map>
@@ -31,8 +32,7 @@ class UnityBridge {
   ~UnityBridge(){};
 
   // connect function
-  bool initializeConnections(void);
-  bool connectUnity(void);
+  bool connectUnity(const SceneID scene_id);
   bool disconnectUnity(void);
 
   // public get functions
@@ -43,8 +43,8 @@ class UnityBridge {
   bool setScene(const SceneID &scene_id);
 
   // add object
-  bool addQuadrotor(Quadrotor *quad);
-  bool addCamera(UnityCamera *camera);
+  bool addQuadrotor(std::shared_ptr<Quadrotor> quad);
+  bool addCamera(std::shared_ptr<UnityCamera> unity_camera);
 
   // public auxiliary functions
   inline void setPubPort(const std::string &pub_port) { pub_port_ = pub_port; };
@@ -57,12 +57,15 @@ class UnityBridge {
   };
 
  private:
+  bool initializeConnections(void);
+
   //
   SettingsMessage_t settings_;
   PubMessage_t pub_msg_;
   Logger logger_{"UnityBridge"};
 
-  std::vector<Quadrotor *> unity_quadrotors_;
+  std::vector<std::shared_ptr<Quadrotor>> unity_quadrotors_;
+  std::vector<std::shared_ptr<RGBCamera>> rgb_cameras_;
 
   // ZMQ variables and functions
   std::string client_address_;
@@ -80,11 +83,8 @@ class UnityBridge {
   int64_t last_download_debug_utime_;
   int64_t u_packet_latency_;
 
-  // connecting symbols
-  bool unity_ready_;
-
-  // auxiliary variables
-  std::vector<uint8_t> input_buffer_;
+  // axuiliary variables
+  const Scalar unity_connection_time_out_{10.0};
+  bool unity_ready_{false};
 };
-
 }  // namespace flightlib

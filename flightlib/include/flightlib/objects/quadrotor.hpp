@@ -1,6 +1,6 @@
 #pragma once
 
-#include <yaml-cpp/yaml.h>
+#include <stdlib.h>
 
 // flightlib
 #include "flightlib/common/command.hpp"
@@ -23,6 +23,7 @@ class Quadrotor : ObjectBase {
   // reset
   bool reset(void) override;
   bool reset(const QuadState& state);
+  void init(void);
 
   // run the quadrotor
   bool run(const Scalar dt) override;
@@ -38,13 +39,14 @@ class Quadrotor : ObjectBase {
   Vector<3> getSize(void) const;
   Vector<3> getPosition(void) const;
   Quaternion getQuaternion(void) const;
-  std::vector<RGBCamera*> getCameras(void) const;
-  bool getCamera(const size_t cam_id, RGBCamera* const camera);
+  std::vector<std::shared_ptr<RGBCamera>> getCameras(void) const;
+  bool getCamera(const size_t cam_id, std::shared_ptr<RGBCamera> camera) const;
 
   // public set functions
   bool setState(const QuadState& state);
   bool setCommand(const Command& cmd);
   bool updateDynamics(const QuadrotorDynamics& dynamics);
+  bool addRGBCamera(std::shared_ptr<RGBCamera> camera);
 
   // low-level controller
   Vector<4> runFlightCtl(const Scalar sim_dt, const Vector<3>& omega,
@@ -67,7 +69,7 @@ class Quadrotor : ObjectBase {
   QuadrotorDynamics dynamics_;
   IMU imu_;
   std::unique_ptr<IntegratorRK4> integrator_ptr_;
-  std::vector<RGBCamera*> rgb_cameras_;
+  std::vector<std::shared_ptr<RGBCamera>> rgb_cameras_;
 
   // quad control command
   Command cmd_;

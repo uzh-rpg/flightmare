@@ -1,4 +1,5 @@
 project(flightros)
+
 cmake_minimum_required(VERSION 3.0.0)
 
 find_package(catkin_simple REQUIRED)
@@ -29,8 +30,13 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DEIGEN_STACK_ALLOCATION_LIMIT=1048576")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_ARCH_FLAGS} -Wall -DNDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -Wall -g")
 
-# TODO
+cs_add_library(flight_pilot
+    src/flight_pilot.cpp
+)
+target_link_libraries(flight_pilot
+  ${catkin_LIBRARIES}
+)
 
-# # Finish
-# cs_install()
-# cs_export()
+# Finish
+cs_install()
+cs_export()

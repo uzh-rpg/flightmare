@@ -19,20 +19,21 @@ QuadrotorEnv::QuadrotorEnv(const std::string &cfg_path)
   // load configuration file
   YAML::Node cfg_ = YAML::LoadFile(cfg_path);
 
+  quadrotor_ptr_ = std::make_shared<Quadrotor>();
   // update dynamics
   QuadrotorDynamics dynamics;
   dynamics.updateParams(cfg_);
-  quadrotor_.updateDynamics(dynamics);
+  quadrotor_ptr_->updateDynamics(dynamics);
 
   // define a bounding box
   world_box_ << -20, 20, -20, 20, 0, 20;
-  quadrotor_.setWorldBox(world_box_);
+  quadrotor_ptr_->setWorldBox(world_box_);
 
   // define input and output dimension for the environment
   obs_dim_ = quadenv::kNObs;
   act_dim_ = quadenv::kNAct;
 
-  Scalar mass = quadrotor_.getMass();
+  Scalar mass = quadrotor_ptr_->getMass();
   act_mean_ = Vector<quadenv::kNAct>::Ones() * (-mass * Gz) / 4;
   act_std_ = Vector<quadenv::kNAct>::Ones() * (-mass * 2 * Gz) / 4;
 
@@ -66,7 +67,7 @@ bool QuadrotorEnv::reset(Ref<Vector<>> obs, const bool random) {
     quad_state_.qx /= quad_state_.qx.norm();
   }
   // reset quadrotor with random states
-  quadrotor_.reset(quad_state_);
+  quadrotor_ptr_->reset(quad_state_);
 
   // reset control command
   cmd_.t = 0.0;
@@ -78,7 +79,7 @@ bool QuadrotorEnv::reset(Ref<Vector<>> obs, const bool random) {
 }
 
 bool QuadrotorEnv::getObs(Ref<Vector<>> obs) {
-  quadrotor_.getState(&quad_state_);
+  quadrotor_ptr_->getState(&quad_state_);
 
   // convert quaternion to euler angle
   Vector<3> euler_zyx = quad_state_.q().toRotationMatrix().eulerAngles(2, 1, 0);
@@ -95,7 +96,7 @@ Scalar QuadrotorEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs) {
   cmd_.thrusts = quad_act_;
 
   // simulate quadrotor
-  quadrotor_.run(cmd_, sim_dt_);
+  quadrotor_ptr_->run(cmd_, sim_dt_);
 
   // update observations
   getObs(obs);
@@ -181,7 +182,7 @@ bool QuadrotorEnv::getAct(Command *const cmd) const {
 }
 
 void QuadrotorEnv::addObjectsToUnity(std::shared_ptr<UnityBridge> bridge) {
-  bridge->addQuadrotor(&quadrotor_);
+  bridge->addQuadrotor(quadrotor_ptr_);
 }
 
 std::ostream &operator<<(std::ostream &os, const QuadrotorEnv &quad_env) {

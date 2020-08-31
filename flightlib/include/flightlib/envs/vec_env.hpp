@@ -80,10 +80,10 @@ class VecEnv {
   std::vector<std::string> extra_info_names_;
 
   // Flightmare(Unity3D)
-  const Scalar unity_connection_time_out_{10.0};  // seconds
-  bool unity_ready_{false}, unity_render_{false}, unity_bridge_created_{false};
-  std::shared_ptr<UnityBridge> unity_bridge_;
+  std::shared_ptr<UnityBridge> unity_bridge_ptr_;
   SceneID scene_id_{UnityScene::WAREHOUSE};
+  bool unity_ready_{false};
+  bool unity_render_{false};
   RenderMessage_t unity_output_;
   uint16_t receive_id_{0};
 

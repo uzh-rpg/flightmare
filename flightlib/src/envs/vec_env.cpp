@@ -23,7 +23,6 @@ VecEnv<EnvBase>::VecEnv(const std::string& cfgs, const bool from_file) {
     // load from a string or dictionary
     cfg_ = YAML::Load(cfgs);
   }
-
   // initialization
   init();
 }
@@ -98,8 +97,8 @@ bool VecEnv<EnvBase>::step(Ref<MatrixRowMajor<>> act, Ref<MatrixRowMajor<>> obs,
   }
 
   if (unity_render_ && unity_ready_) {
-    unity_bridge_->getRender(0);
-    unity_bridge_->handleOutput(unity_output_);
+    unity_bridge_ptr_->getRender(0);
+    unity_bridge_ptr_->handleOutput(unity_output_);
   }
   return true;
 }
@@ -153,7 +152,6 @@ void VecEnv<EnvBase>::perAgentStep(int agent_id, Ref<MatrixRowMajor<>> act,
   done(agent_id) = envs_[agent_id]->isTerminalState(terminal_reward);
 
   envs_[agent_id]->updateExtraInfo();
-
   for (int j = 0; j < extra_info.size(); j++)
     extra_info(agent_id, j) =
       envs_[agent_id]->extra_info_[extra_info_names_[j]];
@@ -167,59 +165,32 @@ void VecEnv<EnvBase>::perAgentStep(int agent_id, Ref<MatrixRowMajor<>> act,
 template<typename EnvBase>
 bool VecEnv<EnvBase>::setUnity(bool render) {
   unity_render_ = render;
-  if (unity_render_ && !unity_bridge_created_) {
-    unity_bridge_ = UnityBridge::getInstance();
-    unity_bridge_->initializeConnections();
-
+  if (unity_render_ && unity_bridge_ptr_ != nullptr) {
+    // create unity bridge
+    unity_bridge_ptr_ = UnityBridge::getInstance();
+    // add objects to Unity
     for (int i = 0; i < num_envs_; i++) {
-      envs_[i]->addObjectsToUnity(unity_bridge_);
+      envs_[i]->addObjectsToUnity(unity_bridge_ptr_);
     }
-
-    connectUnity();
-    //
-    unity_bridge_created_ = true;
-    logger_.info("Flightmare Unity is ON!");
+    logger_.info("Flightmare Bridge is created.");
   }
   return true;
+}
+
+template<typename EnvBase>
+bool VecEnv<EnvBase>::connectUnity(void) {
+  if (unity_bridge_ptr_ == nullptr) return false;
+  unity_ready_ = unity_bridge_ptr_->connectUnity(scene_id_);
+  return unity_ready_;
 }
 
 template<typename EnvBase>
 void VecEnv<EnvBase>::isTerminalState(Ref<BoolVector<>> terminal_state) {}
 
 template<typename EnvBase>
-bool VecEnv<EnvBase>::connectUnity(void) {
-  Scalar time_out_count = 0;
-  Scalar sleep_useconds = 0.2 * 1e5;
-  logger_.info("Trying to Connect Unity.");
-  std::cout << "[";
-  while (!unity_ready_) {
-    if (unity_bridge_ != nullptr) {
-      // connect unity
-      unity_bridge_->setScene(scene_id_);
-      unity_ready_ = unity_bridge_->connectUnity();
-    }
-    if (time_out_count / 1e6 > unity_connection_time_out_) {
-      std::cout << "]" << std::endl;
-      logger_.warn(
-        "Unity Connection time out! Make sure that Unity Standalone "
-        "or Unity Editor is running the Flightmare.");
-      return false;
-    }
-    // sleep
-    usleep(sleep_useconds);
-    // increase time out counter
-    time_out_count += sleep_useconds;
-    std::cout << ".";
-    std::cout.flush();
-  }
-  logger_.info("Unity Rendering is connected");
-  return true;
-}
-
-template<typename EnvBase>
 void VecEnv<EnvBase>::disconnectUnity(void) {
-  if (unity_bridge_ != nullptr) {
-    unity_bridge_->disconnectUnity();
+  if (unity_bridge_ptr_ != nullptr) {
+    unity_bridge_ptr_->disconnectUnity();
     unity_ready_ = false;
   } else {
     logger_.warn("Flightmare Unity Bridge is not initialized.");

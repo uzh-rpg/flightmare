@@ -141,7 +141,7 @@ void quaternionToEuler(const Quaternion& quat, Ref<Vector<3>> euler) {
 }
 
 
-std::vector<Scalar> transformationRos2Unity(const Matrix<4>& ros_tran_mat) {
+std::vector<Scalar> transformationRos2Unity(const Matrix<4, 4>& ros_tran_mat) {
   /// [ Transformation Matrix ] from ROS coordinate system (right hand)
   /// to Unity coordinate system (left hand)
   Matrix<4, 4> tran_mat = Matrix<4, 4>::Zero();
@@ -151,10 +151,16 @@ std::vector<Scalar> transformationRos2Unity(const Matrix<4>& ros_tran_mat) {
   tran_mat(3, 3) = 1.0;
   //
   Matrix<4, 4> unity_tran_mat = tran_mat * ros_tran_mat * tran_mat.transpose();
-  std::vector<Scalar> unity_tran_mat_vec(
-    unity_tran_mat.data(),
-    unity_tran_mat.data() + unity_tran_mat.rows() * unity_tran_mat.cols());
-  return unity_tran_mat_vec;
+  // std::vector<Scalar> unity_tran_mat_vec(
+  //   unity_tran_mat.data(),
+  //   unity_tran_mat.data() + unity_tran_mat.rows() * unity_tran_mat.cols());
+  std::vector<Scalar> tran_unity;
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 0; j < 4; ++j) {
+      tran_unity.push_back(unity_tran_mat(i, j));
+    }
+  }
+  return tran_unity;
 }
 
 std::vector<Scalar> quaternionRos2Unity(const Quaternion& ros_quat) {
