@@ -4,9 +4,11 @@ title: About
 permalink: /about/
 main_nav: true
 ---
-  <h2 class="text-center">
-    People
-  </h2>
+
+<h2 class="text-center">
+  People
+</h2>
+
 <div id="people">
   <div class="inline-block">
     <a href="http://yun-long.github.io/">
@@ -40,8 +42,14 @@ main_nav: true
   </div>
 </div>
 
+<hr>
 
-We are researchers from [Robotics and Perception Group](http://rpg.ifi.uzh.ch/index.html) led by Prof. Davide Scaramuzza. 
+<h2 class="text-center">
+  Robotics and Perception Group 
+</h2>
+
+**[Flightmare](https://uzh-rpg.github.io/flightmare/)** is developed by researchers 
+from **[Robotics and Perception Group](http://rpg.ifi.uzh.ch/index.html)** led by Prof. Davide Scaramuzza. 
 Our lab was founded in February 2012 and is part of the Department of Informatics, 
 at the University of Zurich, and the Department of Neuroinformatics, 
 which is a joint institute of both the University of Zurich and ETH Zurich.
