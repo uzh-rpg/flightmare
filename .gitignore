@@ -1,6 +1,7 @@
 _site
 .sass-cache
 .vscode
+flightrl
 flightlib
 flightrender
 

@@ -4,10 +4,10 @@
     <title>Flightmare</title>
     <description>An Open Flexible Quadrotor Simulator
 </description>
-    <link>http://localhost:4000/</link>
-    <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Mon, 31 Aug 2020 15:18:28 +0200</pubDate>
-    <lastBuildDate>Mon, 31 Aug 2020 15:18:28 +0200</lastBuildDate>
+    <link>http://localhost:4000/flightmare/</link>
+    <atom:link href="http://localhost:4000/flightmare/feed.xml" rel="self" type="application/rss+xml"/>
+    <pubDate>Tue, 01 Sep 2020 19:11:57 +0200</pubDate>
+    <lastBuildDate>Tue, 01 Sep 2020 19:11:57 +0200</lastBuildDate>
     <generator>Jekyll v3.8.6</generator>
     
   </channel>
