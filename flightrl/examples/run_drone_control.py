@@ -29,6 +29,8 @@ def parser():
                         help='configuration file of the quad environment')
     parser.add_argument('--train', type=int, default=1,
                         help="To train new model or simply test pre-trained model")
+    parser.add_argument('--render', type=int, default=0,
+                        help="Enable Unity Render")
     parser.add_argument('--save_dir', type=str, default=os.path.dirname(os.path.realpath(__file__)),
                         help="Directory where to save the checkpoints and training metrics")
     parser.add_argument('--seed', type=int, default=0,
@@ -45,6 +47,8 @@ def main():
     if not args.train:
         cfg["env"]["num_envs"] = 1
         cfg["env"]["num_threads"] = 1
+
+    if args.render:
         cfg["env"]["render"] = "yes"
 
     env = wrapper.FlightEnvVec(QuadrotorEnv_v1(
