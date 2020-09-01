@@ -13,14 +13,19 @@ from stable_baselines import logger
 
 #
 from rpg_baselines.common.policies import MlpPolicy
-from rpg_baselines.common.util import ConfigurationSaver, TensorboardLauncher, configure_random_seed
 from rpg_baselines.ppo.ppo2 import PPO2
 from rpg_baselines.ppo.ppo2_test import test_model
 from rpg_baselines.envs import vec_env_wrapper as wrapper
+import rpg_baselines.common.util as U
 #
 from flightgym import QuadrotorEnv_v1
 
-#
+
+def configure_random_seed(seed, env=None):
+    if env is not None:
+        env.seed(seed)
+    np.random.seed(seed)
+    tf.set_random_seed(seed)
 
 
 def parser():
@@ -50,6 +55,8 @@ def main():
 
     if args.render:
         cfg["env"]["render"] = "yes"
+    else:
+        cfg["env"]["render"] = "no"
 
     env = wrapper.FlightEnvVec(QuadrotorEnv_v1(
         dump(cfg, Dumper=RoundTripDumper), False))
@@ -62,7 +69,7 @@ def main():
         # save the configuration and other files
         rsg_root = os.path.dirname(os.path.abspath(__file__))
         log_dir = rsg_root + '/saved'
-        saver = ConfigurationSaver(log_dir=log_dir)
+        saver = U.ConfigurationSaver(log_dir=log_dir)
         model = PPO2(
             tensorboard_log=saver.data_dir,
             policy=MlpPolicy,  # check activation function
