@@ -65,7 +65,6 @@ class FlightPilot {
   uint16_t receive_id_{0};
 
   // auxiliary variables
-  quadrotor_common::QuadStateEstimate state_est_;
   Scalar main_loop_freq_{50.0};
 };
 }  // namespace flightros

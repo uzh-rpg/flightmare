@@ -1,4 +1,5 @@
 #include "flightlib/common/math.hpp"
+#include "iostream"
 
 namespace flightlib {
 

@@ -56,10 +56,14 @@ FlightPilot::FlightPilot(const ros::NodeHandle &nh, const ros::NodeHandle &pnh)
 FlightPilot::~FlightPilot() {}
 
 void FlightPilot::poseCallback(const nav_msgs::Odometry::ConstPtr &msg) {
-  state_est_ = quadrotor_common::QuadStateEstimate(*msg);
-
-  quad_state_.p = state_est_.position.cast<Scalar>();
-  quad_state_.qx = state_est_.orientation.coeffs().cast<Scalar>();
+  quad_state_.x[QS::POSX] = (Scalar)msg->pose.pose.position.x;
+  quad_state_.x[QS::POSY] = (Scalar)msg->pose.pose.position.y;
+  quad_state_.x[QS::POSZ] = (Scalar)msg->pose.pose.position.z;
+  quad_state_.x[QS::ATTW] = (Scalar)msg->pose.pose.orientation.w;
+  quad_state_.x[QS::ATTX] = (Scalar)msg->pose.pose.orientation.x;
+  quad_state_.x[QS::ATTY] = (Scalar)msg->pose.pose.orientation.y;
+  quad_state_.x[QS::ATTZ] = (Scalar)msg->pose.pose.orientation.z;
+  //
   quad_ptr_->setState(quad_state_);
 
   if (unity_render_ && unity_ready_) {

@@ -6,7 +6,7 @@
   <arg name="model" value="$(find rotors_description)/urdf/mav_generic_odometry_sensor.gazebo"/>
   <arg name="world_name" default="$(find rotors_gazebo)/worlds/basic.world"/>
 
-  <arg name="use_unity_editor" value="false" />
+  <arg name="use_unity_editor" default="true" />
   <arg name="paused" value="true"/>
   <arg name="gui" value="true"/>
   <arg name="use_mpc" default="false"/>
