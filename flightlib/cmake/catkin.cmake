@@ -1,5 +1,6 @@
 # Setup catkin simple
 find_package(catkin_simple REQUIRED)
+
 catkin_simple()
 
 add_definitions(-std=c++17)

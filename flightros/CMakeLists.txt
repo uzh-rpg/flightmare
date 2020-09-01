@@ -4,6 +4,8 @@ cmake_minimum_required(VERSION 3.0.0)
 
 find_package(catkin_simple REQUIRED)
 
+find_package(OpenCV REQUIRED)
+
 catkin_simple()
 
 # Setup Default Build Type as Release
@@ -27,14 +29,25 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DEIGEN_STACK_ALLOCATION_LIMIT=1048576")
 
 # Setup Release and Debug flags
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_ARCH_FLAGS} -Wall -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_ARCH_FLAGS} -Wall -DNDEBUG -fPIC")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -Wall -g")
 
 cs_add_library(flight_pilot
     src/flight_pilot.cpp
 )
+
 target_link_libraries(flight_pilot
   ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+)
+
+cs_add_executable(flight_pilot_node
+   src/flight_pilot_node.cpp
+)
+
+target_link_libraries(flight_pilot_node
+  flight_pilot
+  ${OpenCV_LIBRARIES}
 )
 
 # Finish
