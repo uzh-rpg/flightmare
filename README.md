@@ -8,10 +8,25 @@ Those two components are totally decoupled and can run independently from each o
 Flightmare comes with several desirable features: (i) a large multi-modal sensor suite, including an interface to extract the 3D point-cloud of the scene; (ii) an API for reinforcement learning which can simulate hundreds of quadrotors in parallel; and (iii) an integration with a virtual-reality headset for interaction with the simulated environment.
 Flightmare can be used for various applications, including path-planning, reinforcement learning, visual-inertial odometry, deep learning, human-robot interaction, etc.
 
-**[Website](https://uzh-rpg.github.io/flightmare/)**, **[PDF](https://uzh-rpg.github.io/flightmare/)**
+**[Website](https://uzh-rpg.github.io/flightmare/)**, 
 
-# Installation
-Installation instructions can be found in our wiki.
+
+
+## Installation
+Installation instructions can be found in our [Wiki](https://github.com/uzh-rpg/flightmare/wiki).
   
-# License
+## Publication
+
+If you use this code in a publication, please cite the following paper **[PDF](https://arxiv.org/abs/2009.00563)**
+
+```
+@article{yunlong2020flightmare,
+  title={Flightmare: A Flexible Quadrotor Simulator},
+  author={Song, Yunlong and Naji, Selim and Kaufmann, Elia and Loquercio, Antonio and Scaramuzza, Davide},
+  journal={arXiv preprint arXiv:2009.00563},
+  year={2020}
+}
+```
+
+## License
 This project is released under the MIT License. Please review the [License file](LICENSE) for more details.
