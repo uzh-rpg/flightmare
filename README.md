@@ -10,8 +10,7 @@ Flightmare can be used for various applications, including path-planning, reinfo
 
 **[Website](https://uzh-rpg.github.io/flightmare/)**, 
 
-<iframe width="750" height="421" src="https://www.youtube.com/embed/m9Mx1BCNGFU" frameborder="0"
-      allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+[![IMAGE ALT TEXT HERE](./docs/flightmare_main.png)](https://youtu.be/m9Mx1BCNGFU)
 
 ## Installation
 Installation instructions can be found in our [Wiki](https://github.com/uzh-rpg/flightmare/wiki).
