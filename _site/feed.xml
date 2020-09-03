@@ -6,8 +6,8 @@
 </description>
     <link>http://localhost:4000/flightmare/</link>
     <atom:link href="http://localhost:4000/flightmare/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Tue, 01 Sep 2020 19:11:57 +0200</pubDate>
-    <lastBuildDate>Tue, 01 Sep 2020 19:11:57 +0200</lastBuildDate>
+    <pubDate>Thu, 03 Sep 2020 16:01:35 +0200</pubDate>
+    <lastBuildDate>Thu, 03 Sep 2020 16:01:35 +0200</lastBuildDate>
     <generator>Jekyll v3.8.6</generator>
     
   </channel>

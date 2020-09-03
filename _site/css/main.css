@@ -238,8 +238,8 @@ html, body {
 code {
   background-color: #eee;
   display: inline-block;
-  border-radius: 3px;
-  padding: 0 3px; }
+  border-radius: 0px;
+  padding: 0px; }
 
 blockquote {
   color: #999;
