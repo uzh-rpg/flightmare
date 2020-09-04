@@ -58,6 +58,7 @@ def main():
     else:
         cfg["env"]["render"] = "no"
 
+    print("render: ", args.render)
     env = wrapper.FlightEnvVec(QuadrotorEnv_v1(
         dump(cfg, Dumper=RoundTripDumper), False))
 
