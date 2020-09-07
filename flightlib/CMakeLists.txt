@@ -199,7 +199,8 @@ else()
     ${OpenCV_LIBRARIES}
     yaml-cpp
     zmq
-    zmqpp)
+    zmqpp
+    stdc++fs)
   set(LIBRARY_NAME ${PROJECT_NAME})
   set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
 endif()
