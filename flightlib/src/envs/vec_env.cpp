@@ -165,7 +165,7 @@ void VecEnv<EnvBase>::perAgentStep(int agent_id, Ref<MatrixRowMajor<>> act,
 template<typename EnvBase>
 bool VecEnv<EnvBase>::setUnity(bool render) {
   unity_render_ = render;
-  if (unity_render_ && unity_bridge_ptr_ != nullptr) {
+  if (unity_render_ && unity_bridge_ptr_ == nullptr) {
     // create unity bridge
     unity_bridge_ptr_ = UnityBridge::getInstance();
     // add objects to Unity
