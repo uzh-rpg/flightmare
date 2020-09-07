@@ -3,10 +3,12 @@
 // std libs
 #include <unistd.h>
 #include <chrono>
+#include <experimental/filesystem>
 #include <fstream>
 #include <map>
 #include <string>
 #include <unordered_map>
+
 
 // Include ZMQ bindings for communications with Unity.
 #include <zmqpp/zmqpp.hpp>
@@ -38,6 +40,7 @@ class UnityBridge {
   // public get functions
   bool getRender(const FrameID frame_id);
   bool handleOutput(RenderMessage_t &output);
+  bool getPointCloud(PointCloudMessage_t &pointcloud_msg);
 
   // public set functions
   bool setScene(const SceneID &scene_id);

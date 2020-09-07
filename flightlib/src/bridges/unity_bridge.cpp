@@ -200,4 +200,26 @@ bool UnityBridge::handleOutput(RenderMessage_t& output) {
   return true;
 }
 
+bool UnityBridge::getPointCloud(PointCloudMessage_t& pointcloud_msg) {
+  // create new message object
+  zmqpp::message msg;
+  // add topic header
+  msg << "PointCloud";
+  // create JSON object for initial settings
+  json json_msg = pointcloud_msg;
+  msg << json_msg.dump();
+  // send message without blocking
+  pub_.send(msg, true);
+
+  std::cout << "Generate PointCloud" << std::endl;
+  std::cout << "[";
+  while (!std::experimental::filesystem::exists(
+    pointcloud_msg.path + pointcloud_msg.file_name + ".ply")) {
+    std::cout << ".";
+    usleep(1 * 1e6);
+  }
+  std::cout << "]";
+  return true;
+}
+
 }  // namespace flightlib

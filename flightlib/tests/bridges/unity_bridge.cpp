@@ -8,28 +8,34 @@ using namespace flightlib;
 TEST(UnityBridge, Constructor) {
   Logger logger{"Test Unity Bridge"};
   UnityBridge unity_bridge;
-  // unity_bridge.initializeConnections();
-  // Scalar time_out_count = 0;
-  // Scalar sleep_useconds = 0.2 * 1e5;
   // bool unity_ready = false;
-  // logger.info("Trying to Connect Unity.");
-  // std::cout << "[";
-  // while (!unity_ready) {
-  //   // connect unity
-  //   unity_ready = unity_bridge.connectUnity();
-  //   if (time_out_count / 1e6 > 10) {
-  //     std::cout << "]" << std::endl;
-  //     logger.warn(
-  //       "Unity Connection time out! Make sure that Unity Standalone "
-  //       "or Unity Editor is running the Flightmare.");
-  //     break;
-  //   }
-  //   // sleep
-  //   usleep(sleep_useconds);
-  //   // incread time out counter
-  //   time_out_count += sleep_useconds;
-  //   std::cout << ".";
-  //   std::cout.flush();
-  // }
+
+  // // need to add a quad to connect to Flightmare
+  // QuadrotorDynamics dyn = QuadrotorDynamics(1.0, 0.2);
+  // std::shared_ptr<Quadrotor> quad = std::make_shared<Quadrotor>(dyn);
+  // unity_bridge.addQuadrotor(quad);
+
+  // unity_ready = unity_bridge.connectUnity(UnityScene::GARAGE);
+
   // if (unity_ready) logger.info("Unity Rendering is connected");
+  // EXPECT_TRUE(unity_ready);
+}
+
+TEST(UnityBridge, PointCloud) {
+  Logger logger{"Test PointCloud"};
+  UnityBridge unity_bridge;
+
+  // need to add a quad to connect to Flightmare
+  // QuadrotorDynamics dyn = QuadrotorDynamics(1.0, 0.2);
+  // std::shared_ptr<Quadrotor> quad = std::make_shared<Quadrotor>(dyn);
+  // unity_bridge.addQuadrotor(quad);
+
+  // unity_bridge.connectUnity(UnityScene::GARAGE);
+  // PointCloudMessage_t pointcloud_msg;
+  // pointcloud_msg.path = "/tmp/";
+  // pointcloud_msg.file_name = "unity-bridge" + std::to_string(::rand());
+  // EXPECT_TRUE(unity_bridge.getPointCloud(pointcloud_msg));
+  // std::experimental::filesystem::remove(pointcloud_msg.path +
+  //                                       pointcloud_msg.file_name + ".ply");
+  // unity_bridge.disconnectUnity();
 }
