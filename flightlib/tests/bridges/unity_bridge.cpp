@@ -27,19 +27,19 @@ TEST(UnityBridge, PointCloud) {
   Logger logger{"Test PointCloud"};
   UnityBridge unity_bridge;
 
-  // need to add a quad to connect to Flightmare
+  // // need to add a quad to connect to Flightmare
   // QuadrotorDynamics dyn = QuadrotorDynamics(1.0, 0.2);
   // std::shared_ptr<Quadrotor> quad = std::make_shared<Quadrotor>(dyn);
   // unity_bridge.addQuadrotor(quad);
 
-  // unity_bridge.connectUnity(UnityScene::GARAGE);
+  // EXPECT_TRUE(unity_bridge.connectUnity(UnityScene::GARAGE));
   // PointCloudMessage_t pointcloud_msg;
   // pointcloud_msg.path = "/tmp/";
   // pointcloud_msg.file_name = "unity-bridge" + std::to_string(::rand());
-  // EXPECT_TRUE(unity_bridge.getPointCloud(pointcloud_msg));
+  // EXPECT_TRUE(unity_bridge.getPointCloud(pointcloud_msg, 30.0));
   // std::experimental::filesystem::remove(pointcloud_msg.path +
   //                                       pointcloud_msg.file_name + ".ply");
-  // //timeout flightmare
+  // // timeout flightmare
   // usleep(5 * 1e6);
 }
 

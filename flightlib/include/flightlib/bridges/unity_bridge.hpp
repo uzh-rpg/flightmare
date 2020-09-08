@@ -40,7 +40,8 @@ class UnityBridge {
   // public get functions
   bool getRender(const FrameID frame_id);
   bool handleOutput();
-  bool getPointCloud(PointCloudMessage_t &pointcloud_msg);
+  bool getPointCloud(PointCloudMessage_t &pointcloud_msg,
+                     Scalar time_out = 600.0);
 
   // public set functions
   bool setScene(const SceneID &scene_id);

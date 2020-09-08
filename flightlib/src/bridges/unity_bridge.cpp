@@ -231,7 +231,8 @@ bool UnityBridge::handleOutput() {
   return true;
 }
 
-bool UnityBridge::getPointCloud(PointCloudMessage_t& pointcloud_msg) {
+bool UnityBridge::getPointCloud(PointCloudMessage_t& pointcloud_msg,
+                                Scalar time_out) {
   // create new message object
   zmqpp::message msg;
   // add topic header
@@ -242,14 +243,21 @@ bool UnityBridge::getPointCloud(PointCloudMessage_t& pointcloud_msg) {
   // send message without blocking
   pub_.send(msg, true);
 
-  std::cout << "Generate PointCloud" << std::endl;
-  std::cout << "[";
+  std::cout << "Generate PointCloud: Timeout=" << (int)time_out << " seconds."
+            << std::endl;
+
+  Scalar run_time = 0.0;
   while (!std::experimental::filesystem::exists(
     pointcloud_msg.path + pointcloud_msg.file_name + ".ply")) {
-    std::cout << ".";
-    usleep(1 * 1e6);
+    if (run_time >= time_out) {
+      logger_.warn("Timeout... PointCloud was not saved within expected time.");
+      return false;
+    }
+    std::cout << "Waiting for Pointcloud: Current Runtime=" << (int)run_time
+              << " seconds." << std::endl;
+    usleep((time_out / 10.0) * 1e6);
+    run_time += time_out / 10.0;
   }
-  std::cout << "]";
   return true;
 }
 
