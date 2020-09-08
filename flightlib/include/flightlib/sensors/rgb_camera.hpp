@@ -41,6 +41,10 @@ class RGBCamera : SensorBase {
   int getHeight(void) const;
   Scalar getFOV(void) const;
   Scalar getDepthScale(void) const;
+  bool getRGBImage(cv::Mat& rgb_img);
+  bool getDepthMap(cv::Mat& depth_map);
+  bool getSegmentation(cv::Mat& segmentation);
+  bool getOpticalFlow(cv::Mat& opticalflow);
 
   // auxiliary functions
   void enableDepth(const bool on);

@@ -19,6 +19,8 @@ TEST(UnityBridge, Constructor) {
 
   // if (unity_ready) logger.info("Unity Rendering is connected");
   // EXPECT_TRUE(unity_ready);
+  // //timeout flightmare
+  // usleep(5 * 1e6);
 }
 
 TEST(UnityBridge, PointCloud) {
@@ -37,5 +39,129 @@ TEST(UnityBridge, PointCloud) {
   // EXPECT_TRUE(unity_bridge.getPointCloud(pointcloud_msg));
   // std::experimental::filesystem::remove(pointcloud_msg.path +
   //                                       pointcloud_msg.file_name + ".ply");
-  // unity_bridge.disconnectUnity();
+  // //timeout flightmare
+  // usleep(5 * 1e6);
+}
+
+TEST(UnityBridge, HandleOutputRGB) {
+  Logger logger{"Test HandleOutputRGB"};
+  UnityBridge unity_bridge;
+  // QuadrotorDynamics dyn = QuadrotorDynamics(1.0, 0.2);
+  // std::shared_ptr<Quadrotor> quad = std::make_shared<Quadrotor>(dyn);
+  // std::shared_ptr<RGBCamera> rgb = std::make_shared<RGBCamera>();
+  // quad->addRGBCamera(rgb);
+  // unity_bridge.addQuadrotor(quad);
+
+  // bool unity_ready = unity_bridge.connectUnity(UnityScene::GARAGE);
+
+  // EXPECT_TRUE(unity_ready);
+
+  // FrameID frame_id = 1;
+  // unity_bridge.getRender(frame_id);
+  // bool handle_output = unity_bridge.handleOutput();
+
+  // EXPECT_TRUE(handle_output);
+
+  // cv::Mat test_img;
+
+  // EXPECT_TRUE(rgb->getRGBImage(test_img));
+  // EXPECT_FALSE(rgb->getDepthMap(test_img));
+  // EXPECT_FALSE(rgb->getSegmentation(test_img));
+  // EXPECT_FALSE(rgb->getOpticalFlow(test_img));
+
+  // // timeout flightmare
+  // usleep(5 * 1e6);
+}
+
+TEST(UnityBridge, HandleOutputDepth) {
+  Logger logger{"Test HandleOutputDepth"};
+  UnityBridge unity_bridge;
+  // QuadrotorDynamics dyn = QuadrotorDynamics(1.0, 0.2);
+  // std::shared_ptr<Quadrotor> quad = std::make_shared<Quadrotor>(dyn);
+  // std::shared_ptr<RGBCamera> rgb = std::make_shared<RGBCamera>();
+  // rgb->setPostPrecesscing(std::vector<bool>{true, false, false});
+  // quad->addRGBCamera(rgb);
+  // unity_bridge.addQuadrotor(quad);
+
+  // bool unity_ready = unity_bridge.connectUnity(UnityScene::GARAGE);
+
+  // EXPECT_TRUE(unity_ready);
+
+  // FrameID frame_id = 1;
+  // unity_bridge.getRender(frame_id);
+  // bool handle_output = unity_bridge.handleOutput();
+
+  // EXPECT_TRUE(handle_output);
+
+  // cv::Mat test_img;
+
+  // EXPECT_TRUE(rgb->getRGBImage(test_img));
+  // EXPECT_TRUE(rgb->getDepthMap(test_img));
+  // EXPECT_FALSE(rgb->getSegmentation(test_img));
+  // EXPECT_FALSE(rgb->getOpticalFlow(test_img));
+
+  // // timeout flightmare
+  // usleep(5 * 1e6);
+}
+
+TEST(UnityBridge, HandleOutputSegmentation) {
+  Logger logger{"Test HandleOutputSegmentation"};
+  UnityBridge unity_bridge;
+  // QuadrotorDynamics dyn = QuadrotorDynamics(1.0, 0.2);
+  // std::shared_ptr<Quadrotor> quad = std::make_shared<Quadrotor>(dyn);
+  // std::shared_ptr<RGBCamera> rgb = std::make_shared<RGBCamera>();
+  // rgb->setPostPrecesscing(std::vector<bool>{false, true, false});
+  // quad->addRGBCamera(rgb);
+  // unity_bridge.addQuadrotor(quad);
+
+  // bool unity_ready = unity_bridge.connectUnity(UnityScene::GARAGE);
+
+  // EXPECT_TRUE(unity_ready);
+
+  // FrameID frame_id = 1;
+  // unity_bridge.getRender(frame_id);
+  // bool handle_output = unity_bridge.handleOutput();
+
+  // EXPECT_TRUE(handle_output);
+
+  // cv::Mat test_img;
+
+  // EXPECT_TRUE(rgb->getRGBImage(test_img));
+  // EXPECT_FALSE(rgb->getDepthMap(test_img));
+  // EXPECT_TRUE(rgb->getSegmentation(test_img));
+  // EXPECT_FALSE(rgb->getOpticalFlow(test_img));
+
+  // // timeout flightmare
+  // usleep(5 * 1e6);
+}
+
+TEST(UnityBridge, HandleOutputOpticalFlow) {
+  Logger logger{"Test HandleOutputOpticalFlow"};
+  UnityBridge unity_bridge;
+  // QuadrotorDynamics dyn = QuadrotorDynamics(1.0, 0.2);
+  // std::shared_ptr<Quadrotor> quad = std::make_shared<Quadrotor>(dyn);
+  // std::shared_ptr<RGBCamera> rgb = std::make_shared<RGBCamera>();
+  // rgb->setPostPrecesscing(std::vector<bool>{false, false, true});
+  // quad->addRGBCamera(rgb);
+  // unity_bridge.addQuadrotor(quad);
+
+  // bool unity_ready = unity_bridge.connectUnity(UnityScene::GARAGE);
+
+  // EXPECT_TRUE(unity_ready);
+
+  // FrameID frame_id = 1;
+  // unity_bridge.getRender(frame_id);
+  // bool handle_output = unity_bridge.handleOutput();
+
+  // EXPECT_TRUE(handle_output);
+
+  // cv::Mat test_img;
+
+  // EXPECT_TRUE(rgb->getRGBImage(test_img));
+  // EXPECT_FALSE(rgb->getDepthMap(test_img));
+  // EXPECT_FALSE(rgb->getSegmentation(test_img));
+  // EXPECT_TRUE(rgb->getOpticalFlow(test_img));
+
+  // // timeout flightmare
+  // usleep(5 * 1e6);
 }

@@ -4,8 +4,8 @@ namespace flightlib {
 
 RGBCamera::RGBCamera()
   : channels_(3),
-    width_(480),
-    height_(720),
+    width_(720),
+    height_(480),
     fov_{70.0},
     depth_scale_{0.2},
     enabled_layers_({false, false, false}) {}
@@ -143,6 +143,42 @@ void RGBCamera::enableOpticalFlow(const bool on) {
     logger_.warn("Optical Flow layer was already %s.", on ? "on" : "off");
   }
   enabled_layers_[CameraLayer::OpticalFlow] = on;
+}
+
+bool RGBCamera::getRGBImage(cv::Mat& rgb_img) {
+  if (!rgb_queue_.empty()) {
+    rgb_img = rgb_queue_.front();
+    rgb_queue_.pop_front();
+    return true;
+  }
+  return false;
+}
+
+bool RGBCamera::getDepthMap(cv::Mat& depth_map) {
+  if (!depth_queue_.empty()) {
+    depth_map = depth_queue_.front();
+    depth_queue_.pop_front();
+    return true;
+  }
+  return false;
+}
+
+bool RGBCamera::getSegmentation(cv::Mat& segmentation) {
+  if (!segmentation_queue_.empty()) {
+    segmentation = segmentation_queue_.front();
+    segmentation_queue_.pop_front();
+    return true;
+  }
+  return false;
+}
+
+bool RGBCamera::getOpticalFlow(cv::Mat& opticalflow) {
+  if (!opticalflow_queue_.empty()) {
+    opticalflow = opticalflow_queue_.front();
+    opticalflow_queue_.pop_front();
+    return true;
+  }
+  return false;
 }
 
 }  // namespace flightlib
