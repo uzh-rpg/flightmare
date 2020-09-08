@@ -98,7 +98,7 @@ bool VecEnv<EnvBase>::step(Ref<MatrixRowMajor<>> act, Ref<MatrixRowMajor<>> obs,
 
   if (unity_render_ && unity_ready_) {
     unity_bridge_ptr_->getRender(0);
-    unity_bridge_ptr_->handleOutput(unity_output_);
+    unity_bridge_ptr_->handleOutput();
   }
   return true;
 }

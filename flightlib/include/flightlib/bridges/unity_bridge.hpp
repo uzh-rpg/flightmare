@@ -39,7 +39,7 @@ class UnityBridge {
 
   // public get functions
   bool getRender(const FrameID frame_id);
-  bool handleOutput(RenderMessage_t &output);
+  bool handleOutput();
   bool getPointCloud(PointCloudMessage_t &pointcloud_msg);
 
   // public set functions
