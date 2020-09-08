@@ -39,6 +39,7 @@ cs_add_library(flight_pilot
 target_link_libraries(flight_pilot
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
+  stdc++fs
 )
 
 cs_add_executable(flight_pilot_node
@@ -48,6 +49,7 @@ cs_add_executable(flight_pilot_node
 target_link_libraries(flight_pilot_node
   flight_pilot
   ${OpenCV_LIBRARIES}
+  stdc++fs
 )
 
 # Finish

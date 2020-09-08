@@ -113,9 +113,10 @@ struct SubMessage_t {
 };
 
 struct PointCloudMessage_t {
-  std::vector<double> range{20.0, 20.0, 20.0};
-  std::vector<double> origin{0.0, 0.0, 0.0};
-  double resolution{0.15};
+  // define point cloud box range [x, y, z] / meter
+  std::vector<Scalar> range{20.0, 20.0, 20.0};
+  std::vector<Scalar> origin{0.0, 0.0, 0.0};
+  Scalar resolution{0.15};
   std::string path{"point_clouds_data/"};
   std::string file_name{"default"};
 };

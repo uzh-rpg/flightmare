@@ -30,7 +30,7 @@ class RGBCamera : SensorBase {
   bool setHeight(const int height);
   bool setFOV(const Scalar fov);
   bool setDepthScale(const Scalar depth_scale);
-  bool setPostPrecesscing(const std::vector<bool>& enabled_layers);
+  bool setPostProcesscing(const std::vector<bool>& enabled_layers);
   bool feedImageQueue(const int image_layer, const cv::Mat& image_mat);
 
   // public get functions

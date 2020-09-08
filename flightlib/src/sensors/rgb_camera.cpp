@@ -97,7 +97,7 @@ bool RGBCamera::setDepthScale(const Scalar depth_scale) {
   return true;
 }
 
-bool RGBCamera::setPostPrecesscing(const std::vector<bool>& enabled_layers) {
+bool RGBCamera::setPostProcesscing(const std::vector<bool>& enabled_layers) {
   if (enabled_layers_.size() != enabled_layers.size()) {
     logger_.warn(
       "Vector size does not match. The vector size should be equal to %d.",
