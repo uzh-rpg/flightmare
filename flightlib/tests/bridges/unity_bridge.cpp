@@ -1,5 +1,6 @@
 #include "flightlib/bridges/unity_bridge.hpp"
 #include "flightlib/common/logger.hpp"
+#include "flightlib/objects/static_gate.hpp"
 
 #include <gtest/gtest.h>
 
@@ -19,7 +20,11 @@ TEST(UnityBridge, Constructor) {
 
   // if (unity_ready) logger.info("Unity Rendering is connected");
   // EXPECT_TRUE(unity_ready);
+<<<<<<< HEAD
   // //timeout flightmare
+=======
+  // // timeout flightmare
+>>>>>>> 4f81dcef97d42869094e2d87a6e186a2566e64e2
   // usleep(5 * 1e6);
 }
 
@@ -52,9 +57,13 @@ TEST(UnityBridge, HandleOutputRGB) {
   // quad->addRGBCamera(rgb);
   // unity_bridge.addQuadrotor(quad);
 
+<<<<<<< HEAD
   // bool unity_ready = unity_bridge.connectUnity(UnityScene::GARAGE);
 
   // EXPECT_TRUE(unity_ready);
+=======
+  // EXPECT_TRUE(unity_bridge.connectUnity(UnityScene::GARAGE));
+>>>>>>> 4f81dcef97d42869094e2d87a6e186a2566e64e2
 
   // FrameID frame_id = 1;
   // unity_bridge.getRender(frame_id);
@@ -79,6 +88,7 @@ TEST(UnityBridge, HandleOutputDepth) {
   // QuadrotorDynamics dyn = QuadrotorDynamics(1.0, 0.2);
   // std::shared_ptr<Quadrotor> quad = std::make_shared<Quadrotor>(dyn);
   // std::shared_ptr<RGBCamera> rgb = std::make_shared<RGBCamera>();
+<<<<<<< HEAD
   // rgb->setPostPrecesscing(std::vector<bool>{true, false, false});
   // quad->addRGBCamera(rgb);
   // unity_bridge.addQuadrotor(quad);
@@ -86,6 +96,13 @@ TEST(UnityBridge, HandleOutputDepth) {
   // bool unity_ready = unity_bridge.connectUnity(UnityScene::GARAGE);
 
   // EXPECT_TRUE(unity_ready);
+=======
+  // rgb->setPostProcesscing(std::vector<bool>{true, false, false});
+  // quad->addRGBCamera(rgb);
+  // unity_bridge.addQuadrotor(quad);
+
+  // EXPECT_TRUE(unity_bridge.connectUnity(UnityScene::GARAGE));
+>>>>>>> 4f81dcef97d42869094e2d87a6e186a2566e64e2
 
   // FrameID frame_id = 1;
   // unity_bridge.getRender(frame_id);
@@ -110,6 +127,7 @@ TEST(UnityBridge, HandleOutputSegmentation) {
   // QuadrotorDynamics dyn = QuadrotorDynamics(1.0, 0.2);
   // std::shared_ptr<Quadrotor> quad = std::make_shared<Quadrotor>(dyn);
   // std::shared_ptr<RGBCamera> rgb = std::make_shared<RGBCamera>();
+<<<<<<< HEAD
   // rgb->setPostPrecesscing(std::vector<bool>{false, true, false});
   // quad->addRGBCamera(rgb);
   // unity_bridge.addQuadrotor(quad);
@@ -117,6 +135,13 @@ TEST(UnityBridge, HandleOutputSegmentation) {
   // bool unity_ready = unity_bridge.connectUnity(UnityScene::GARAGE);
 
   // EXPECT_TRUE(unity_ready);
+=======
+  // rgb->setPostProcesscing(std::vector<bool>{false, true, false});
+  // quad->addRGBCamera(rgb);
+  // unity_bridge.addQuadrotor(quad);
+
+  // EXPECT_TRUE(unity_bridge.connectUnity(UnityScene::GARAGE));
+>>>>>>> 4f81dcef97d42869094e2d87a6e186a2566e64e2
 
   // FrameID frame_id = 1;
   // unity_bridge.getRender(frame_id);
@@ -141,6 +166,7 @@ TEST(UnityBridge, HandleOutputOpticalFlow) {
   // QuadrotorDynamics dyn = QuadrotorDynamics(1.0, 0.2);
   // std::shared_ptr<Quadrotor> quad = std::make_shared<Quadrotor>(dyn);
   // std::shared_ptr<RGBCamera> rgb = std::make_shared<RGBCamera>();
+<<<<<<< HEAD
   // rgb->setPostPrecesscing(std::vector<bool>{false, false, true});
   // quad->addRGBCamera(rgb);
   // unity_bridge.addQuadrotor(quad);
@@ -148,6 +174,13 @@ TEST(UnityBridge, HandleOutputOpticalFlow) {
   // bool unity_ready = unity_bridge.connectUnity(UnityScene::GARAGE);
 
   // EXPECT_TRUE(unity_ready);
+=======
+  // rgb->setPostProcesscing(std::vector<bool>{false, false, true});
+  // quad->addRGBCamera(rgb);
+  // unity_bridge.addQuadrotor(quad);
+
+  // EXPECT_TRUE(unity_bridge.connectUnity(UnityScene::GARAGE));
+>>>>>>> 4f81dcef97d42869094e2d87a6e186a2566e64e2
 
   // FrameID frame_id = 1;
   // unity_bridge.getRender(frame_id);
@@ -161,7 +194,73 @@ TEST(UnityBridge, HandleOutputOpticalFlow) {
   // EXPECT_FALSE(rgb->getDepthMap(test_img));
   // EXPECT_FALSE(rgb->getSegmentation(test_img));
   // EXPECT_TRUE(rgb->getOpticalFlow(test_img));
+<<<<<<< HEAD
 
+=======
+  // cv::imwrite("/tmp/optical.png", test_img);
+
+  // // timeout flightmare
+  // usleep(5 * 1e6);
+}
+
+TEST(UnityBridge, SpawnStaticGate) {
+  Logger logger{"Test SpawnStaticGate"};
+  UnityBridge unity_bridge;
+  // QuadrotorDynamics dyn = QuadrotorDynamics(1.0, 0.2);
+  // std::shared_ptr<Quadrotor> quad = std::make_shared<Quadrotor>(dyn);
+  // flightlib::QuadState state;
+  // state.setZero();
+  // state.x[QS::POSX] = (Scalar)0;
+  // state.x[QS::POSY] = (Scalar)-10;
+  // state.x[QS::POSZ] = (Scalar)-3;
+  // quad->setState(state);
+  // std::shared_ptr<RGBCamera> rgb = std::make_shared<RGBCamera>();
+  // rgb->setPostProcesscing(std::vector<bool>{false, false, true});
+  // quad->addRGBCamera(rgb);
+  // unity_bridge.addQuadrotor(quad);
+
+  // std::string object_id = "unity_gate";
+  // std::string prefab_id = "rpg_gate";
+  // std::shared_ptr<StaticGate> obj =
+  //   std::make_shared<StaticGate>(object_id, prefab_id);
+  // obj->setPosition(Eigen::Vector3f(0, -10, -3));
+  // unity_bridge.addStaticObject(obj);
+
+  // EXPECT_TRUE(unity_bridge.connectUnity(UnityScene::GARAGE));
+  // // timeout flightmare
+  // usleep(5 * 1e6);
+}
+
+TEST(UnityBridge, Spawn100StaticGate) {
+  Logger logger{"Test Spawn100StaticGate"};
+  UnityBridge unity_bridge;
+  // QuadrotorDynamics dyn = QuadrotorDynamics(1.0, 0.2);
+  // std::shared_ptr<Quadrotor> quad = std::make_shared<Quadrotor>(dyn);
+  // flightlib::QuadState state;
+  // state.setZero();
+  // state.x[QS::POSX] = (Scalar)0;
+  // state.x[QS::POSY] = (Scalar)-10;
+  // state.x[QS::POSZ] = (Scalar)-3;
+  // quad->setState(state);
+  // std::shared_ptr<RGBCamera> rgb = std::make_shared<RGBCamera>();
+  // rgb->setPostProcesscing(std::vector<bool>{false, false, true});
+  // quad->addRGBCamera(rgb);
+  // unity_bridge.addQuadrotor(quad);
+
+
+  // for (int i = 0; i < 4; i++) {
+  //   for (int j = 0; j < 25; j++) {
+  //     std::string object_id = "unity_gate" + std::to_string(25 * i + j);
+  //     std::string prefab_id = "rpg_gate";
+  //     std::shared_ptr<StaticGate> obj =
+  //       std::make_shared<StaticGate>(object_id, prefab_id);
+  //     obj->setPosition(Eigen::Vector3f(j - 12, -10 + i, -3));
+  //     unity_bridge.addStaticObject(obj);
+  //   }
+  // }
+
+  // EXPECT_TRUE(unity_bridge.connectUnity(UnityScene::GARAGE));
+>>>>>>> 4f81dcef97d42869094e2d87a6e186a2566e64e2
   // // timeout flightmare
   // usleep(5 * 1e6);
 }

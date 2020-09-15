@@ -31,6 +31,8 @@ def test_model(env, model, render=False):
 
     max_ep_length = env.max_episode_steps
     num_rollouts = 5
+    if render:
+        env.connectUnity()
     for n_roll in range(num_rollouts):
         pos, euler, dpos, deuler = [], [], [], []
         actions = []
@@ -91,6 +93,8 @@ def test_model(env, model, render=False):
         ax_action3.step(t, actions[:, 3], color="C{0}".format(
             n_roll), label="act [0, 1, 2, 3] -- trail: {0}".format(n_roll))
     #
+    if render:
+        env.disconnectUnity()
     ax_z.legend()
     ax_dz.legend()
     ax_euler_z.legend()

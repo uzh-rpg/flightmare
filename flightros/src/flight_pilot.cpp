@@ -68,7 +68,7 @@ void FlightPilot::poseCallback(const nav_msgs::Odometry::ConstPtr &msg) {
 
   if (unity_render_ && unity_ready_) {
     unity_bridge_ptr_->getRender(0);
-    unity_bridge_ptr_->handleOutput(unity_output_);
+    unity_bridge_ptr_->handleOutput();
   }
 }
 

@@ -183,6 +183,19 @@ bool UnityBridge::addQuadrotor(std::shared_ptr<Quadrotor> quad) {
   return true;
 }
 
+bool UnityBridge::addStaticObject(std::shared_ptr<StaticObject> static_object) {
+  Object_t object_t;
+  object_t.ID = static_object->getID();
+  object_t.prefab_ID = static_object->getPrefabID();
+  object_t.position = positionRos2Unity(static_object->getPos());
+  object_t.rotation = quaternionRos2Unity(static_object->getQuat());
+  object_t.size = scalarRos2Unity(static_object->getSize());
+
+  static_objects_.push_back(static_object);
+  settings_.objects.push_back(object_t);
+  pub_msg_.objects.push_back(object_t);
+}
+
 bool UnityBridge::handleOutput() {
   // create new message object
   zmqpp::message msg;

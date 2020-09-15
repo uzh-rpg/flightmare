@@ -30,8 +30,6 @@ def configure_random_seed(seed, env=None):
 
 def parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--quad_env_cfg', type=str, default=os.path.abspath("../../configs/env.yaml"),
-                        help='configuration file of the quad environment')
     parser.add_argument('--train', type=int, default=1,
                         help="To train new model or simply test pre-trained model")
     parser.add_argument('--render', type=int, default=0,
@@ -108,7 +106,7 @@ def main():
     # # Testing mode with a trained weight
     else:
         model = PPO2.load(args.weight)
-        test_model(env, model, render=True)
+        test_model(env, model, render=args.render)
 
 
 if __name__ == "__main__":
