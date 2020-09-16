@@ -8,6 +8,7 @@ message(STATUS "======================  !Flightmare!  ======================")
 # Options
 ################################################################################
 option(BUILD_TESTS "Building the tests" ON)
+option(BUILD_UNITY_BRIDGE_TESTS "Building the Unity Bridge tests" ON)
 option(BUILD_BENCH "Building the benchmark." OFF)
 option(ENABLE_FAST "Build with optimizations for speed" ON)
 option(ENABLE_BLAS "Build using BLAS and LAPACK libraries" OFF)
@@ -136,7 +137,7 @@ message(STATUS "The activated CXX DEBUG configuration is:\n ${CMAKE_CXX_FLAGS_DE
 ################################################################################
 message(STATUS "======>  Setup Build  ")
 
-# Create file lists for flightlib
+# Create file lists for flightlib source
 file(GLOB_RECURSE FLIGHTLIB_SOURCES
   src/bridges/*.cpp
   src/dynamics/*.cpp
@@ -148,7 +149,6 @@ file(GLOB_RECURSE FLIGHTLIB_SOURCES
 
 # Create file lists for flightlib tests
 file(GLOB_RECURSE FLIGHTLIB_TEST_SOURCES
-  tests/bridges/*.cpp
   tests/dynamics/*.cpp
   tests/objects/*.cpp
   tests/sensors/*.cpp  
@@ -156,15 +156,19 @@ file(GLOB_RECURSE FLIGHTLIB_TEST_SOURCES
   tests/common/*.cpp
 )
 
-# Create file lists for flightlib_gym tests
+# Create file lists for flightlib_gym source 
 file(GLOB_RECURSE FLIGHTLIB_GYM_SOURCES
   src/wrapper/*.cpp 
 )
 
-message(${FLIGHTLIB_GYM_SOURCES})
-
+# Create file lists for flightlib_gym tests
 file(GLOB_RECURSE FLIGHTLIB_GYM_TEST_SOURCES
   tests/wrapper/*.cpp
+)
+
+# Create file lists for flightlib_unity_bridge tests
+file(GLOB_RECURSE FLIGHTLIB_UNITY_BRIDGE_TEST_SOURCES
+  tests/bridges/*.cpp
 )
 
 ################################################################################
@@ -234,27 +238,34 @@ if(ENABLE_BLAS AND BLAS_FOUND AND LAPACK_FOUND)
   )
 endif()
 
-# Build tests
+# Build tests for flightlib gym wrapper
 if(BUILD_TESTS AND FLIGHTLIB_GYM_TEST_SOURCES)
   add_executable(test_gym ${FLIGHTLIB_GYM_TEST_SOURCES})
   target_link_libraries(test_gym
     ${LIBRARY_NAME}
     gtest
-    gtest_main
-)
+    gtest_main)
 add_test(test_gym test_gym)
 endif()
 
-# Build tests
+# Build tests for flightlib
 if(BUILD_TESTS AND FLIGHTLIB_TEST_SOURCES)
   add_executable(test_lib ${FLIGHTLIB_TEST_SOURCES})
   target_link_libraries(test_lib PUBLIC
     ${LIBRARY_NAME}
     gtest
-    gtest_main
-)
+    gtest_main)
 add_test(test_lib test_lib)
 endif()
 
+# Build tests for flightlib unity bridge
+if(BUILD_UNITY_BRIDGE_TESTS AND FLIGHTLIB_UNITY_BRIDGE_TEST_SOURCES)
+  add_executable(test_unity_bridge ${FLIGHTLIB_UNITY_BRIDGE_TEST_SOURCES})
+  target_link_libraries(test_unity_bridge PUBLIC
+    ${LIBRARY_NAME}
+    gtest
+    gtest_main)
+add_test(test_unity_bridge test_unity_bridge)
+endif()
 
 message(STATUS "================  !Done. No more nightmare!  ================")
