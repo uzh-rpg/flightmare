@@ -1,3 +1,7 @@
+"""
+This bridge message types was originally from FlightGoggles. 
+We made several changes on top of it.
+"""
 #pragma once
 
 // std
