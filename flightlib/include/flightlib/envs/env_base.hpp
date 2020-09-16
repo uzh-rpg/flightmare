@@ -1,6 +1,6 @@
-"""
-This is inspired by RaiGym, thanks.
-"""
+//
+// This is inspired by RaiGym, thanks.
+//
 #pragma once
 
 // standard library

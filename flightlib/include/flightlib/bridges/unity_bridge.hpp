@@ -1,7 +1,7 @@
-"""
-This bridge was originally from FlightGoggles. 
-We made several changes on top of it.
-"""
+//
+// This bridge was originally from FlightGoggles.
+// We made several changes on top of it.
+//
 #pragma once
 
 // std libs
