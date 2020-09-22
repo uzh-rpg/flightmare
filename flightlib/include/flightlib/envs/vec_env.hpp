@@ -1,3 +1,6 @@
+//
+// This is inspired by RaiGym, thanks.
+//
 #pragma once
 
 // std

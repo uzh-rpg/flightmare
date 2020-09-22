@@ -1,3 +1,7 @@
+//
+// This bridge message types was originally from FlightGoggles.
+// We made several changes on top of it.
+//
 #pragma once
 
 // std
@@ -112,6 +116,15 @@ struct SubMessage_t {
   std::vector<Sub_Vehicle_t> sub_vehicles;
 };
 
+struct PointCloudMessage_t {
+  // define point cloud box range [x, y, z] / meter
+  std::vector<Scalar> range{20.0, 20.0, 20.0};
+  std::vector<Scalar> origin{0.0, 0.0, 0.0};
+  Scalar resolution{0.15};
+  std::string path{"point_clouds_data/"};
+  std::string file_name{"default"};
+};
+
 /*********************
  * JSON constructors *
  *********************/
@@ -182,6 +195,14 @@ inline void from_json(const json &j, Sub_Vehicle_t &o) {
 inline void from_json(const json &j, SubMessage_t &o) {
   o.frame_id = j.at("frame_id").get<uint64_t>();
   o.sub_vehicles = j.at("pub_vehicles").get<std::vector<Sub_Vehicle_t>>();
+}
+
+inline void to_json(json &j, const PointCloudMessage_t &o) {
+  j = json{{"range", o.range},
+           {"origin", o.origin},
+           {"resolution", o.resolution},
+           {"path", o.path},
+           {"file_name", o.file_name}};
 }
 
 // Struct for outputting parsed received messages to handler functions
