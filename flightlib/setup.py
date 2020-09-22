@@ -36,7 +36,7 @@ class CMakeBuild(build_ext):
         # remove cached build files
         # a hack to solve some cmake error when using "pip install ."
         try:
-            for i, p in enumerate(glob.glob(os.path.join(FLIGHTLIB_EXTERNAL_FILES, "*"))):
+            for i, p in enumerate(glob.glob(os.path.join(FLIGHTLIB_BUILD_FILES, "*"))):
                 shutil.rmtree(p)
                 print("Removing some cache file: ", p)
         except:
