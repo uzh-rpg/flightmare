@@ -15,6 +15,9 @@ Flightmare can be used for various applications, including path-planning, reinfo
 ## Installation
 Installation instructions can be found in our [Wiki](https://github.com/uzh-rpg/flightmare/wiki).
   
+## Updates
+ *  04.09.2020 Release Flightmare
+
 ## Publication
 
 If you use this code in a publication, please cite the following paper **[PDF](https://arxiv.org/abs/2009.00563)**

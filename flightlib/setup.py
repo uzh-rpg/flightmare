@@ -30,7 +30,19 @@ class CMakeBuild(build_ext):
                 print("Removing some cache file: ", p)
         except:
             pass
+        FLIGHTLIB_BUILD_FILES = os.environ["FLIGHTMARE_PATH"] + \
+            "/flightlib/build/"
         # --------------------------------
+        # remove cached build files
+        # a hack to solve some cmake error when using "pip install ."
+        try:
+            for i, p in enumerate(glob.glob(os.path.join(FLIGHTLIB_EXTERNAL_FILES, "*"))):
+                shutil.rmtree(p)
+                print("Removing some cache file: ", p)
+        except:
+            pass
+        # --------------------------------
+
         try:
             out = subprocess.check_output(['cmake', '--version'])
         except OSError:
