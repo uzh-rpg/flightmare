@@ -38,6 +38,9 @@ struct Camera_t {
   int width{1024};
   int height{768};
   Scalar fov{70.0f};
+  // Clip Planes for the different layers
+  std::vector<Scalar> nearClipPlane{0.01, 0.01, 0.01, 0.01};
+  std::vector<Scalar> farClipPlane{1000.0, 100.0, 1000.0, 1000.0};
   Scalar depth_scale{0.20};  // 0.xx corresponds to xx cm resolution
   // metadata
   bool is_depth{false};
@@ -135,6 +138,8 @@ inline void to_json(json &j, const Camera_t &o) {
            {"width", o.width},
            {"height", o.height},
            {"fov", o.fov},
+           {"nearClipPlane", o.nearClipPlane},
+           {"farClipPlane", o.farClipPlane},
            {"T_BC", o.T_BC},
            {"isDepth", o.is_depth},
            {"enabledLayers", o.enabled_layers},

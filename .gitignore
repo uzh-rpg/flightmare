@@ -2,6 +2,7 @@
 _posts
 _site
 .vscode/*
+**/.vscode/*
 !.vscode/extensions.json
 externals/*
 dist
@@ -9,3 +10,6 @@ dist
 *.so
 __pycache__
 build
+
+# Samples
+**/flightompl/data/*.txt
