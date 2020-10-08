@@ -6,7 +6,7 @@
   <arg name="model" value="$(find rotors_description)/urdf/mav_generic_odometry_sensor.gazebo"/>
   <arg name="world_name" default="$(find rotors_gazebo)/worlds/basic.world"/>
 
-  <arg name="use_unity_editor" default="true" />
+  <arg name="use_unity_editor" default="false" /> <!--changed to false-->
   <arg name="paused" value="true"/>
   <arg name="gui" value="true"/>
   <arg name="use_mpc" default="false"/>
@@ -65,7 +65,9 @@
     </node>
 
     <!-- RPG Flightmare Unity Render. -->
-    <node pkg="flightrender" type="RPG_Flightmare.x86_64" name="rpg_flightmare_render" unless="$(arg use_unity_editor)">
+ <!--   <node pkg="flightrender" type="RPG_Flightmare.x86_64" name="rpg_flightmare_render" unless="$(arg use_unity_editor)">
+    </node>-->
+    <node pkg="flightrender" type="flightmare.x86_64" name="rpg_flightmare_render" unless="$(arg use_unity_editor)"> <!-- name of the flightmare updated-->
     </node>
 
     <!-- Autopilot -->
