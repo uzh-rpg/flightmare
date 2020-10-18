@@ -23,6 +23,8 @@ TEST(QuadrotorEnv, Constructor) {
   logger.info("Environment configuration path \"%s\".", config_path.c_str());
   QuadrotorEnv env0(config_path);
 
+  Vector<3> debug{3.0, 3.0, 3.0};
+
   // check observation and action dimensions
   int obs_dim = env0.getObsDim();
   int act_dim = env0.getActDim();
