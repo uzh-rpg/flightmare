@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="debug" default="0" />
+    
+    <node name="racing" pkg="flightros" type="racing" output="screen" launch-prefix="gdb -ex run --args" if="$(arg debug)" >
+    </node>
+    <node name="racing" pkg="flightros" type="racing" output="screen" unless="$(arg debug)">
+    </node>
+</launch>

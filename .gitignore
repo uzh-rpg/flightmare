@@ -10,6 +10,3 @@ dist
 *.so
 __pycache__
 build
-
-# Samples
-**/flightompl/data/*.txt

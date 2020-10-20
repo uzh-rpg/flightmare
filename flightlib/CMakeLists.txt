@@ -25,7 +25,7 @@ set(
 
 message(STATUS "======> Setup Dependencies")
 if(EIGEN_FROM_SYSTTEM)
-  find_package(Eigen3 3.3.4 QUIET)
+  find_package(Eigen3 3.3.4 QUIET EXACT REQUIRED)
   if(EIGEN3_FOUND)
     message(STATUS "Using system provided Eigen.")
     message(${EIGEN3_INCLUDE_DIR})
