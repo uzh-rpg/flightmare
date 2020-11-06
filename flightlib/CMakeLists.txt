@@ -48,6 +48,7 @@ include(cmake/yaml.cmake)
 
 # Including dependencies 
 find_package(OpenCV REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
 find_package(OpenMP REQUIRED)
 
 if(ENABLE_BLAS)
