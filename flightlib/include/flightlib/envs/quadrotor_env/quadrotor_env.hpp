@@ -48,7 +48,7 @@ class QuadrotorEnv final : public EnvBase {
   ~QuadrotorEnv();
 
   // - public OpenAI-gym-style functions
-  bool reset(Ref<Vector<>> obs, const bool random = true) override;
+  bool reset(Ref<Vector<>> obs, bool random = true) override;
   Scalar step(const Ref<Vector<>> act, Ref<Vector<>> obs) override;
 
   // - public set functions
@@ -79,6 +79,9 @@ class QuadrotorEnv final : public EnvBase {
   // observations and actions (for RL)
   Vector<quadenv::kNObs> quad_obs_;
   Vector<quadenv::kNAct> quad_act_;
+
+  float position_diff_current_;
+  float position_diff_t_minus_;
 
   // reward function design (for model-free reinforcement learning)
   Vector<quadenv::kNObs> goal_state_;

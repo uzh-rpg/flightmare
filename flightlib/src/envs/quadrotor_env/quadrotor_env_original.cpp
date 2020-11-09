@@ -13,7 +13,9 @@ QuadrotorEnv::QuadrotorEnv(const std::string &cfg_path)
     lin_vel_coeff_(0.0),
     ang_vel_coeff_(0.0),
     act_coeff_(0.0),
-    goal_state_((Vector<quadenv::kNObs>() << 20.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0).finished()) {
+    goal_state_((Vector<quadenv::kNObs>() << 0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0,
+                 0.0, 0.0, 0.0, 0.0, 0.0)
+                  .finished()) {
   // load configuration file
   YAML::Node cfg_ = YAML::LoadFile(cfg_path);
 
@@ -24,7 +26,7 @@ QuadrotorEnv::QuadrotorEnv(const std::string &cfg_path)
   quadrotor_ptr_->updateDynamics(dynamics);
 
   // define a bounding box
-  world_box_ << -25, 25, -25, 25, 0, 20;
+  world_box_ << -20, 20, -20, 20, 0, 20;
   quadrotor_ptr_->setWorldBox(world_box_);
 
   // define input and output dimension for the environment
@@ -35,18 +37,13 @@ QuadrotorEnv::QuadrotorEnv(const std::string &cfg_path)
   act_mean_ = Vector<quadenv::kNAct>::Ones() * (-mass * Gz) / 4;
   act_std_ = Vector<quadenv::kNAct>::Ones() * (-mass * 2 * Gz) / 4;
 
-  position_diff_current_ = 0;
-  position_diff_t_minus_ = 15.0*15.0;
-
   // load parameters
   loadParam(cfg_);
 }
 
 QuadrotorEnv::~QuadrotorEnv() {}
 
-bool QuadrotorEnv::reset(Ref<Vector<>> obs, bool random) {
-  // const bool random always = true so change it in code directly
-  random = false;
+bool QuadrotorEnv::reset(Ref<Vector<>> obs, const bool random) {
   quad_state_.setZero();
   quad_act_.setZero();
 
@@ -68,23 +65,6 @@ bool QuadrotorEnv::reset(Ref<Vector<>> obs, bool random) {
     quad_state_.x(QS::ATTY) = uniform_dist_(random_gen_);
     quad_state_.x(QS::ATTZ) = uniform_dist_(random_gen_);
     quad_state_.qx /= quad_state_.qx.norm();
-  } else {
-    // reset the quadrotor state
-    // reset position
-    quad_state_.x(QS::POSX) = 0;
-    quad_state_.x(QS::POSY) = 0;
-    quad_state_.x(QS::POSZ) = 5;
-    // reset linear velocity
-    quad_state_.x(QS::VELX) = 0;
-    quad_state_.x(QS::VELY) = 0;
-    quad_state_.x(QS::VELZ) = 0;
-    // reset orientation
-    quad_state_.x(QS::ATTW) = 0;
-    quad_state_.x(QS::ATTX) = 0;
-    quad_state_.x(QS::ATTY) = 0;
-    quad_state_.x(QS::ATTZ) = 1;
-    // ensure quaternion is unit vector
-    quad_state_.qx /= quad_state_.qx.norm();
   }
   // reset quadrotor with random states
   quadrotor_ptr_->reset(quad_state_);
@@ -92,8 +72,6 @@ bool QuadrotorEnv::reset(Ref<Vector<>> obs, bool random) {
   // reset control command
   cmd_.t = 0.0;
   cmd_.thrusts.setZero();
-
-  position_diff_t_minus_ = 15.0*15.0;
 
   // obtain observations
   getObs(obs);
@@ -126,48 +104,28 @@ Scalar QuadrotorEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs) {
   Matrix<3, 3> rot = quad_state_.q().toRotationMatrix();
 
   // ---------------------- reward function design
-  
   // - position tracking
-  // pos_coeff_ is -0.002 in yaml
-  position_diff_current_ =  (quad_obs_.segment<quadenv::kNPos>(quadenv::kPos) - goal_state_.segment<quadenv::kNPos>(quadenv::kPos)).squaredNorm();
-  Scalar progression = (position_diff_t_minus_ - position_diff_current_);
-  Scalar pos_reward = 0.002 * (progression<0)*(progression);
-  position_diff_t_minus_ = position_diff_current_;
-  // Scalar pos_reward = pos_coeff_ * (quad_obs_.segment<quadenv::kNPos>(quadenv::kPos) - goal_state_.segment<quadenv::kNPos>(quadenv::kPos)).squaredNorm();
-  
-  // y and z tracking
-  // Scalar pos  = quad_obs_.segment<quadenv::kNPos>(quadenv::kPos);
-  // Scalar y_reward = -0.002*abs(y_diff);
-  // Scalar z_diff = quad_obs_.segment<1>(2).squaredNorm() - 5.0*5.0;
-  // Scalar z_reward = -0.002*abs(z_diff);
-
-
+  Scalar pos_reward =
+    pos_coeff_ * (quad_obs_.segment<quadenv::kNPos>(quadenv::kPos) -
+                  goal_state_.segment<quadenv::kNPos>(quadenv::kPos))
+                   .squaredNorm();
   // - orientation tracking
-  // ori_coeff_ is -0.002 in yaml
-  Scalar ori_reward = -0.0002 * (quad_obs_.segment<quadenv::kNOri>(quadenv::kOri)).squaredNorm();
-  // Scalar ori_reward = 0;
-  // Scalar ori_reward = ori_coeff_ * (quad_obs_.segment<quadenv::kNOri>(quadenv::kOri) -
-  //                 goal_state_.segment<quadenv::kNOri>(quadenv::kOri))
-  //                  .squaredNorm();
- 
+  Scalar ori_reward =
+    ori_coeff_ * (quad_obs_.segment<quadenv::kNOri>(quadenv::kOri) -
+                  goal_state_.segment<quadenv::kNOri>(quadenv::kOri))
+                   .squaredNorm();
   // - linear velocity tracking
-  // ang_vel_coeff_ is -0.0002 in yaml
-  Scalar lin_vel_reward = -0.00002 * (quad_obs_.segment<quadenv::kNLinVel>(quadenv::kLinVel)).squaredNorm();
-  // Scalar lin_vel_reward = 0;
-  //   Scalar lin_vel_reward = lin_vel_coeff_ * (quad_obs_.segment<quadenv::kNLinVel>(quadenv::kLinVel) -
-  //                     goal_state_.segment<quadenv::kNLinVel>(quadenv::kLinVel))
-  //                      .squaredNorm();
-
+  Scalar lin_vel_reward =
+    lin_vel_coeff_ * (quad_obs_.segment<quadenv::kNLinVel>(quadenv::kLinVel) -
+                      goal_state_.segment<quadenv::kNLinVel>(quadenv::kLinVel))
+                       .squaredNorm();
   // - angular velocity tracking
-  // ang_vel_coeff_ is -0.0002 in yaml
-  Scalar ang_vel_reward = -0.00002 * (quad_obs_.segment<quadenv::kNAngVel>(quadenv::kAngVel)).squaredNorm();
-  // Scalar ang_vel_reward = 0;
-  // Scalar ang_vel_reward = ang_vel_coeff_ * (quad_obs_.segment<quadenv::kNAngVel>(quadenv::kAngVel) -
-  //                     goal_state_.segment<quadenv::kNAngVel>(quadenv::kAngVel))
-  //                      .squaredNorm();
+  Scalar ang_vel_reward =
+    ang_vel_coeff_ * (quad_obs_.segment<quadenv::kNAngVel>(quadenv::kAngVel) -
+                      goal_state_.segment<quadenv::kNAngVel>(quadenv::kAngVel))
+                       .squaredNorm();
 
   // - control action penalty
-
   Scalar act_reward = act_coeff_ * act.cast<Scalar>().norm();
 
   Scalar total_reward =
