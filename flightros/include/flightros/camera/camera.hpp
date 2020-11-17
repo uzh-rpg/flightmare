@@ -1,4 +1,3 @@
-#pragma once
 // ros
 #include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.h>
@@ -7,6 +6,7 @@
 // standard libraries
 #include <assert.h>
 #include <Eigen/Dense>
+#include <chrono>
 #include <cmath>
 #include <cstring>
 #include <experimental/filesystem>
@@ -34,7 +34,6 @@ image_transport::Publisher rgb_pub_;
 image_transport::Publisher depth_pub_;
 image_transport::Publisher segmentation_pub_;
 image_transport::Publisher opticalflow_pub_;
-int counter = 0;
 
 // void setupQuad();
 bool setUnity(const bool render);

@@ -64,16 +64,7 @@ std::vector<motion_planning::float3> motion_planning::readPointCloud() {
       std::cerr << "tinyply exception: " << e.what() << std::endl;
     }
 
-    manual_timer read_timer;
-
-    read_timer.start();
     file.read(*file_stream);
-    read_timer.stop();
-
-    const float parsing_time = read_timer.get() / 1000.f;
-    std::cout << "\tparsing " << size_mb << "mb in " << parsing_time
-              << " seconds [" << (size_mb / parsing_time) << " MBps]"
-              << std::endl;
 
     if (vertices)
       std::cout << "\tRead " << vertices->count << " total vertices "
@@ -135,7 +126,6 @@ void motion_planning::getBounds() {
     }
   }
 }
-
 
 void motion_planning::plan() {
   // construct the state space we are planning in
@@ -259,9 +249,6 @@ Eigen::Vector3d motion_planning::stateToEigen(const ompl::base::State *state) {
   float y = pos->values[1];
   float z = pos->values[2];
 
-  // return a value that is always true but uses the two variables we define, so
-  // we avoid compiler warnings
-  // return isInRange(x, y, z);
   Eigen::Vector3d query_pos{x, y, z};
   return query_pos;
 }
@@ -280,39 +267,10 @@ bool motion_planning::isStateValid(const ob::State *state) {
   float x = pos->values[0];
   float y = pos->values[1];
   float z = pos->values[2];
-  // return a value that is always true but uses the two variables we define, so
-  // we avoid compiler warnings
-  // return isInRange(x, y, z);
+
   Eigen::Vector3d query_pos{x, y, z};
   return searchRadius(query_pos, range);
 }
-
-bool motion_planning::isInRange(float x, float y, float z) {
-  bool validState = true;
-  bool outOfBound = false;
-
-  for (const auto &ver : verts) {
-    // check if box around quad is occupied
-    if (abs(ver.z - z) <= range) {
-      if (abs(ver.x - x) <= range) {
-        if (abs(ver.y - y) <= range) {
-          validState = false;
-        }
-      }
-    } else {
-      if (ver.z - z >= 0) {
-        outOfBound = true;
-      }
-    }
-
-
-    if (outOfBound || !validState) {
-      break;
-    }
-  }
-  return validState;
-}
-
 
 bool motion_planning::searchRadius(const Eigen::Vector3d &query_point,
                                    const double radius) {
@@ -403,7 +361,6 @@ void motion_planning::executePath() {
   }
 }
 
-
 bool motion_planning::setUnity(const bool render) {
   unity_render_ = render;
   if (unity_render_ && unity_bridge_ptr_ == nullptr) {
@@ -420,7 +377,6 @@ bool motion_planning::connectUnity() {
   unity_ready_ = unity_bridge_ptr_->connectUnity(scene_id_);
   return unity_ready_;
 }
-
 
 int main(int argc, char *argv[]) {
   // initialize ROS

@@ -23,11 +23,11 @@ Installation instructions can be found in our [Wiki](https://github.com/uzh-rpg/
 If you use this code in a publication, please cite the following paper **[PDF](https://arxiv.org/abs/2009.00563)**
 
 ```
-@article{yunlong2020flightmare,
-  title={Flightmare: A Flexible Quadrotor Simulator},
-  author={Song, Yunlong and Naji, Selim and Kaufmann, Elia and Loquercio, Antonio and Scaramuzza, Davide},
-  journal={arXiv preprint arXiv:2009.00563},
-  year={2020}
+@article{song2020flightmare,
+    title={Flightmare: A Flexible Quadrotor Simulator},
+    author={Song, Yunlong and Naji, Selim and Kaufmann, Elia and Loquercio, Antonio and Scaramuzza, Davide},
+    booktitle={Conference on Robot Learning},
+    year={2020}
 }
 ```
 

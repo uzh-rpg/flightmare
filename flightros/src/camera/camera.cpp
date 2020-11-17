@@ -75,31 +75,31 @@ int main(int argc, char *argv[]) {
 
     cv::Mat img;
 
+    ros::Time timestamp = ros::Time::now();
+
     camera::rgb_camera_->getRGBImage(img);
     sensor_msgs::ImagePtr rgb_msg =
       cv_bridge::CvImage(std_msgs::Header(), "bgr8", img).toImageMsg();
-    rgb_msg->header.stamp.fromNSec(camera::counter);
+    rgb_msg->header.stamp = timestamp;
     camera::rgb_pub_.publish(rgb_msg);
 
     camera::rgb_camera_->getDepthMap(img);
     sensor_msgs::ImagePtr depth_msg =
       cv_bridge::CvImage(std_msgs::Header(), "bgr8", img).toImageMsg();
-    depth_msg->header.stamp.fromNSec(camera::counter);
+    depth_msg->header.stamp = timestamp;
     camera::depth_pub_.publish(depth_msg);
 
     camera::rgb_camera_->getSegmentation(img);
     sensor_msgs::ImagePtr segmentation_msg =
       cv_bridge::CvImage(std_msgs::Header(), "bgr8", img).toImageMsg();
-    segmentation_msg->header.stamp.fromNSec(camera::counter);
+    segmentation_msg->header.stamp = timestamp;
     camera::segmentation_pub_.publish(segmentation_msg);
 
     camera::rgb_camera_->getOpticalFlow(img);
     sensor_msgs::ImagePtr opticflow_msg =
       cv_bridge::CvImage(std_msgs::Header(), "bgr8", img).toImageMsg();
-    opticflow_msg->header.stamp.fromNSec(camera::counter);
+    opticflow_msg->header.stamp = timestamp;
     camera::opticalflow_pub_.publish(opticflow_msg);
-
-    camera::counter++;
   }
 
   return 0;

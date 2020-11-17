@@ -6,7 +6,7 @@ find_package(catkin_simple REQUIRED)
 
 find_package(OpenCV REQUIRED)
 
-option(BUILD_SAMPLES "Building the samples" OFF)
+option(BUILD_MP "Build Motion Planning" OFF)
 
 catkin_simple()
 
@@ -29,8 +29,6 @@ endif ()
 # Setup General C++ Flags
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DEIGEN_STACK_ALLOCATION_LIMIT=1048576")
-add_compile_options(-O3)
-
 
 # Setup Release and Debug flags
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_ARCH_FLAGS} -Wall -DNDEBUG -fPIC")
@@ -60,12 +58,7 @@ target_link_libraries(flight_pilot_node
 
 # motion_planning
 
-if(BUILD_SAMPLES)
-
-    # find all open3D stuff
-    message("Searching open3D in /usr/local/lib/cmake/")
-    find_package(Open3D HINTS /usr/local/lib/cmake/)
-    list(APPEND Open3D_LIBRARIES dl)
+if(BUILD_MP)
 
     find_package(OpenMP)
     if (OpenMP_CXX_FOUND)
@@ -75,11 +68,15 @@ if(BUILD_SAMPLES)
         foreach (_variableName ${_variableNames})
             message(STATUS "${_variableName}=${${_variableName}}")
         endforeach()
+    else ()
+        message("OpenMP not found")
     endif ()
 
     # Open3D
+    find_package(Open3D)
     if (Open3D_FOUND)
         message("Found Open3D ${Open3D_VERSION}")
+        list(APPEND Open3D_LIBRARIES dl)
         # link_directories must be before add_executable
         link_directories(${Open3D_LIBRARY_DIRS})
     else ()
@@ -87,69 +84,69 @@ if(BUILD_SAMPLES)
     endif ()
 
     find_package(ompl REQUIRED)
+    if (OMPL_FOUND)
+        message("Found OMPL ${OMPL_VERSION}")
+        include_directories(${OMPL_INCLUDE_DIRS})
 
-    link_directories(/usr/local/lib)
-    include_directories(${OMPL_INCLUDE_DIRS})
+     else ()
+        message("OMPL not found")
+    endif ()
 
-    cs_add_executable(motion_planning
-        src/motion_planning/motion_planning.cpp
-    )
+    if (OpenMP_CXX_FOUND AND Open3D_FOUND AND OMPL_FOUND)
+        cs_add_executable(motion_planning
+            src/motion_planning/motion_planning.cpp
+        )
+        target_include_directories(motion_planning PUBLIC ${Open3D_INCLUDE_DIRS})
 
-    target_include_directories(motion_planning PUBLIC ${Open3D_INCLUDE_DIRS})
-
-    target_link_libraries(motion_planning
-    ${catkin_LIBRARIES}
-    ${OpenCV_LIBRARIES}
-    stdc++fs
-    ompl
-    ${Open3D_LIBRARIES}
-    OpenMP::OpenMP_CXX
-    zmq
-    zmqpp
-    )
+        target_link_libraries(motion_planning
+        ${catkin_LIBRARIES}
+        ${OpenCV_LIBRARIES}
+        stdc++fs
+        ompl
+        ${Open3D_LIBRARIES}
+        OpenMP::OpenMP_CXX
+        zmq
+        zmqpp
+        )
+    else ()
+        message("Failed to build motion planning")
+    endif ()
 
 endif()
 
 # racing
 
-if(BUILD_SAMPLES)
 
-    catkin_package(
-    LIBRARIES
-    CATKIN_DEPENDS
-    )
+catkin_package(
+LIBRARIES
+CATKIN_DEPENDS
+)
 
-    cs_add_executable(racing
-        src/racing/racing.cpp
-    )
+cs_add_executable(racing
+    src/racing/racing.cpp
+)
 
-    target_link_libraries(racing
-    ${catkin_LIBRARIES}
-    ${OpenCV_LIBRARIES}
-    stdc++fs
-    zmq
-    zmqpp
-    )
-
-endif()
+target_link_libraries(racing
+${catkin_LIBRARIES}
+${OpenCV_LIBRARIES}
+stdc++fs
+zmq
+zmqpp
+)
 
 # camera
 
-if(BUILD_SAMPLES)
+cs_add_executable(camera
+    src/camera/camera.cpp
+)
 
-    cs_add_executable(camera
-        src/camera/camera.cpp
-    )
-
-    target_link_libraries(camera
-    ${catkin_LIBRARIES}
-    ${OpenCV_LIBRARIES}
-    stdc++fs
-    zmq
-    zmqpp
-    )
-
-endif()
+target_link_libraries(camera
+${catkin_LIBRARIES}
+${OpenCV_LIBRARIES}
+stdc++fs
+zmq
+zmqpp
+)
 
 # Finish
 cs_install()

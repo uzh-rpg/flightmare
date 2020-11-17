@@ -1,9 +1,6 @@
-#pragma once
-
 // standard libraries
 #include <assert.h>
 #include <Eigen/Dense>
-#include <chrono>
 #include <cmath>
 #include <cstring>
 #include <experimental/filesystem>
@@ -47,21 +44,6 @@ namespace og = ompl::geometric;
 using namespace flightlib;
 
 namespace motion_planning {
-
-class manual_timer {
-  std::chrono::high_resolution_clock::time_point t0;
-  double timestamp{0.0};
-
- public:
-  void start() { t0 = std::chrono::high_resolution_clock::now(); }
-  void stop() {
-    timestamp = std::chrono::duration<double>(
-                  std::chrono::high_resolution_clock::now() - t0)
-                  .count() *
-                1000.0;
-  }
-  const double &get() { return timestamp; }
-};
 
 struct float2 {
   float x, y;

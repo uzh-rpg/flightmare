@@ -95,15 +95,12 @@ int main(int argc, char *argv[]) {
                                         20.0, 20.0, 6.0);
 
   // Start racing
-  racing::manual_timer timer;
-  timer.start();
+  ros::Time t0 = ros::Time::now();
 
   while (ros::ok() && racing::unity_render_ && racing::unity_ready_) {
-    timer.stop();
-
     quadrotor_common::TrajectoryPoint desired_pose =
       polynomial_trajectories::getPointFromTrajectory(
-        trajectory, ros::Duration(timer.get() / 1000));
+        trajectory, ros::Duration((ros::Time::now() - t0)));
     racing::quad_state_.x[QS::POSX] = (Scalar)desired_pose.position.x();
     racing::quad_state_.x[QS::POSY] = (Scalar)desired_pose.position.y();
     racing::quad_state_.x[QS::POSZ] = (Scalar)desired_pose.position.z();
