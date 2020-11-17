@@ -6,7 +6,6 @@
 // standard libraries
 #include <assert.h>
 #include <Eigen/Dense>
-#include <chrono>
 #include <cmath>
 #include <cstring>
 #include <fstream>
