@@ -1,105 +1,114 @@
-#include "flightros/camera/camera.hpp"
 
-bool camera::setUnity(const bool render) {
-  unity_render_ = render;
-  if (unity_render_ && unity_bridge_ptr_ == nullptr) {
-    // create unity bridge
-    unity_bridge_ptr_ = UnityBridge::getInstance();
-    unity_bridge_ptr_->addQuadrotor(quad_ptr_);
-    std::cout << "Unity Bridge is created." << std::endl;
-  }
-  return true;
-}
+// ros
+#include <cv_bridge/cv_bridge.h>
+#include <image_transport/image_transport.h>
+#include <ros/ros.h>
 
-bool camera::connectUnity() {
-  if (!unity_render_ || unity_bridge_ptr_ == nullptr) return false;
-  unity_ready_ = unity_bridge_ptr_->connectUnity(scene_id_);
-  return unity_ready_;
-}
+// flightlib
+#include "flightlib/bridges/unity_bridge.hpp"
+#include "flightlib/bridges/unity_message_types.hpp"
+#include "flightlib/common/quad_state.hpp"
+#include "flightlib/common/types.hpp"
+#include "flightlib/objects/quadrotor.hpp"
+#include "flightlib/sensors/rgb_camera.hpp"
 
+using namespace flightlib;
 
 int main(int argc, char *argv[]) {
   // initialize ROS
-  ros::init(argc, argv, "flightmare_rviz");
+  ros::init(argc, argv, "camera_example");
   ros::NodeHandle nh("");
   ros::NodeHandle pnh("~");
   ros::Rate(50.0);
 
+  // publisher
+  image_transport::Publisher rgb_pub;
+  image_transport::Publisher depth_pub;
+  image_transport::Publisher segmentation_pub;
+  image_transport::Publisher opticalflow_pub;
+
+  // unity quadrotor
+  std::shared_ptr<Quadrotor> quad_ptr = std::make_shared<Quadrotor>();
+  // define quadsize scale (for unity visualization only)
+  Vector<3> quad_size(0.5, 0.5, 0.5);
+  quad_ptr->setSize(quad_size);
+  QuadState quad_state;
+
+  //
+  std::shared_ptr<RGBCamera> rgb_camera = std::make_shared<RGBCamera>();
+
+  // Flightmare(Unity3D)
+  std::shared_ptr<UnityBridge> unity_bridge_ptr = UnityBridge::getInstance();
+  SceneID scene_id{UnityScene::WAREHOUSE};
+  bool unity_ready{false};
+
   // initialize publishers
   image_transport::ImageTransport it(pnh);
-  camera::rgb_pub_ = it.advertise("/rgb", 1);
-  camera::depth_pub_ = it.advertise("/depth", 1);
-  camera::segmentation_pub_ = it.advertise("/segmentation", 1);
-  camera::opticalflow_pub_ = it.advertise("/opticalflow", 1);
-
-  // quad initialization
-  camera::quad_ptr_ = std::make_unique<Quadrotor>();
-  // add mono camera
-  camera::rgb_camera_ = std::make_unique<RGBCamera>();
+  rgb_pub = it.advertise("/rgb", 1);
+  depth_pub = it.advertise("/depth", 1);
+  segmentation_pub = it.advertise("/segmentation", 1);
+  opticalflow_pub = it.advertise("/opticalflow", 1);
 
   // Flightmare
   Vector<3> B_r_BC(0.0, 0.0, 0.3);
   Matrix<3, 3> R_BC = Quaternion(1.0, 0.0, 0.0, 0.0).toRotationMatrix();
   std::cout << R_BC << std::endl;
-  camera::rgb_camera_->setFOV(90);
-  camera::rgb_camera_->setWidth(720);
-  camera::rgb_camera_->setHeight(480);
-  camera::rgb_camera_->setRelPose(B_r_BC, R_BC);
-  camera::rgb_camera_->setPostProcesscing(
+  rgb_camera->setFOV(90);
+  rgb_camera->setWidth(640);
+  rgb_camera->setHeight(360);
+  rgb_camera->setRelPose(B_r_BC, R_BC);
+  rgb_camera->setPostProcesscing(
     std::vector<bool>{true, true, true});  // depth, segmentation, optical flow
-  camera::quad_ptr_->addRGBCamera(camera::rgb_camera_);
+  quad_ptr->addRGBCamera(rgb_camera);
 
-
-  // // initialization
-  camera::quad_state_.setZero();
-
-  camera::quad_ptr_->reset(camera::quad_state_);
+  // initialization
+  quad_state.setZero();
+  quad_ptr->reset(quad_state);
 
   // connect unity
-  camera::setUnity(camera::unity_render_);
-  camera::connectUnity();
+  unity_bridge_ptr->addQuadrotor(quad_ptr);
+  unity_ready = unity_bridge_ptr->connectUnity(scene_id);
 
-  while (ros::ok() && camera::unity_render_ && camera::unity_ready_) {
-    camera::quad_state_.x[QS::POSX] = (Scalar)0;
-    camera::quad_state_.x[QS::POSY] = (Scalar)0;
-    camera::quad_state_.x[QS::POSZ] = (Scalar)0;
-    camera::quad_state_.x[QS::ATTW] = (Scalar)0;
-    camera::quad_state_.x[QS::ATTX] = (Scalar)0;
-    camera::quad_state_.x[QS::ATTY] = (Scalar)0;
-    camera::quad_state_.x[QS::ATTZ] = (Scalar)0;
+  FrameID frame_id = 0;
+  while (ros::ok() && unity_ready) {
+    quad_state.x[QS::POSZ] += 0.1;
 
-    camera::quad_ptr_->setState(camera::quad_state_);
+    quad_ptr->setState(quad_state);
 
-    camera::unity_bridge_ptr_->getRender(0);
-    camera::unity_bridge_ptr_->handleOutput();
+    unity_bridge_ptr->getRender(frame_id);
+    unity_bridge_ptr->handleOutput();
 
     cv::Mat img;
 
     ros::Time timestamp = ros::Time::now();
 
-    camera::rgb_camera_->getRGBImage(img);
+    rgb_camera->getRGBImage(img);
     sensor_msgs::ImagePtr rgb_msg =
       cv_bridge::CvImage(std_msgs::Header(), "bgr8", img).toImageMsg();
     rgb_msg->header.stamp = timestamp;
-    camera::rgb_pub_.publish(rgb_msg);
+    rgb_pub.publish(rgb_msg);
 
-    camera::rgb_camera_->getDepthMap(img);
+    rgb_camera->getDepthMap(img);
     sensor_msgs::ImagePtr depth_msg =
       cv_bridge::CvImage(std_msgs::Header(), "bgr8", img).toImageMsg();
     depth_msg->header.stamp = timestamp;
-    camera::depth_pub_.publish(depth_msg);
+    depth_pub.publish(depth_msg);
 
-    camera::rgb_camera_->getSegmentation(img);
+    rgb_camera->getSegmentation(img);
     sensor_msgs::ImagePtr segmentation_msg =
       cv_bridge::CvImage(std_msgs::Header(), "bgr8", img).toImageMsg();
     segmentation_msg->header.stamp = timestamp;
-    camera::segmentation_pub_.publish(segmentation_msg);
+    segmentation_pub.publish(segmentation_msg);
 
-    camera::rgb_camera_->getOpticalFlow(img);
-    sensor_msgs::ImagePtr opticflow_msg =
-      cv_bridge::CvImage(std_msgs::Header(), "bgr8", img).toImageMsg();
-    opticflow_msg->header.stamp = timestamp;
-    camera::opticalflow_pub_.publish(opticflow_msg);
+    // // The current optical flow is not correct.
+    // // you can still visualize it by uncomment the following code.
+    // rgb_camera->getOpticalFlow(img);
+    // sensor_msgs::ImagePtr opticflow_msg =
+    //   cv_bridge::CvImage(std_msgs::Header(), "bgr8", img).toImageMsg();
+    // opticflow_msg->header.stamp = timestamp;
+    // opticalflow_pub.publish(opticflow_msg);
+
+    frame_id += 1;
   }
 
   return 0;

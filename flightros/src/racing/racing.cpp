@@ -1,76 +1,64 @@
-#include "flightros/racing/racing.hpp"
 
-bool racing::setUnity(const bool render) {
-  unity_render_ = render;
-  if (unity_render_ && unity_bridge_ptr_ == nullptr) {
-    // create unity bridge
-    unity_bridge_ptr_ = UnityBridge::getInstance();
-    unity_bridge_ptr_->addQuadrotor(quad_ptr_);
-    std::cout << "Unity Bridge is created." << std::endl;
-  }
-  return true;
-}
+// ros
+#include <cv_bridge/cv_bridge.h>
+#include <image_transport/image_transport.h>
+#include <ros/ros.h>
 
-bool racing::connectUnity() {
-  if (!unity_render_ || unity_bridge_ptr_ == nullptr) return false;
-  unity_ready_ = unity_bridge_ptr_->connectUnity(scene_id_);
-  return unity_ready_;
-}
+// flightlib
+#include "flightlib/bridges/unity_bridge.hpp"
+#include "flightlib/bridges/unity_message_types.hpp"
+#include "flightlib/common/quad_state.hpp"
+#include "flightlib/common/types.hpp"
+#include "flightlib/objects/quadrotor.hpp"
+#include "flightlib/objects/static_gate.hpp"
+#include "flightlib/sensors/rgb_camera.hpp"
 
+// trajectory
+#include <polynomial_trajectories/minimum_snap_trajectories.h>
+#include <polynomial_trajectories/polynomial_trajectories_common.h>
+#include <polynomial_trajectories/polynomial_trajectory.h>
+#include <polynomial_trajectories/polynomial_trajectory_settings.h>
+#include <quadrotor_common/trajectory_point.h>
+
+using namespace flightlib;
 
 int main(int argc, char *argv[]) {
   // initialize ROS
-  ros::init(argc, argv, "flightmare_gates");
+  ros::init(argc, argv, "gates_example");
   ros::NodeHandle nh("");
   ros::NodeHandle pnh("~");
   ros::Rate(50.0);
 
-  // quad initialization
-  racing::quad_ptr_ = std::make_unique<Quadrotor>();
-  // add camera
-  racing::rgb_camera_ = std::make_unique<RGBCamera>();
+  // Flightmare(Unity3D)
+  std::shared_ptr<UnityBridge> unity_bridge_ptr = UnityBridge::getInstance();
+  SceneID scene_id{UnityScene::WAREHOUSE};
+  bool unity_ready{false};
 
-  // Flightmare
-  Vector<3> B_r_BC(0.0, 0.0, 0.3);
-  Matrix<3, 3> R_BC = Quaternion(1.0, 0.0, 0.0, 0.0).toRotationMatrix();
-  std::cout << R_BC << std::endl;
-  racing::rgb_camera_->setFOV(90);
-  racing::rgb_camera_->setWidth(720);
-  racing::rgb_camera_->setHeight(480);
-  racing::rgb_camera_->setRelPose(B_r_BC, R_BC);
-  racing::rgb_camera_->setPostProcesscing(std::vector<bool>{
-    false, false, false});  // depth, segmentation, optical flow
-  racing::quad_ptr_->addRGBCamera(racing::rgb_camera_);
-
-  // // initialization
-  racing::quad_state_.setZero();
-  racing::quad_ptr_->reset(racing::quad_state_);
+  // unity quadrotor
+  std::shared_ptr<Quadrotor> quad_ptr = std::make_shared<Quadrotor>();
+  QuadState quad_state;
+  quad_state.setZero();
+  quad_ptr->reset(quad_state);
+  // define quadsize scale (for unity visualization only)
+  Vector<3> quad_size(0.5, 0.5, 0.5);
+  quad_ptr->setSize(quad_size);
 
   // Initialize gates
   std::string object_id = "unity_gate";
   std::string prefab_id = "rpg_gate";
   std::shared_ptr<StaticGate> gate_1 =
     std::make_shared<StaticGate>(object_id, prefab_id);
-  gate_1->setPosition(Eigen::Vector3f(0, 10, 2.5));
+  gate_1->setPosition(Eigen::Vector3f(5, 0, 2.5));
   gate_1->setRotation(
     Quaternion(std::cos(0.5 * M_PI_2), 0.0, 0.0, std::sin(0.5 * M_PI_2)));
 
   std::string object_id_2 = "unity_gate_2";
   std::shared_ptr<StaticGate> gate_2 =
     std::make_unique<StaticGate>(object_id_2, prefab_id);
-  gate_2->setPosition(Eigen::Vector3f(0, -10, 2.5));
+  gate_2->setPosition(Eigen::Vector3f(-5, 0, 2.5));
   gate_2->setRotation(
     Quaternion(std::cos(0.5 * M_PI_2), 0.0, 0.0, std::sin(0.5 * M_PI_2)));
 
-  // Set unity bridge
-  racing::setUnity(racing::unity_render_);
-
-  // Add gates
-  racing::unity_bridge_ptr_->addStaticObject(gate_1);
-  racing::unity_bridge_ptr_->addStaticObject(gate_2);
-
-  // connect unity
-  racing::connectUnity();
 
   // Define path through gates
   std::vector<Eigen::Vector3d> way_points;
@@ -97,22 +85,33 @@ int main(int argc, char *argv[]) {
   // Start racing
   ros::Time t0 = ros::Time::now();
 
-  while (ros::ok() && racing::unity_render_ && racing::unity_ready_) {
+  unity_bridge_ptr->addStaticObject(gate_1);
+  unity_bridge_ptr->addStaticObject(gate_2);
+  unity_bridge_ptr->addQuadrotor(quad_ptr);
+  // connect unity
+  unity_ready = unity_bridge_ptr->connectUnity(scene_id);
+
+  FrameID frame_id = 0;
+  while (ros::ok() && unity_ready) {
     quadrotor_common::TrajectoryPoint desired_pose =
       polynomial_trajectories::getPointFromTrajectory(
         trajectory, ros::Duration((ros::Time::now() - t0)));
-    racing::quad_state_.x[QS::POSX] = (Scalar)desired_pose.position.x();
-    racing::quad_state_.x[QS::POSY] = (Scalar)desired_pose.position.y();
-    racing::quad_state_.x[QS::POSZ] = (Scalar)desired_pose.position.z();
-    racing::quad_state_.x[QS::ATTW] = (Scalar)desired_pose.orientation.w();
-    racing::quad_state_.x[QS::ATTX] = (Scalar)desired_pose.orientation.x();
-    racing::quad_state_.x[QS::ATTY] = (Scalar)desired_pose.orientation.y();
-    racing::quad_state_.x[QS::ATTZ] = (Scalar)desired_pose.orientation.z();
+    //
+    quad_state.x[QS::POSX] = (Scalar)desired_pose.position.x();
+    quad_state.x[QS::POSY] = (Scalar)desired_pose.position.y();
+    quad_state.x[QS::POSZ] = (Scalar)desired_pose.position.z();
+    quad_state.x[QS::ATTW] = (Scalar)desired_pose.orientation.w();
+    quad_state.x[QS::ATTX] = (Scalar)desired_pose.orientation.x();
+    quad_state.x[QS::ATTY] = (Scalar)desired_pose.orientation.y();
+    quad_state.x[QS::ATTZ] = (Scalar)desired_pose.orientation.z();
 
-    racing::quad_ptr_->setState(racing::quad_state_);
+    quad_ptr->setState(quad_state);
 
-    racing::unity_bridge_ptr_->getRender(0);
-    racing::unity_bridge_ptr_->handleOutput();
+    unity_bridge_ptr->getRender(frame_id);
+    unity_bridge_ptr->handleOutput();
+
+    //
+    frame_id += 1;
   }
 
   return 0;
