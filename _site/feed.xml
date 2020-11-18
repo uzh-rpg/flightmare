@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>飞lightmare</title>
+    <title>Flightmare</title>
     <description>An Open Flexible Quadrotor Simulator
 </description>
     <link>http://localhost:4000/flightmare/</link>
     <atom:link href="http://localhost:4000/flightmare/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Tue, 03 Nov 2020 17:46:44 +0100</pubDate>
-    <lastBuildDate>Tue, 03 Nov 2020 17:46:44 +0100</lastBuildDate>
+    <pubDate>Wed, 18 Nov 2020 11:04:37 +0100</pubDate>
+    <lastBuildDate>Wed, 18 Nov 2020 11:04:37 +0100</lastBuildDate>
     <generator>Jekyll v3.8.6</generator>
     
   </channel>
