@@ -1,0 +1,16 @@
+<launch>
+    <arg name="debug" default="0" />
+    
+    <!-- RPG Flightmare Unity Render. -->
+    <node pkg="flightrender" type="RPG_Flightmare.x86_64" name="rpg_flightmare_render" >
+    </node>
+
+    <node name="camera" pkg="flightros" type="camera" output="screen" launch-prefix="gdb -ex run --args" if="$(arg debug)" >
+    </node>
+
+    <node name="camera" pkg="flightros" type="camera" output="screen" unless="$(arg debug)">
+    </node>
+        
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find flightros)/launch/camera/camera.rviz" />
+
+</launch>
