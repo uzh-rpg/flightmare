@@ -1,0 +1,8 @@
+<launch>
+    <arg name="debug" default="0" />
+    
+    <node name="motion_planning" pkg="flightros" type="motion_planning" output="screen" launch-prefix="gdb -ex run --args" if="$(arg debug)" >
+    </node>
+    <node name="motion_planning" pkg="flightros" type="motion_planning" output="screen" unless="$(arg debug)">
+    </node>
+</launch>

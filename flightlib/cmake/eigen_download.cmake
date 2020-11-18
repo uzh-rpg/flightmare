@@ -5,7 +5,7 @@ project(eigen-external)
 include(ExternalProject)
 ExternalProject_Add(eigen
   GIT_REPOSITORY    https://gitlab.com/libeigen/eigen.git
-  GIT_TAG           master
+  GIT_TAG           3.3.4
   SOURCE_DIR        "${PROJECT_SOURCE_DIR}/externals/eigen/eigen3"
   CONFIGURE_COMMAND ""
   BUILD_COMMAND     ""

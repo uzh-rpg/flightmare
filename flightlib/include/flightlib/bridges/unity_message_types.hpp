@@ -21,12 +21,13 @@ using json = nlohmann::json;
 namespace flightlib {
 
 enum UnityScene {
-  WAREHOUSE = 0,
-  GARAGE = 1,
-  TUNELS = 2,
+  INDUSTRIAL = 0,
+  WAREHOUSE = 1,
+  GARAGE = 2,
+  TUNELS = 4,
   NATUREFOREST = 3,
   // total number of environment
-  SceneNum = 4
+  SceneNum = 5
 };
 
 // Unity Camera, should not be used alone.
@@ -38,6 +39,9 @@ struct Camera_t {
   int width{1024};
   int height{768};
   Scalar fov{70.0f};
+  // Clip Planes for the different layers
+  std::vector<Scalar> near_clip_plane{0.01, 0.01, 0.01, 0.01};
+  std::vector<Scalar> far_clip_plane{1000.0, 100.0, 1000.0, 1000.0};
   Scalar depth_scale{0.20};  // 0.xx corresponds to xx cm resolution
   // metadata
   bool is_depth{false};
@@ -135,6 +139,8 @@ inline void to_json(json &j, const Camera_t &o) {
            {"width", o.width},
            {"height", o.height},
            {"fov", o.fov},
+           {"nearClipPlane", o.near_clip_plane},
+           {"farClipPlane", o.far_clip_plane},
            {"T_BC", o.T_BC},
            {"isDepth", o.is_depth},
            {"enabledLayers", o.enabled_layers},
