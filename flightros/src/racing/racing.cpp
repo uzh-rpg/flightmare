@@ -50,15 +50,14 @@ int main(int argc, char *argv[]) {
     std::make_shared<StaticGate>(object_id, prefab_id);
   gate_1->setPosition(Eigen::Vector3f(5, 0, 2.5));
   gate_1->setRotation(
-    Quaternion(std::cos(0.5 * M_PI_2), 0.0, 0.0, std::sin(0.5 * M_PI_2)));
+    Quaternion(std::cos(1 * M_PI_2), 0.0, 0.0, std::sin(1 * M_PI_2)));
 
   std::string object_id_2 = "unity_gate_2";
   std::shared_ptr<StaticGate> gate_2 =
-    std::make_unique<StaticGate>(object_id_2, prefab_id);
+    std::make_shared<StaticGate>(object_id_2, prefab_id);
   gate_2->setPosition(Eigen::Vector3f(-5, 0, 2.5));
   gate_2->setRotation(
-    Quaternion(std::cos(0.5 * M_PI_2), 0.0, 0.0, std::sin(0.5 * M_PI_2)));
-
+    Quaternion(std::cos(1 * M_PI_2), 0.0, 0.0, std::sin(1 * M_PI_2)));
 
   // Define path through gates
   std::vector<Eigen::Vector3d> way_points;
