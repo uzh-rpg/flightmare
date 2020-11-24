@@ -37,6 +37,7 @@
 
 namespace tinyply {
 
+
 enum class Type : uint8_t {
   INVALID,
   INT8,

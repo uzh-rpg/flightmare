@@ -1,6 +1,11 @@
 <launch>
     <arg name="debug" default="0" />
-    
+
+
+    <!-- RPG Flightmare Unity Render. -->
+    <node pkg="flightrender" type="RPG_Flightmare.x86_64" name="rpg_flightmare_render" >
+    </node>
+
     <node name="motion_planning" pkg="flightros" type="motion_planning" output="screen" launch-prefix="gdb -ex run --args" if="$(arg debug)" >
     </node>
     <node name="motion_planning" pkg="flightros" type="motion_planning" output="screen" unless="$(arg debug)">

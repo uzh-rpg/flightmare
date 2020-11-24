@@ -35,9 +35,6 @@
 #include "flightlib/objects/quadrotor.hpp"
 #include "flightlib/sensors/rgb_camera.hpp"
 
-// ros
-#include <ros/ros.h>
-
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
 
@@ -45,65 +42,40 @@ using namespace flightlib;
 
 namespace motion_planning {
 
-struct float2 {
-  float x, y;
-};
 struct float3 {
   float x, y, z;
 };
-struct double3 {
-  double x, y, z;
+
+struct Bounds {
+  float3 min;
+  float3 max;
 };
-struct uint3 {
-  uint32_t x, y, z;
+
+class MotionPlanner {
+ public:
+  MotionPlanner();
+  ~MotionPlanner();
+  void run();
+  void readPointCloud();
+  void getBounds();
+  bool plan();
+  void executePath();
+
+ private:
+  std::vector<ompl::base::State *> path_;
+  std::vector<Eigen::Vector3d> vecs_;
+  std::vector<float3> verts_;
+  open3d::geometry::KDTreeFlann kd_tree_;
+  Eigen::MatrixXd points_;
+  Bounds bounds_;
+
+  // unity
+  SceneID scene_id_{UnityScene::NATUREFOREST};
+
+  // ompl methods
+  bool searchRadius(const Eigen::Vector3d &query_point, const double radius);
+  Eigen::Vector3d stateToEigen(const ompl::base::State *state);
+  bool isStateValid(const ob::State *state);
 };
-struct uint4 {
-  uint32_t x, y, z, w;
-};
-std::vector<float3> verts;
-float range = 1;
-bool solution_found = false;
-bool trajectory_found = false;
-
-std::vector<float3> readPointCloud();
-float3 min_bounds;
-float3 max_bounds;
-
-Eigen::Vector3d stateToEigen(const ompl::base::State *state);
-
-std::vector<ompl::base::State *> path_;
-std::vector<Eigen::Vector3d> vecs_;
-
-void getBounds();
-
-void plan();
-
-bool isStateValid(const ob::State *state);
-
-bool isInRange(float x, float y, float z);
-
-open3d::geometry::KDTreeFlann kd_tree_;
-Eigen::MatrixXd points_;
-bool searchRadius(const Eigen::Vector3d &query_point, const double radius);
-
-void executePath();
-
-// void setupQuad();
-bool setUnity(const bool render);
-bool connectUnity(void);
-
-// unity quadrotor
-std::shared_ptr<Quadrotor> quad_ptr_;
-std::shared_ptr<RGBCamera> rgb_camera_;
-QuadState quad_state_;
-
-// Flightmare(Unity3D)
-std::shared_ptr<UnityBridge> unity_bridge_ptr_;
-SceneID scene_id_{UnityScene::NATUREFOREST};
-bool unity_ready_{false};
-bool unity_render_{true};
-RenderMessage_t unity_output_;
-uint16_t receive_id_{0};
-
 
 }  // namespace motion_planning
