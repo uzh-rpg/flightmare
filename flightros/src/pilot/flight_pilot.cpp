@@ -72,7 +72,7 @@ void FlightPilot::poseCallback(const nav_msgs::Odometry::ConstPtr &msg) {
 
     if (quad_ptr_->getCollision()) {
       // collision happened
-      std::cout << "c";
+      ROS_INFO("COLLISION");
     }
   }
 }
