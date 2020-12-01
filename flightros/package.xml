@@ -26,5 +26,6 @@
   <depend>eigen_conversions</depend>
   <depend>image_transport</depend>
   <depend>cv_bridge</depend>
+  <depend>mav_msgs</depend>
 
 </package>
