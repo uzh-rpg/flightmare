@@ -9,7 +9,7 @@ exclude:
   - "/vendor/"
 
 # Site settings
-title: Flightmare 
+title: Flightmare - 左青龙
 subtitle: A Flexible Quadrotor Simulator 
 email: song@ifi.uzh.ch 
 name: Robotics and Perception Group 
