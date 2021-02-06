@@ -27,7 +27,9 @@ QuadrotorEnv::QuadrotorEnv(const std::string &cfg_path)
 
   // define a bounding box
   world_box_ << -20, 20, -20, 20, 0, 20;
-  quadrotor_ptr_->setWorldBox(world_box_);
+  if (!quadrotor_ptr_->setWorldBox(world_box_)) {
+    logger_.error("cannot set wolrd box");
+  };
 
   // define input and output dimension for the environment
   obs_dim_ = quadenv::kNObs;
