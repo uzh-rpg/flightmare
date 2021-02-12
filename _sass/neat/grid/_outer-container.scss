@@ -30,7 +30,7 @@
 
 @mixin outer-container($local-max-width: $max-width) {
   @include clearfix;
-  max-width: $local-max-width;
+  max-width: 70%;
   margin: {
     left: auto;
     right: auto;
