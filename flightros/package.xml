@@ -16,5 +16,21 @@
   <depend>autopilot</depend>
   <depend>quadrotor_common</depend>
   <depend>nav_msgs</depend>
-
+  <depend>eigen_catkin</depend>
+  <depend>quadrotor_msgs</depend>
+  <depend>polynomial_trajectories</depend>
+  <depend>std_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>tf</depend>
+  <depend>tf_conversions</depend>
+  <depend>minkindr_conversions</depend>
+  <depend>eigen_conversions</depend>
+  <depend>image_transport</depend>
+  <depend>cv_bridge</depend>
+  <depend>ze_common</depend>
+  <depend>ze_matplotlib</depend>
+  <depend>ze_cameras</depend>
+  <depend>rosbag</depend>
+  <depend>dvs_msgs</depend>
+  <!-- <depend>minkindr</depend> -->
 </package>

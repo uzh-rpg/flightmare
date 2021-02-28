@@ -26,9 +26,14 @@ enum UnityScene {
   TUNELS = 2,
   NATUREFOREST = 3,
   // total number of environment
-  SceneNum = 4
+  JAPAN = 4,
+  SceneNum = 5
 };
 
+
+struct EventsMessage_t {
+  std::vector<Event_t> events;
+};
 // Unity Camera, should not be used alone.
 // has to be attached on a vehicle.
 struct Camera_t {
@@ -44,6 +49,30 @@ struct Camera_t {
   int output_index{0};
   //
   std::vector<bool> enabled_layers;
+  // Transformation matrix from camera to vehicle body 4 x 4
+  // use 1-D vector for json convention
+  std::vector<Scalar> T_BC{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                           0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+};
+
+struct EventCamera_t {
+  std::string ID;
+  // frame Metadata
+  int channels{3};
+  int width{346};
+  int height{260};
+  Scalar fov{70.0f};
+  Scalar depth_scale{0.20};  // 0.xx corresponds to xx cm resolution
+  // metadata
+  bool is_depth{false};
+  int output_index{0};
+  // eventcamera settings
+  float Cm{0.1};
+  float Cp{0.1};
+  float sigma_Cp{0};
+  float sigma_Cm{0};
+  uint64_t refractory_period_ns{0};
+  float log_eps{0.0001};
   // Transformation matrix from camera to vehicle body 4 x 4
   // use 1-D vector for json convention
   std::vector<Scalar> T_BC{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -72,6 +101,7 @@ struct Vehicle_t {
   std::vector<Scalar> size{1.0, 1.0, 1.0};  // scale
   // sensors attached on the vehicle
   std::vector<Camera_t> cameras;
+  std::vector<EventCamera_t> eventcameras;
   std::vector<Lidar_t> lidars;
   // collision check
   bool has_collision_check = true;
@@ -91,8 +121,6 @@ struct Object_t {
 struct SettingsMessage_t {
   // scene/render settings
   size_t scene_id = UnityScene::WAREHOUSE;
-
-  //
   std::vector<Vehicle_t> vehicles;
   std::vector<Object_t> objects;
 };
@@ -110,9 +138,7 @@ struct Sub_Vehicle_t {
 };
 
 struct SubMessage_t {
-  //
   FrameID frame_id{0};
-  //
   std::vector<Sub_Vehicle_t> sub_vehicles;
 };
 
@@ -141,6 +167,24 @@ inline void to_json(json &j, const Camera_t &o) {
            {"depthScale", o.depth_scale},
            {"outputIndex", o.output_index}};
 }
+// EventCamera_t
+inline void to_json(json &j, const EventCamera_t &o) {
+  j = json{{"ID", o.ID},
+           {"channels", o.channels},
+           {"width", o.width},
+           {"height", o.height},
+           {"fov", o.fov},
+           {"T_BC", o.T_BC},
+           {"isDepth", o.is_depth},
+           {"depthScale", o.depth_scale},
+           {"outputIndex", o.output_index},
+           {"Cm", o.Cm},
+           {"Cp", o.Cp},
+           {"sigma_Cp", o.sigma_Cp},
+           {"sigma_Cm", o.sigma_Cm},
+           {"refractory_period_ns", o.refractory_period_ns},
+           {"log_eps", o.log_eps}};
+}
 
 // Lidar
 inline void to_json(json &j, const Lidar_t &o) {
@@ -158,6 +202,7 @@ inline void to_json(json &j, const Vehicle_t &o) {
            {"rotation", o.rotation},
            {"size", o.size},
            {"cameras", o.cameras},
+           {"eventcameras", o.eventcameras},
            {"lidars", o.lidars},
            {"hasCollisionCheck", o.has_collision_check}};
 }
@@ -197,6 +242,23 @@ inline void from_json(const json &j, SubMessage_t &o) {
   o.sub_vehicles = j.at("pub_vehicles").get<std::vector<Sub_Vehicle_t>>();
 }
 
+inline void from_json(const json &j, Event_t &o) {
+  o.coord_x = j.at("coord_x").get<int>();
+  o.coord_y = j.at("coord_y").get<int>();
+  o.polarity = j.at("polarity").get<int>();
+  o.time = j.at("time").get<float>();
+}
+
+inline void from_json(const json &j, EventsMessage_t &o) {
+  o.events = j.at("events").get<std::vector<Event_t>>();
+}
+
+inline void from_json(const json &j, TimeMessage_t &o) {
+  o.current_time = j.at("current_time").get<int64_t>();
+  o.next_timestep = j.at("next_timestep").get<int64_t>();
+  o.rgb_frame = j.at("rgb_frame").get<bool>();
+}
+
 inline void to_json(json &j, const PointCloudMessage_t &o) {
   j = json{{"range", o.range},
            {"origin", o.origin},
@@ -205,10 +267,22 @@ inline void to_json(json &j, const PointCloudMessage_t &o) {
            {"file_name", o.file_name}};
 }
 
+inline void to_json(json &j, const Event_t &o) {
+  j = json{{"coord_x", o.coord_x},
+           {"coord_y", o.coord_y},
+           {"polarity", o.polarity},
+           {"time", o.time}};
+}
+
+inline void to_json(json &j, const EventsMessage_t &o) {
+  j = json{{"events", o.events}};
+}
+
 // Struct for outputting parsed received messages to handler functions
 struct RenderMessage_t {
   SubMessage_t sub_msg;
   std::vector<cv::Mat> images;
+  // std::vector<Event_t> events;
 };
 
 }  // namespace flightlib

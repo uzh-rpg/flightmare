@@ -239,12 +239,22 @@ bool Quadrotor::addRGBCamera(std::shared_ptr<RGBCamera> camera) {
   return true;
 }
 
+  bool Quadrotor::addEventCamera(std::shared_ptr<EventCamera> camera){
+  event_cameras_.push_back(camera);
+  return true;
+}
+
 Vector<3> Quadrotor::getSize(void) const { return size_; }
 
 Vector<3> Quadrotor::getPosition(void) const { return state_.p; }
 
 std::vector<std::shared_ptr<RGBCamera>> Quadrotor::getCameras(void) const {
   return rgb_cameras_;
+};
+
+std::vector<std::shared_ptr<EventCamera>> Quadrotor::getEventCameras(
+  void) const {
+  return event_cameras_;
 };
 
 bool Quadrotor::getCamera(const size_t cam_id,
@@ -254,6 +264,16 @@ bool Quadrotor::getCamera(const size_t cam_id,
   }
 
   camera = rgb_cameras_[cam_id];
+  return true;
+}
+
+bool Quadrotor::getEventCamera(const size_t cam_id,
+                               std::shared_ptr<EventCamera> camera) const {
+  if (cam_id <= event_cameras_.size()) {
+    return false;
+  }
+
+  camera = event_cameras_[cam_id];
   return true;
 }
 

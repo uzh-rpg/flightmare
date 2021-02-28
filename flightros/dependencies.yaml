@@ -27,3 +27,31 @@ repositories:
     type: git
     url: git@github.com:uzh-rpg/rpg_quadrotor_control.git
     version: master
+  glog_catkin:
+    type: git
+    url: git@github.com:ethz-asl/glog_catkin.git
+    version: master
+  ze_oss:
+    type: git
+    url: git@github.com:uzh-rpg/ze_oss.git
+    version: master
+  gflags_catkin:
+    type: git
+    url: git@github.com:ethz-asl/gflags_catkin.git
+    version: master
+  eigen_checks:
+    type: git
+    url: git@github.com:ethz-asl/eigen_checks.git
+    version: master
+  minkindr:
+    type: git
+    url: git@github.com:ethz-asl/minkindr.git
+    version: master
+  minkindr_ros:
+    type: git
+    url: git@github.com:ethz-asl/minkindr_ros.git
+    version: master
+  yaml_cpp_catkin:
+    type: git
+    url: git@github.com:ethz-asl/yaml_cpp_catkin.git
+    version: master
