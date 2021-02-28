@@ -48,6 +48,7 @@ include(cmake/yaml.cmake)
 
 # Including dependencies 
 find_package(OpenCV REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
 find_package(OpenMP REQUIRED)
 
 if(ENABLE_BLAS)
@@ -84,6 +85,7 @@ message(STATUS "======> Setup Compilation")
 
 add_definitions(-DEIGEN_STACK_ALLOCATION_LIMIT=1048576)
 include_directories(${EIGEN_INCLUDE_DIR} "tests")
+include_directories(${OpenCV_INCLUDE_DIRS})
 
 # Set default build type
 if (NOT EXISTS ${CMAKE_BINARY_DIR}/CMakeCache.txt)

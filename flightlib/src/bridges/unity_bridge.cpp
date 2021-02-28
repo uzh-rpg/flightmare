@@ -115,6 +115,12 @@ bool UnityBridge::getRender(const FrameID frame_id) {
     pub_msg_.vehicles[idx].rotation = quaternionRos2Unity(quad_state.q());
   }
 
+  for (size_t idx = 0; idx < pub_msg_.objects.size(); idx++) {
+    std::shared_ptr<StaticObject> gate = static_objects_[idx];
+    pub_msg_.objects[idx].position = positionRos2Unity(gate->getPos());
+    pub_msg_.objects[idx].rotation = quaternionRos2Unity(gate->getQuat());
+  }
+
   // create new message object
   zmqpp::message msg;
   // add topic header
@@ -234,6 +240,7 @@ bool UnityBridge::addStaticObject(std::shared_ptr<StaticObject> static_object) {
   static_objects_.push_back(static_object);
   settings_.objects.push_back(object_t);
   pub_msg_.objects.push_back(object_t);
+  return true;
 }
 
 bool UnityBridge::handleOutput() {

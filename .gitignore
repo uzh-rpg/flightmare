@@ -1,9 +1,4 @@
-.sass-cache
-_posts
-_site
-.vscode/*
-!.vscode/extensions.json
-externals/*
+# Python
 dist
 *.egg-info
 *.so
@@ -11,3 +6,25 @@ __pycache__
 build
 
 flightros/params/local.yaml
+
+
+# Gitignore
+
+# VScode
+.vscode/
+.vscode/*
+**/.vscode/*
+!.vscode/extensions.json
+
+# General
+build/
+_build/
+.sass-cache
+_posts
+_site
+externals/*
+
+#Flightmare
+flightlib
+flightrl
+flighros
