@@ -55,4 +55,4 @@ std::ostream& Logger::operator<<(const T& printable) const {
   return sink_ << name_ << printable;
 }
 
-}  // namespace flightlib 
+}  // namespace flightlib
