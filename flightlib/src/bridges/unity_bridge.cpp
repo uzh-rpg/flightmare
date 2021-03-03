@@ -113,11 +113,11 @@ bool UnityBridge::getRender(const FrameID frame_id) {
     pub_msg_.vehicles[idx].rotation = quaternionRos2Unity(quad_state.q());
   }
 
-  // for (size_t idx = 0; idx < pub_msg_.objects.size(); idx++) {
-  //   std::shared_ptr<DynamicGate<T>> gate = unity_dynamic_gate_[object_i.ID];
-  //   pub_msg_.objects[idx].position = positionROS2Unity(gate->getPos());
-  //   pub_msg_.objects[idx].rotation = rotationROS2Unity(gate->getQuat());
-  // }
+  for (size_t idx = 0; idx < pub_msg_.objects.size(); idx++) {
+    std::shared_ptr<StaticObject> gate = static_objects_[idx];
+    pub_msg_.objects[idx].position = positionRos2Unity(gate->getPos());
+    pub_msg_.objects[idx].rotation = quaternionRos2Unity(gate->getQuat());
+  }
 
   // create new message object
   zmqpp::message msg;
@@ -194,6 +194,7 @@ bool UnityBridge::addStaticObject(std::shared_ptr<StaticObject> static_object) {
   static_objects_.push_back(static_object);
   settings_.objects.push_back(object_t);
   pub_msg_.objects.push_back(object_t);
+  return true;
 }
 
 bool UnityBridge::handleOutput() {
@@ -216,28 +217,56 @@ bool UnityBridge::handleOutput() {
       for (size_t layer_idx = 0; layer_idx <= cam.enabled_layers.size();
            layer_idx++) {
         if (!layer_idx == 0 && !cam.enabled_layers[layer_idx - 1]) continue;
-        uint32_t image_len = cam.width * cam.height * cam.channels;
-        // Get raw image bytes from ZMQ message.
-        // WARNING: This is a zero-copy operation that also casts the input to
-        // an array of unit8_t. when the message is deleted, this pointer is
-        // also dereferenced.
-        const uint8_t* image_data;
-        msg.get(image_data, image_i);
-        image_i = image_i + 1;
-        // Pack image into cv::Mat
-        cv::Mat new_image =
-          cv::Mat(cam.height, cam.width, CV_MAKETYPE(CV_8U, cam.channels));
-        memcpy(new_image.data, image_data, image_len);
-        // Flip image since OpenCV origin is upper left, but Unity's is lower
-        // left.
-        cv::flip(new_image, new_image, 0);
 
-        // Tell OpenCv that the input is RGB.
-        if (cam.channels == 3) {
-          cv::cvtColor(new_image, new_image, CV_RGB2BGR);
+        if (layer_idx == 1) {
+          // depth
+          uint32_t image_len = cam.width * cam.height * 4;
+          // Get raw image bytes from ZMQ message.
+          // WARNING: This is a zero-copy operation that also casts the input to
+          // an array of unit8_t. when the message is deleted, this pointer is
+          // also dereferenced.
+          const uint8_t* image_data;
+          msg.get(image_data, image_i);
+          image_i = image_i + 1;
+          // Pack image into cv::Mat
+          cv::Mat new_image = cv::Mat(cam.height, cam.width, CV_32FC1);
+          memcpy(new_image.data, image_data, image_len);
+          // Flip image since OpenCV origin is upper left, but Unity's is lower
+          // left.
+          new_image = new_image * (100.f);
+          cv::flip(new_image, new_image, 0);
+
+
+          unity_quadrotors_[idx]
+            ->getCameras()[cam.output_index]
+            ->feedImageQueue(layer_idx, new_image);
+
+
+        } else {
+          uint32_t image_len = cam.width * cam.height * cam.channels;
+          // Get raw image bytes from ZMQ message.
+          // WARNING: This is a zero-copy operation that also casts the input to
+          // an array of unit8_t. when the message is deleted, this pointer is
+          // also dereferenced.
+          const uint8_t* image_data;
+          msg.get(image_data, image_i);
+          image_i = image_i + 1;
+          // Pack image into cv::Mat
+          cv::Mat new_image =
+            cv::Mat(cam.height, cam.width, CV_MAKETYPE(CV_8U, cam.channels));
+          memcpy(new_image.data, image_data, image_len);
+          // Flip image since OpenCV origin is upper left, but Unity's is lower
+          // left.
+          cv::flip(new_image, new_image, 0);
+
+          // Tell OpenCv that the input is RGB.
+          if (cam.channels == 3) {
+            cv::cvtColor(new_image, new_image, CV_RGB2BGR);
+          }
+          unity_quadrotors_[idx]
+            ->getCameras()[cam.output_index]
+            ->feedImageQueue(layer_idx, new_image);
         }
-        unity_quadrotors_[idx]->getCameras()[cam.output_index]->feedImageQueue(
-          layer_idx, new_image);
       }
     }
   }

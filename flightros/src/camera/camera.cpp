@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
 
     rgb_camera->getDepthMap(img);
     sensor_msgs::ImagePtr depth_msg =
-      cv_bridge::CvImage(std_msgs::Header(), "bgr8", img).toImageMsg();
+      cv_bridge::CvImage(std_msgs::Header(), "32FC1", img).toImageMsg();
     depth_msg->header.stamp = timestamp;
     depth_pub.publish(depth_msg);
 
