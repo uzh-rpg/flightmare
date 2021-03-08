@@ -100,13 +100,11 @@ int main(int argc, char *argv[]) {
     segmentation_msg->header.stamp = timestamp;
     segmentation_pub.publish(segmentation_msg);
 
-    // // The current optical flow is not correct.
-    // // you can still visualize it by uncomment the following code.
-    // rgb_camera->getOpticalFlow(img);
-    // sensor_msgs::ImagePtr opticflow_msg =
-    //   cv_bridge::CvImage(std_msgs::Header(), "bgr8", img).toImageMsg();
-    // opticflow_msg->header.stamp = timestamp;
-    // opticalflow_pub.publish(opticflow_msg);
+    rgb_camera->getOpticalFlow(img);
+    sensor_msgs::ImagePtr opticflow_msg =
+      cv_bridge::CvImage(std_msgs::Header(), "bgr8", img).toImageMsg();
+    opticflow_msg->header.stamp = timestamp;
+    opticalflow_pub.publish(opticflow_msg);
 
     frame_id += 1;
   }

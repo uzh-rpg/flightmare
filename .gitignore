@@ -14,14 +14,8 @@ __pycache__
 !.vscode/extensions.json
 
 # General
-build/
 _build/
 .sass-cache
 _posts
 _site
-externals/*
 
-#Flightmare
-flightlib
-flightrl
-flighros
