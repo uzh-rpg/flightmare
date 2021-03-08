@@ -12,6 +12,8 @@
 #include <string>
 #include <unordered_map>
 
+// opencv
+#include <opencv2/imgproc/types_c.h>
 
 // Include ZMQ bindings for communications with Unity.
 #include <zmqpp/zmqpp.hpp>

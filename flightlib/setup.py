@@ -33,7 +33,7 @@ class CMakeBuild(build_ext):
         FLIGHTLIB_BUILD_FILES = os.environ["FLIGHTMARE_PATH"] + \
             "/flightlib/build/"
         # --------------------------------
-        # remove cached build files
+        # remove cached files
         # a hack to solve some cmake error when using "pip install ."
         try:
             for i, p in enumerate(glob.glob(os.path.join(FLIGHTLIB_BUILD_FILES, "*"))):
