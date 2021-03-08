@@ -12,4 +12,3 @@ setup(name='flightgym',
       zip_fase=True,
       url=None,
       )
- 

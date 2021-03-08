@@ -194,6 +194,8 @@ bool UnityBridge::addStaticObject(std::shared_ptr<StaticObject> static_object) {
   static_objects_.push_back(static_object);
   settings_.objects.push_back(object_t);
   pub_msg_.objects.push_back(object_t);
+  //
+  return true;
 }
 
 bool UnityBridge::handleOutput() {
