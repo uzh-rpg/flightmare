@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="debug" default="0" />
+    <arg name="use_unity_editor" default="false" />
+
+    <!-- RPG Flightmare Unity Render. -->
+    <node pkg="flightrender" type="RPG_Flightmare.x86_64" name="rpg_flightmare_render" unless="$(arg use_unity_editor)">
+    </node>
+
+    <node name="racing" pkg="flightros" type="racing" output="screen" launch-prefix="gdb -ex run --args" if="$(arg debug)" >
+    </node>
+
+    <node name="racing" pkg="flightros" type="racing" output="screen" unless="$(arg debug)">
+    </node>
+</launch>

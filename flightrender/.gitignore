@@ -3,3 +3,5 @@
 # Except this file
 !.gitignore
 !.clang-format
+!CMakeLists.txt
+!package.xml

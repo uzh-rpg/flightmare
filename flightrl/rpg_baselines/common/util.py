@@ -31,10 +31,3 @@ def TensorboardLauncher(directory_path):
     url = tb.launch()
     print("[RAISIM_GYM] Tensorboard session created: "+url)
     webbrowser.open_new(url)
-
-
-def configure_random_seed(seed, env=None):
-    if env is not None:
-        env.seed(seed)
-    np.random.seed(seed)
-    tf.set_random_seed(seed)

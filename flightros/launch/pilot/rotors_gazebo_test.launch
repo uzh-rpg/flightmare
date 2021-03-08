@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="use_unity_editor" default="false" />
+    
+    <node pkg="flightros" type="flight_pilot_node" name="flight_pilot_node" output="screen">
+      <rosparam file="$(find flightros)/params/default.yaml" /> 
+      <remap from="flight_pilot/state_estimate" to="ground_truth/odometry" />
+    </node>
+
+    <!-- RPG Flightmare Unity Render. -->
+    <node pkg="flightrender" type="RPG_Flightmare.x86_64" name="rpg_flightmare_render" unless="$(arg use_unity_editor)">
+    </node>
+
+</launch>

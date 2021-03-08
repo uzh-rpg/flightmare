@@ -13,22 +13,27 @@ from stable_baselines import logger
 
 #
 from rpg_baselines.common.policies import MlpPolicy
-from rpg_baselines.common.util import ConfigurationSaver, TensorboardLauncher, configure_random_seed
 from rpg_baselines.ppo.ppo2 import PPO2
 from rpg_baselines.ppo.ppo2_test import test_model
 from rpg_baselines.envs import vec_env_wrapper as wrapper
+import rpg_baselines.common.util as U
 #
 from flightgym import QuadrotorEnv_v1
 
-#
+
+def configure_random_seed(seed, env=None):
+    if env is not None:
+        env.seed(seed)
+    np.random.seed(seed)
+    tf.set_random_seed(seed)
 
 
 def parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--quad_env_cfg', type=str, default=os.path.abspath("../../configs/env.yaml"),
-                        help='configuration file of the quad environment')
     parser.add_argument('--train', type=int, default=1,
                         help="To train new model or simply test pre-trained model")
+    parser.add_argument('--render', type=int, default=0,
+                        help="Enable Unity Render")
     parser.add_argument('--save_dir', type=str, default=os.path.dirname(os.path.realpath(__file__)),
                         help="Directory where to save the checkpoints and training metrics")
     parser.add_argument('--seed', type=int, default=0,
@@ -45,7 +50,11 @@ def main():
     if not args.train:
         cfg["env"]["num_envs"] = 1
         cfg["env"]["num_threads"] = 1
+
+    if args.render:
         cfg["env"]["render"] = "yes"
+    else:
+        cfg["env"]["render"] = "no"
 
     env = wrapper.FlightEnvVec(QuadrotorEnv_v1(
         dump(cfg, Dumper=RoundTripDumper), False))
@@ -58,7 +67,7 @@ def main():
         # save the configuration and other files
         rsg_root = os.path.dirname(os.path.abspath(__file__))
         log_dir = rsg_root + '/saved'
-        saver = ConfigurationSaver(log_dir=log_dir)
+        saver = U.ConfigurationSaver(log_dir=log_dir)
         model = PPO2(
             tensorboard_log=saver.data_dir,
             policy=MlpPolicy,  # check activation function
@@ -97,7 +106,7 @@ def main():
     # # Testing mode with a trained weight
     else:
         model = PPO2.load(args.weight)
-        test_model(env, model, render=True)
+        test_model(env, model, render=args.render)
 
 
 if __name__ == "__main__":

@@ -30,7 +30,19 @@ class CMakeBuild(build_ext):
                 print("Removing some cache file: ", p)
         except:
             pass
+        FLIGHTLIB_BUILD_FILES = os.environ["FLIGHTMARE_PATH"] + \
+            "/flightlib/build/"
         # --------------------------------
+        # remove cached build files
+        # a hack to solve some cmake error when using "pip install ."
+        try:
+            for i, p in enumerate(glob.glob(os.path.join(FLIGHTLIB_BUILD_FILES, "*"))):
+                shutil.rmtree(p)
+                print("Removing some cache file: ", p)
+        except:
+            pass
+        # --------------------------------
+
         try:
             out = subprocess.check_output(['cmake', '--version'])
         except OSError:
@@ -93,16 +105,3 @@ setup(
     include_package_data=True,
     zip_safe=False,
 )
-
-# setup(name='flightgym',
-#       version='0.0.1',
-#       author="Yunlong Song",
-#       author_email='song@ifi.uzh.ch',
-#       description="Flightmare: A Quadrotor Simulator",
-#       long_description='',
-#       packages=[''],
-#       package_dir={'': './build/'},
-#       package_data={'': ['flightgym.cpython-36m-x86_64-linux-gnu.so']},
-#       zip_fase=True,
-#       url=None,
-#       )

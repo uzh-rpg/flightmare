@@ -92,11 +92,11 @@ class FlightEnvVec(VecEnv):
     def close(self):
         self.wrapper.close()
 
-    def connectFlightmare(self):
-        self.wrapper.connectFlightmare()
+    def connectUnity(self):
+        self.wrapper.connectUnity()
 
-    def disconnectFlightmare(self):
-        self.wrapper.disconnectFlightmare()
+    def disconnectUnity(self):
+        self.wrapper.disconnectUnity()
 
     @property
     def num_envs(self):

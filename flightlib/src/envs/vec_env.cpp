@@ -98,7 +98,7 @@ bool VecEnv<EnvBase>::step(Ref<MatrixRowMajor<>> act, Ref<MatrixRowMajor<>> obs,
 
   if (unity_render_ && unity_ready_) {
     unity_bridge_ptr_->getRender(0);
-    unity_bridge_ptr_->handleOutput(unity_output_);
+    unity_bridge_ptr_->handleOutput();
   }
   return true;
 }
@@ -165,7 +165,7 @@ void VecEnv<EnvBase>::perAgentStep(int agent_id, Ref<MatrixRowMajor<>> act,
 template<typename EnvBase>
 bool VecEnv<EnvBase>::setUnity(bool render) {
   unity_render_ = render;
-  if (unity_render_ && unity_bridge_ptr_ != nullptr) {
+  if (unity_render_ && unity_bridge_ptr_ == nullptr) {
     // create unity bridge
     unity_bridge_ptr_ = UnityBridge::getInstance();
     // add objects to Unity

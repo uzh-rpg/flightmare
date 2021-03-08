@@ -16,5 +16,16 @@
   <depend>autopilot</depend>
   <depend>quadrotor_common</depend>
   <depend>nav_msgs</depend>
+  <depend>eigen_catkin</depend>
+  <depend>quadrotor_msgs</depend>
+  <depend>polynomial_trajectories</depend>
+  <depend>std_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>tf</depend>
+  <depend>tf_conversions</depend>
+  <depend>eigen_conversions</depend>
+  <depend>image_transport</depend>
+  <depend>cv_bridge</depend>
+  <depend>mav_msgs</depend>
 
 </package>
