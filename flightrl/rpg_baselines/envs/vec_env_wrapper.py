@@ -58,7 +58,7 @@ class FlightEnvVec(VecEnv):
                 info[i]['episode'] = epinfo
                 self.rewards[i].clear()
 
-        return self._observation.copy(), self._reward.copy(), \
+        return self._odometry.copy(), self._observation.copy(), self._reward.copy(), \
             self._done.copy(), info.copy()
 
     def stepUnity(self, action, send_id):

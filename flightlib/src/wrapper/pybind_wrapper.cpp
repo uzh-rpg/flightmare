@@ -22,7 +22,7 @@ PYBIND11_MODULE(flightgym, m) {
     .def("step", &VecEnv<QuadrotorEnv>::step)
     .def("testStep", &VecEnv<QuadrotorEnv>::testStep)
     .def("setSeed", &VecEnv<QuadrotorEnv>::setSeed)
-    .def("setObjectsDensities", &VecEnvCamera<QuadrotorEnvCamera>::setObjectsDensities)
+    .def("setObjectsDensities", &VecEnv<QuadrotorEnv>::setObjectsDensities)
     .def("close", &VecEnv<QuadrotorEnv>::close)
     .def("isTerminalState", &VecEnv<QuadrotorEnv>::isTerminalState)
     .def("curriculumUpdate", &VecEnv<QuadrotorEnv>::curriculumUpdate)
@@ -31,7 +31,7 @@ PYBIND11_MODULE(flightgym, m) {
     .def("getNumOfEnvs", &VecEnv<QuadrotorEnv>::getNumOfEnvs)
     .def("getObsDim", &VecEnv<QuadrotorEnv>::getObsDim)
     .def("getActDim", &VecEnv<QuadrotorEnv>::getActDim)
-    .def("getFrameDim", &VecEnvCamera<QuadrotorEnvCamera>::getFrameDim)
+    .def("getFrameDim", &VecEnv<QuadrotorEnv>::getFrameDim)
     .def("getExtraInfoNames", &VecEnv<QuadrotorEnv>::getExtraInfoNames)
     .def("__repr__", [](const VecEnv<QuadrotorEnv>& a) {
       return "RPG Drone Racing Environment";
