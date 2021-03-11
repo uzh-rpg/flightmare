@@ -9,16 +9,18 @@ class FlightEnvVec(VecEnv):
         self.wrapper = impl
         self.num_obs = self.wrapper.getObsDim()
         self.num_acts = self.wrapper.getActDim()
-        print(self.num_obs, self.num_acts)
-        self._observation_space = spaces.Box(
-            np.ones(self.num_obs) * -np.Inf,
-            np.ones(self.num_obs) * np.Inf, dtype=np.float32)
+        self.frame_dim = self.wrapper.getFrameDim()
+        print("Observations: ", self.num_obs)
+        print("Actions: ", self.num_acts)
+        print("image shape:", self.frame_dim)
+        self._observation_space = spaces.Box(low=0, high=255, shape=(self.frame_dim[0], self.frame_dim[1]), dtype=np.float32)
         self._action_space = spaces.Box(
             low=np.ones(self.num_acts) * -1.,
             high=np.ones(self.num_acts) * 1.,
             dtype=np.float32)
-        self._observation = np.zeros([self.num_envs, self.num_obs],
-                                     dtype=np.float32)
+        self._observation = np.zeros((self.num_envs, self.frame_dim[0], self.frame_dim[1]), dtype=np.float32)
+        self._odometry = np.zeros([self.num_envs, self.num_obs], dtype=np.float32)
+        self.img_array = np.zeros((self.num_envs, self.frame_dim[0]*self.frame_dim[1]), dtype=np.float32)
         self._reward = np.zeros(self.num_envs, dtype=np.float32)
         self._done = np.zeros((self.num_envs), dtype=np.bool)
         self._extraInfoNames = self.wrapper.getExtraInfoNames()
@@ -31,9 +33,14 @@ class FlightEnvVec(VecEnv):
     def seed(self, seed=0):
         self.wrapper.setSeed(seed)
 
+    def obs_array2image(self):
+        self._observation[:,:,:] = self.img_array.reshape((self.num_envs, self.frame_dim[0], self.frame_dim[1]), order='F')
+        return 1  
+
     def step(self, action):
-        self.wrapper.step(action, self._observation,
+        self.wrapper.step(action, self._odometry, self.img_array,
                           self._reward, self._done, self._extraInfo)
+        self.obs_array2image()
 
         if len(self._extraInfoNames) is not 0:
             info = [{'extra_info': {
@@ -55,7 +62,7 @@ class FlightEnvVec(VecEnv):
             self._done.copy(), info.copy()
 
     def stepUnity(self, action, send_id):
-        receive_id = self.wrapper.stepUnity(action, self._observation,
+        receive_id = self.wrapper.stepUnity(action, self._odometry, self.img_array,
                                             self._reward, self._done, self._extraInfo, send_id)
 
         return receive_id
@@ -69,7 +76,8 @@ class FlightEnvVec(VecEnv):
 
     def reset(self):
         self._reward = np.zeros(self.num_envs, dtype=np.float32)
-        self.wrapper.reset(self._observation)
+        self.wrapper.reset(self._odometry, self.img_array)
+        self.obs_array2image()
         return self._observation.copy()
 
     def reset_and_update_info(self):
@@ -147,6 +155,17 @@ class FlightEnvVec(VecEnv):
         :return: (NoneType)
         """
         raise RuntimeError('This method is not implemented')
+
+    def env_is_wrapped(self):
+        """
+        Check if environments are wrapped with a given wrapper.
+        :param method_name: The name of the environment method to invoke.
+        :param indices: Indices of envs whose method to call
+        :param method_args: Any positional arguments to provide in the call
+        :param method_kwargs: Any keyword arguments to provide in the call
+        :return: True if the env is wrapped, False otherwise, for each env queried.
+        """
+        return np.ones([self.num_envs], dtype=bool).tolist()
 
     def env_method(self, method_name, *method_args, indices=None, **method_kwargs):
         """
