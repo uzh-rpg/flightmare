@@ -35,6 +35,8 @@ void insert(const Matrix<>& from, SparseMatrix* const into,
 void insert(const Matrix<>& from, Matrix<>* const into,
             const int row_offset = 0, const int col_offset = 0);
 
+Vector<4> euler2Quaternion(Vector<3> euler_yaw_pitch_roll);
+
 void quaternionToEuler(const Quaternion& quat, Ref<Vector<3>> euler);
 
 std::vector<Scalar> transformationRos2Unity(const Matrix<4, 4>& ros_tran_mat);

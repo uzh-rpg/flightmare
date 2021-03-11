@@ -4,3 +4,4 @@ env:
   num_envs: 100
   num_threads: 10 
   render: no 
+  start_rot: [0.0, 0.0, 0.0] 

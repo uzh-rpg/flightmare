@@ -60,6 +60,17 @@ Matrix<3, 3> qeRotJacobian(const Quaternion& q, const Matrix<3, 1>& t) {
            .finished();
 }
 
+Vector<4> euler2Quaternion(Vector<3> euler_yaw_pitch_roll)
+{
+        Eigen::AngleAxisd yawAngle((euler_yaw_pitch_roll(0)*M_PI) / 180, Eigen::Vector3d::UnitZ());
+        Eigen::AngleAxisd pitchAngle((euler_yaw_pitch_roll(1)*M_PI) / 180, Eigen::Vector3d::UnitY());
+        Eigen::AngleAxisd rollAngle((euler_yaw_pitch_roll(2)*M_PI) / 180, Eigen::Vector3d::UnitX());
+
+        Eigen::Quaterniond q = yawAngle * pitchAngle* rollAngle ;
+        return Vector<4>(q.x(), q.y(), q.z(), q.w());
+}
+
+
 Matrix<3, 3> qeInvRotJacobian(const Quaternion& q, const Matrix<3, 1>& t) {
   return 2.0 * (Matrix<3, 3>()
                   << (q.y() - q.z() * q.x() / q.w()) * t.y() +

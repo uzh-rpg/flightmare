@@ -3,6 +3,9 @@ quadrotor_env:
    sim_dt: 0.02 
    max_t: 5.0
    add_camera: yes
+  world_box: [-15, -15, -0.6, 15, 15, 8.3] # set limit to the explorable space [xmin,ymin,zmin,xmax,ymax,zmax]
+  camera_rot: [-90.0, 0.0, 5.0] #yaw pitch roll (ZYX)
+  camera_pos: [0.176, 0.0, 0.05]
 
 quadrotor_dynamics:
   mass: 0.73

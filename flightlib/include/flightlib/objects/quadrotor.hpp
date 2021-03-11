@@ -59,10 +59,13 @@ class Quadrotor : ObjectBase {
   bool setWorldBox(const Ref<Matrix<3, 2>> box);
   bool constrainInWorldBox(const QuadState& old_state);
 
+  Vector<3> box_center_ = Vector<3>::Zero();
+
   //
   inline Scalar getMass(void) { return dynamics_.getMass(); };
   inline void setSize(const Ref<Vector<3>> size) { size_ = size; };
   inline void setCollision(const bool collision) { collision_ = collision; };
+  inline bool getCollision() { return collision_; };
 
  private:
   // quadrotor dynamics, integrators
@@ -77,7 +80,7 @@ class Quadrotor : ObjectBase {
   // quad state
   QuadState state_;
   Vector<3> size_;
-  bool collision_;
+  bool collision_= false;
 
   // auxiliar variablers
   Vector<4> motor_omega_;

@@ -6,6 +6,7 @@
 
 // std libs
 #include <unistd.h>
+#include <chrono>
 #include <experimental/filesystem>
 #include <fstream>
 #include <map>
@@ -67,6 +68,8 @@ class UnityBridge {
     return bridge_ptr;
   };
 
+  Vector<> object_density_fractions_;
+  bool changed_density_ = false; 
  private:
   bool initializeConnections(void);
 
@@ -95,6 +98,7 @@ class UnityBridge {
   int64_t last_download_debug_utime_;
   int64_t u_packet_latency_;
 
+  bool connections_initialized_ = false;
   // axuiliary variables
   const Scalar unity_connection_time_out_{10.0};
   bool unity_ready_{false};

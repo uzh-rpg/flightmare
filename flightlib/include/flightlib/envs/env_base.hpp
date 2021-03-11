@@ -24,7 +24,7 @@ class EnvBase {
   virtual ~EnvBase() = 0;
 
   // (pure virtual) public methods (has to be implemented by child classes)
-  virtual bool reset(Ref<Vector<>> obs, const bool random = true) = 0;
+  virtual bool reset(Ref<Vector<>> obs, Ref<DepthImage<>> img, const bool random = true) = 0;
   virtual Scalar step(const Ref<Vector<>> act, Ref<Vector<>> obs) = 0;
   virtual bool getObs(Ref<Vector<>> obs) = 0;
 
@@ -34,11 +34,13 @@ class EnvBase {
   virtual void render();
   virtual void updateExtraInfo();
   virtual bool isTerminalState(Scalar &reward);
+  virtual bool isTerminalStateUnity(Scalar &reward);
 
   // auxilirary functions
   inline void setSeed(const int seed) { std::srand(seed); };
   inline int getObsDim() { return obs_dim_; };
   inline int getActDim() { return act_dim_; };
+  inline std::pair<int,int> getFrameDim() { return std::make_pair(frame_width_, frame_height_); };
   inline Scalar getSimTimeStep() { return sim_dt_; };
   inline int getExtraInfoDim() { return extra_info_.size(); };
   inline Scalar getMaxT() { return max_t_; };
@@ -50,6 +52,8 @@ class EnvBase {
   // observation and action dimenstions (for Reinforcement learning)
   int obs_dim_;
   int act_dim_;
+  int frame_height_;
+  int frame_width_;
 
   // control time step
   Scalar sim_dt_{0.02};

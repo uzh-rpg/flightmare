@@ -71,6 +71,10 @@ struct Vehicle_t {
   std::string ID;
   // unity coordinate system left-handed, y up
   std::vector<Scalar> position{0.0, 0.0, 0.0};
+  // goal position for each drone
+  std::vector<Scalar> box_center{0.0, 0.0, 0.0};
+  std::vector<Scalar> reference_velocity{0.0, 0.0, 0.0}; 
+  std::vector<Scalar> drone_velocity{0.0, 0.0, 0.0};
   // unity quaternion (x, y, z, w)
   std::vector<Scalar> rotation{0.0, 0.0, 0.0, 1.0};
   std::vector<Scalar> size{1.0, 1.0, 1.0};  // scale
@@ -103,6 +107,8 @@ struct SettingsMessage_t {
 
 struct PubMessage_t {
   FrameID frame_id{0};
+  std::vector<Scalar> object_density_fractions;
+  bool changed_density = false;
   std::vector<Vehicle_t> vehicles;
   std::vector<Object_t> objects;
 };
@@ -162,6 +168,9 @@ inline void to_json(json &j, const Vehicle_t &o) {
   j = json{{"ID", o.ID},
            {"position", o.position},
            {"rotation", o.rotation},
+           {"box_center", o.box_center},
+           {"reference_velocity", o.reference_velocity},
+           {"drone_velocity", o.drone_velocity},
            {"size", o.size},
            {"cameras", o.cameras},
            {"lidars", o.lidars},
@@ -186,7 +195,7 @@ inline void to_json(json &j, const SettingsMessage_t &o) {
 // Publish messages to unity
 inline void to_json(json &j, const PubMessage_t &o) {
   j = json{
-    {"frame_id", o.frame_id}, {"vehicles", o.vehicles}, {"objects", o.objects}};
+    {"frame_id", o.frame_id}, {"object_density_fractions", o.object_density_fractions}, {"changed_density", o.changed_density}, {"vehicles", o.vehicles}, {"objects", o.objects}};
 }
 
 // Publish messages to unity

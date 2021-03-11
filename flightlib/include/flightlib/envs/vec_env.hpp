@@ -27,25 +27,26 @@ class VecEnv {
   ~VecEnv();
 
   // - public OpenAI-gym style functions for vectorized environment
-  bool reset(Ref<MatrixRowMajor<>> obs);
-  bool step(Ref<MatrixRowMajor<>> act, Ref<MatrixRowMajor<>> obs,
+  bool reset(Ref<MatrixRowMajor<>> obs, Ref<DepthImageMatrixRowMajor<>> img);
+  bool step(Ref<MatrixRowMajor<>> act, Ref<MatrixRowMajor<>> obs, Ref<DepthImageMatrixRowMajor<>> img,
             Ref<Vector<>> reward, Ref<BoolVector<>> done,
             Ref<MatrixRowMajor<>> extra_info);
-  bool stepUnity(Ref<MatrixRowMajor<>> act, Ref<MatrixRowMajor<>> obs,
+  bool stepUnity(Ref<MatrixRowMajor<>> act, Ref<MatrixRowMajor<>> obs, Ref<DepthImageMatrixRowMajor<>> img,
                  Ref<Vector<>> reward, Ref<BoolVector<>> done,
                  Ref<MatrixRowMajor<>> extra_info, uint64_t send_id);
   void close();
 
   // public set functions
   void setSeed(const int seed);
+  void setObjectsDensities(Vector<> object_density_fractions);
 
   // public get functions
-  void getObs(Ref<MatrixRowMajor<>> obs);
+  void getObs(Ref<MatrixRowMajor<>> obs, Ref<DepthImageMatrixRowMajor<>> img);
   size_t getEpisodeLength(void);
 
   // - auxiliary functions
   void isTerminalState(Ref<BoolVector<>> terminal_state);
-  void testStep(Ref<MatrixRowMajor<>> act, Ref<MatrixRowMajor<>> obs,
+  void testStep(Ref<MatrixRowMajor<>> act, Ref<MatrixRowMajor<>> obs, Ref<DepthImageMatrixRowMajor<>> img,
                 Ref<Vector<>> reward, Ref<BoolVector<>> done,
                 Ref<MatrixRowMajor<>> extra_info);
   void curriculumUpdate();
@@ -61,6 +62,7 @@ class VecEnv {
   inline bool getUnityRender(void) { return unity_render_; };
   inline int getObsDim(void) { return obs_dim_; };
   inline int getActDim(void) { return act_dim_; };
+  inline std::pair<int,int> getFrameDim() { return std::make_pair(quadenv::frame_width, quadenv::frame_height); };
   inline int getExtraInfoDim(void) { return extra_info_names_.size(); };
   inline int getNumOfEnvs(void) { return envs_.size(); };
   inline std::vector<std::string>& getExtraInfoNames() {
@@ -76,7 +78,9 @@ class VecEnv {
   // step every environment
   void perAgentStep(int agent_id, Ref<MatrixRowMajor<>> act,
                     Ref<MatrixRowMajor<>> obs, Ref<Vector<>> reward,
-                    Ref<BoolVector<>> done, Ref<MatrixRowMajor<>> extra_info);
+                    Ref<BoolVector<>> done);
+  void perAgentStepUnity(int agent_id, Ref<MatrixRowMajor<>> obs, Ref<DepthImageMatrixRowMajor<>> images, 
+                    Ref<Vector<>> reward, Ref<BoolVector<>> done, Ref<MatrixRowMajor<>> extra_info);
   // create objects
   Logger logger_{"VecEnv"};
   std::vector<std::unique_ptr<EnvBase>> envs_;
@@ -92,6 +96,8 @@ class VecEnv {
 
   // auxiliar variables
   int seed_, num_envs_, obs_dim_, act_dim_;
+  std::pair<int,int> frame_dim_;
+  std::vector<bool> is_done_unity_;
   Matrix<> obs_dummy_;
 
   // yaml configurations

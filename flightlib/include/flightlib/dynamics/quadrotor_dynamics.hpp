@@ -32,6 +32,7 @@ class QuadrotorDynamics : DynamicsBase {
   // Helpers to apply limits.
   Vector<4> clampThrust(const Vector<4> thrusts) const;
   Scalar clampThrust(const Scalar thrust) const;
+  Scalar drag_coeff_;
 
   Vector<4> clampMotorOmega(const Vector<4>& omega) const;
   Vector<3> clampBodyrates(const Vector<3>& omega) const;

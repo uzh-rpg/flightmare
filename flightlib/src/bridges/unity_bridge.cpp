@@ -63,6 +63,10 @@ bool UnityBridge::connectUnity(const SceneID scene_id) {
     std::cout.flush();
   }
   logger_.info("Flightmare Unity is connected.");
+
+  pub_msg_.object_density_fractions.resize(object_density_fractions_.rows());
+  pub_msg_.object_density_fractions = std::vector<float>(object_density_fractions_.data(), 
+                                        object_density_fractions_.data() + object_density_fractions_.size());
   return unity_ready_;
 }
 
@@ -71,6 +75,7 @@ bool UnityBridge::disconnectUnity() {
   // create new message object
   pub_.close();
   sub_.close();
+  logger_.info("Flightmare Unity is disconnected.");
   return true;
 }
 
@@ -106,17 +111,21 @@ bool UnityBridge::handleSettings(void) {
 
 bool UnityBridge::getRender(const FrameID frame_id) {
   pub_msg_.frame_id = frame_id;
+  pub_msg_.changed_density = changed_density_;
+  // logger_.warn("object_density_fractions_(0) : " + std::to_string(object_density_fractions_(0)));
+  if (changed_density_) {
+    pub_msg_.object_density_fractions = std::vector<float>(object_density_fractions_.data(), object_density_fractions_.data() + object_density_fractions_.size());
+    changed_density_ = false;
+    // logger_.warn("pub_msg_.object_density_fractions[0] : " + std::to_string(pub_msg_.object_density_fractions[0]));
+  }
+
   QuadState quad_state;
   for (size_t idx = 0; idx < pub_msg_.vehicles.size(); idx++) {
     unity_quadrotors_[idx]->getState(&quad_state);
     pub_msg_.vehicles[idx].position = positionRos2Unity(quad_state.p);
     pub_msg_.vehicles[idx].rotation = quaternionRos2Unity(quad_state.q());
-  }
-
-  for (size_t idx = 0; idx < pub_msg_.objects.size(); idx++) {
-    std::shared_ptr<StaticObject> gate = static_objects_[idx];
-    pub_msg_.objects[idx].position = positionRos2Unity(gate->getPos());
-    pub_msg_.objects[idx].rotation = quaternionRos2Unity(gate->getQuat());
+    pub_msg_.vehicles[idx].box_center = positionRos2Unity(unity_quadrotors_[idx]->box_center_);
+    pub_msg_.vehicles[idx].drone_velocity     = positionRos2Unity(quad_state.v);
   }
 
   // create new message object

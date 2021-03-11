@@ -19,4 +19,9 @@ bool EnvBase::isTerminalState(Scalar &reward) {
   return false;
 }
 
+bool EnvBase::isTerminalStateUnity(Scalar &reward) {
+  reward = 0.f;
+  return false;
+}
+
 }  // namespace flightlib
