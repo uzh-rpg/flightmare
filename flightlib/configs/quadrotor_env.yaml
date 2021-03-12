@@ -3,9 +3,9 @@ quadrotor_env:
    sim_dt: 0.02 
    max_t: 5.0
    add_camera: yes
-  world_box: [-15, -15, -0.6, 15, 15, 8.3] # set limit to the explorable space [xmin,ymin,zmin,xmax,ymax,zmax]
-  camera_rot: [-90.0, 0.0, 5.0] #yaw pitch roll (ZYX)
-  camera_pos: [0.176, 0.0, 0.05]
+   world_box: [-15, -15, -0.6, 15, 15, 8.3] # set limit to the explorable space [xmin,ymin,zmin,xmax,ymax,zmax]
+   camera_rot: [-90.0, 0.0, 5.0] #yaw pitch roll (ZYX)
+   camera_pos: [0.176, 0.0, 0.05]
 
 quadrotor_dynamics:
   mass: 0.73
@@ -16,6 +16,7 @@ quadrotor_dynamics:
   thrust_map: [1.3298253500372892e-06, 0.0038360810526746033, -1.7689986848125325]
   kappa: 0.016 # rotor drag coeff
   omega_max: [6.0, 6.0, 6.0]  # body rate constraint (x, y, z) 
+  drag_coeff: 0.03              # drag coefficient for v^2
 
 rl:
   pos_coeff: -0.002        # reward coefficient for position 

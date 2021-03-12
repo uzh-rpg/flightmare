@@ -234,6 +234,13 @@ Scalar QuadrotorEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs) {
 
   return total_reward;
 }
+Scalar QuadrotorEnv::stepUnity(Ref<DepthImage<>> img) {
+  
+  // Update images
+  getImages(img);
+
+  return 0;
+}
 
 //--------------------------------//
 //----    Terminal analysis   ----//

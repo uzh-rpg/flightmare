@@ -8,6 +8,7 @@ import argparse
 import numpy as np
 import time
 import sys
+import torch
 
 from rpg_baselines.envs import vec_env_wrapper as wrapper
 from scipy.spatial.transform import Rotation 
@@ -18,13 +19,13 @@ def configure_random_seed(seed, env=None):
     if env is not None:
         env.seed(seed)
     np.random.seed(seed)
-    tf.set_random_seed(seed)
+    torch.manual_seed(seed)
     
 def parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('--train', type=int, default=1,
                         help="To train new model or simply test pre-trained model")
-    parser.add_argument('--render', type=int, default=0,
+    parser.add_argument('--render', type=int, default=1,
                         help="Enable Unity Render")
     parser.add_argument('--save_dir', type=str, default=os.path.dirname(os.path.realpath(__file__)),
                         help="Directory where to save the checkpoints and training metrics")
@@ -40,9 +41,6 @@ def main():
                            "/flightlib/configs/vec_env.yaml", 'r'))
     cfg_quadrotor_env = YAML().load(open(os.environ["FLIGHTMARE_PATH"] +
                            "/flightlib/configs/quadrotor_env.yaml", 'r'))
-    if args.numenvs!=0:
-        cfg["env"]["num_envs"] = 1
-        cfg["env"]["num_threads"] = 1
 
     if args.render:
         cfg["env"]["render"] = "yes"
@@ -61,7 +59,7 @@ def main():
             
     connectedToUnity = False 
     while not connectedToUnity:
-        connectedToUnity = env.connectUnity(input_port=args.input_port, output_port=args.output_port)             
+        connectedToUnity = env.connectUnity()             
         if not connectedToUnity:  
             print("Couldn't connect to unity, will try another time.")    
     
@@ -87,8 +85,6 @@ def main():
         
         print("distances : ", obs[0, 18:])
 
-        if (args.numenvs == 1) and dones[0] :
-            time.sleep(1)
         ep_len += 1
 
 if __name__ == "__main__":

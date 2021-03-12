@@ -32,6 +32,12 @@ class FlightEnvVec(VecEnv):
 
     def seed(self, seed=0):
         self.wrapper.setSeed(seed)
+        
+    def set_objects_densities(self, object_density_fractions):
+        if(self.render):
+            self.wrapper.setObjectsDensities(object_density_fractions)
+            print("density set to ", object_density_fractions)
+        return
 
     def obs_array2image(self):
         self._observation[:,:,:] = self.img_array.reshape((self.num_envs, self.frame_dim[0], self.frame_dim[1]), order='F')
@@ -101,7 +107,8 @@ class FlightEnvVec(VecEnv):
         self.wrapper.close()
 
     def connectUnity(self):
-        self.wrapper.connectUnity()
+        return self.wrapper.connectUnity()
+
 
     def disconnectUnity(self):
         self.wrapper.disconnectUnity()
