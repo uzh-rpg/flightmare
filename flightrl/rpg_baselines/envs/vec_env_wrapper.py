@@ -1,6 +1,6 @@
 import numpy as np
 from gym import spaces
-from stable_baselines.common.vec_env import VecEnv
+from stable_baselines3.common.vec_env import VecEnv
 
 
 class FlightEnvVec(VecEnv):
@@ -13,7 +13,7 @@ class FlightEnvVec(VecEnv):
         print("Observations: ", self.num_obs)
         print("Actions: ", self.num_acts)
         print("image shape:", self.frame_dim)
-        self._observation_space = spaces.Box(low=0, high=255, shape=(self.frame_dim[0], self.frame_dim[1]), dtype=np.float32)
+        self._observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(self.frame_dim[0], self.frame_dim[1]), dtype=np.float32)
         self._action_space = spaces.Box(
             low=np.ones(self.num_acts) * -1.,
             high=np.ones(self.num_acts) * 1.,
@@ -58,7 +58,7 @@ class FlightEnvVec(VecEnv):
                 info[i]['episode'] = epinfo
                 self.rewards[i].clear()
 
-        return self._odometry.copy(), self._observation.copy(), self._reward.copy(), \
+        return self._observation.copy(), self._reward.copy(), \
             self._done.copy(), info.copy()
 
     def stepUnity(self, action, send_id):

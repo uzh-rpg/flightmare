@@ -55,7 +55,7 @@ bool Quadrotor::run(const Scalar ctl_dt) {
 
     // Compute linear acceleration and body torque
     const Vector<3> force(0.0, 0.0, force_torques[0]);
-    state_.a = state_.q() * force * 1.0 / dynamics_.getMass() + gz_;
+    state_.a = state_.q() * force * 1.0 / dynamics_.getMass() + gz_ - state_.v * state_.v.norm() * dynamics_.drag_coeff_;
 
     // compute body torque
     state_.tau = force_torques.segment<3>(1);
