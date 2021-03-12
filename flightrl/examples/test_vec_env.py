@@ -50,6 +50,7 @@ def main():
 
     env = wrapper.FlightEnvVec(QuadrotorEnv_v1(dump(cfg, Dumper=RoundTripDumper), False))
     action = np.zeros([env.num_envs,env.num_acts], dtype=np.float32)
+    action += np.array([-0.01, -0.01, 0.00, 0.00])
     # action[0,0] += -0.11
     # action[0,3] += 0.1
     # action[1,0] += 0.11
@@ -73,6 +74,7 @@ def main():
         object_density_fractions = np.linspace(0.0, 1.0, num=env.num_envs)
 
     env.set_objects_densities(object_density_fractions = object_density_fractions)   
+    env.reset()
     
     time.sleep(2.5)
     
@@ -83,7 +85,7 @@ def main():
         
         obs, reward, dones, infos = env.step(action)
         
-        print("distances : ", obs[0, 18:])
+        # print("distances : ", obs[0, 18:])
 
         ep_len += 1
 

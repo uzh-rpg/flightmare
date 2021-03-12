@@ -126,6 +126,7 @@ bool UnityBridge::getRender(const FrameID frame_id) {
     pub_msg_.vehicles[idx].rotation = quaternionRos2Unity(quad_state.q());
     pub_msg_.vehicles[idx].box_center = positionRos2Unity(unity_quadrotors_[idx]->box_center_);
     pub_msg_.vehicles[idx].drone_velocity     = positionRos2Unity(quad_state.v);
+    pub_msg_.vehicles[idx].goal_direction     = positionRos2Unity(quad_state.v);
   }
 
   // create new message object
@@ -242,7 +243,7 @@ bool UnityBridge::handleOutput() {
           memcpy(new_image.data, image_data, image_len);
           // Flip image since OpenCV origin is upper left, but Unity's is lower
           // left.
-          new_image = new_image * (100.f);
+          new_image = new_image * (15.0f);
           cv::flip(new_image, new_image, 0);
 
 

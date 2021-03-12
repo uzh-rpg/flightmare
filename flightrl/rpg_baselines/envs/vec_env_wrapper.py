@@ -1,6 +1,7 @@
 import numpy as np
 from gym import spaces
 from stable_baselines3.common.vec_env import VecEnv
+import cv2 as cv
 
 
 class FlightEnvVec(VecEnv):
@@ -27,6 +28,7 @@ class FlightEnvVec(VecEnv):
         self._extraInfo = np.zeros([self.num_envs,
                                     len(self._extraInfoNames)], dtype=np.float32)
         self.rewards = [[] for _ in range(self.num_envs)]
+        self.count = 0
 
         self.max_episode_steps = 300
 
@@ -47,6 +49,10 @@ class FlightEnvVec(VecEnv):
         self.wrapper.step(action, self._odometry, self.img_array,
                           self._reward, self._done, self._extraInfo)
         self.obs_array2image()
+        # if self.count < 100:
+        #     cv.imwrite('images/img'+str(self.count)+'.png', self._observation[0,:,:]/15*255)
+        #     self.count = self.count + 1
+        # ----- Uncomment below to check if images are correct -----
 
         if len(self._extraInfoNames) is not 0:
             info = [{'extra_info': {

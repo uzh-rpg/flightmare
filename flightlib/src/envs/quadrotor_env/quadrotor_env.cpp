@@ -107,14 +107,14 @@ void QuadrotorEnv::setQuadstateToResetState(){
   quad_state_.x(QS::POSZ) = resetPosition_(2);
 
   // reset linear velocity
-  quad_state_.x(QS::VELX) = uniform_dist_(random_gen_);
-  quad_state_.x(QS::VELY) = uniform_dist_(random_gen_);
-  quad_state_.x(QS::VELZ) = uniform_dist_(random_gen_);
+  quad_state_.x(QS::VELX) = 0;
+  quad_state_.x(QS::VELY) = 0;
+  quad_state_.x(QS::VELZ) = 0;
   // reset orientation
-  quad_state_.x(QS::ATTW) = uniform_dist_(random_gen_);
-  quad_state_.x(QS::ATTX) = uniform_dist_(random_gen_);
-  quad_state_.x(QS::ATTY) = uniform_dist_(random_gen_);
-  quad_state_.x(QS::ATTZ) = uniform_dist_(random_gen_);
+  quad_state_.x(QS::ATTW) = 1;
+  quad_state_.x(QS::ATTX) = 0;
+  quad_state_.x(QS::ATTY) = 0;
+  quad_state_.x(QS::ATTZ) = 0;
   quad_state_.qx /= quad_state_.qx.norm();
 }
 
@@ -252,23 +252,26 @@ bool QuadrotorEnv::isTerminalState(Scalar &reward) {
   // Check out of bounds x. 
   if (quad_state_.x(QS::POSX) <= world_box_(0) + 0.5 || quad_state_.x(QS::POSX) >= world_box_(3) - 0.5 ) {
     reward = 0;
+    // logger_.warn("x out of bound");
     // logger_.warn("out of bound x " + std::to_string(quad_state_.x(QS::POSX)) + " outside " + "[" + std::to_string(world_box_(0) + 0.5) + ", " + std::to_string(world_box_(3) - 0.5) + "]");
+    return true;
   }
   // Check out of bounds y.
   if (quad_state_.x(QS::POSY) <= world_box_(1) + 0.5 || quad_state_.x(QS::POSY) >= world_box_(4) - 0.5 ) {
     reward = 0;
+    // logger_.warn("y out of bound");
     // logger_.warn("out of bound y " + std::to_string(quad_state_.x(QS::POSY)) + " outside " + "[" + std::to_string(world_box_(1) + 0.5) + ", " + std::to_string(world_box_(4) - 0.5) + "]");
+    return true;
   }
   // Check out of bounds z.
   if (quad_state_.x(QS::POSZ) <= world_box_(2) + 0.5  || quad_state_.x(QS::POSZ) >= world_box_(5) - 0.5 ) {
     reward = 0;
+    // logger_.warn("z out of bound");
     // logger_.warn("out of bound z " + std::to_string(quad_state_.x(QS::POSZ)) + " outside " + "[" + std::to_string(world_box_(2) + 0.5) + ", " + std::to_string(world_box_(5) - 0.5) + "]");
+    return true;
   }
 
-  if (reward==0.0) {
-    return false;
-  }
-  return true;
+  return false;
 }
 
 bool QuadrotorEnv::isTerminalStateUnity(Scalar &reward) {
@@ -289,6 +292,7 @@ bool QuadrotorEnv::isTerminalStateUnity(Scalar &reward) {
       }
     }
   }
+  return false;
 }
 
 bool QuadrotorEnv::loadParam(const YAML::Node &cfg) {

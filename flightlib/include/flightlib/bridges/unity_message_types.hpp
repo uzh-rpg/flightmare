@@ -73,7 +73,7 @@ struct Vehicle_t {
   std::vector<Scalar> position{0.0, 0.0, 0.0};
   // goal position for each drone
   std::vector<Scalar> box_center{0.0, 0.0, 0.0};
-  std::vector<Scalar> reference_velocity{0.0, 0.0, 0.0}; 
+  std::vector<Scalar> goal_direction{0.0, 0.0, 0.0}; 
   std::vector<Scalar> drone_velocity{0.0, 0.0, 0.0};
   // unity quaternion (x, y, z, w)
   std::vector<Scalar> rotation{0.0, 0.0, 0.0, 1.0};
@@ -116,7 +116,6 @@ struct PubMessage_t {
 //
 struct Sub_Vehicle_t {
   bool collision;
-  std::vector<Scalar> lidar_ranges;
 };
 
 struct SubMessage_t {
@@ -169,7 +168,7 @@ inline void to_json(json &j, const Vehicle_t &o) {
            {"position", o.position},
            {"rotation", o.rotation},
            {"box_center", o.box_center},
-           {"reference_velocity", o.reference_velocity},
+           {"goal_direction", o.goal_direction},
            {"drone_velocity", o.drone_velocity},
            {"size", o.size},
            {"cameras", o.cameras},
@@ -201,7 +200,6 @@ inline void to_json(json &j, const PubMessage_t &o) {
 // Publish messages to unity
 inline void from_json(const json &j, Sub_Vehicle_t &o) {
   o.collision = j.at("collision").get<bool>();
-  o.lidar_ranges = j.at("lidar_ranges").get<std::vector<Scalar>>();
 }
 
 // json to our sub message data type

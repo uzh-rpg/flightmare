@@ -6,17 +6,19 @@ import os
 import math
 import argparse
 import numpy as np
-import tensorflow as tf
+import time
+import sys
+import torch
 
 #
-from stable_baselines import logger
+from stable_baselines3.common import logger
 
 #
-from rpg_baselines.common.policies import MlpPolicy
-from rpg_baselines.ppo.ppo2 import PPO2
+from stable_baselines3.ppo.ppo import PPO
 from rpg_baselines.ppo.ppo2_test import test_model
-from rpg_baselines.envs import vec_env_wrapper as wrapper
 import rpg_baselines.common.util as U
+from rpg_baselines.envs import vec_env_wrapper as wrapper
+from scipy.spatial.transform import Rotation 
 #
 from flightgym import QuadrotorEnv_v1
 
@@ -25,7 +27,7 @@ def configure_random_seed(seed, env=None):
     if env is not None:
         env.seed(seed)
     np.random.seed(seed)
-    tf.set_random_seed(seed)
+    torch.manual_seed(seed)
 
 
 def parser():
@@ -68,25 +70,8 @@ def main():
         rsg_root = os.path.dirname(os.path.abspath(__file__))
         log_dir = rsg_root + '/saved'
         saver = U.ConfigurationSaver(log_dir=log_dir)
-        model = PPO2(
-            tensorboard_log=saver.data_dir,
-            policy=MlpPolicy,  # check activation function
-            policy_kwargs=dict(
-                net_arch=[dict(pi=[128, 128], vf=[128, 128])], act_fun=tf.nn.relu),
-            env=env,
-            lam=0.95,
-            gamma=0.99,  # lower 0.9 ~ 0.99
-            # n_steps=math.floor(cfg['env']['max_time'] / cfg['env']['ctl_dt']),
-            n_steps=250,
-            ent_coef=0.00,
-            learning_rate=3e-4,
-            vf_coef=0.5,
-            max_grad_norm=0.5,
-            nminibatches=1,
-            noptepochs=10,
-            cliprange=0.2,
-            verbose=1,
-        )
+        model = PPO('MlpPolicy', env, verbose=2,
+                    tensorboard_log=saver.data_dir)
 
         # tensorboard
         # Make sure that your chrome browser is already on.
@@ -99,13 +84,12 @@ def main():
         # 2000000000 is 4000 iterations.
         logger.configure(folder=saver.data_dir)
         model.learn(
-            total_timesteps=int(25000000),
-            log_dir=saver.data_dir, logger=logger)
+            total_timesteps=int(25000000))
         model.save(saver.data_dir)
 
     # # Testing mode with a trained weight
     else:
-        model = PPO2.load(args.weight)
+        model = PPO.load(args.weight)
         test_model(env, model, render=args.render)
 
 
