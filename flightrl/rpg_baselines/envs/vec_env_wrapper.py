@@ -14,12 +14,13 @@ class FlightEnvVec(VecEnv):
         print("Observations: ", self.num_obs)
         print("Actions: ", self.num_acts)
         print("image shape:", self.frame_dim)
-        self._observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(self.frame_dim[0], self.frame_dim[1]), dtype=np.float32)
+        self._observation_space = spaces.Box(low=-np.ones(self.num_obs) * np.inf, high=np.ones(self.num_obs) * np.inf, dtype=np.float32)
         self._action_space = spaces.Box(
             low=np.ones(self.num_acts) * -1.,
             high=np.ones(self.num_acts) * 1.,
             dtype=np.float32)
-        self._observation = np.zeros((self.num_envs, self.frame_dim[0], self.frame_dim[1]), dtype=np.float32)
+        self._observation = np.zeros((self.num_envs, self.num_obs), dtype=np.float32)
+        self._images = np.zeros((self.num_envs, self.frame_dim[0], self.frame_dim[1]), dtype=np.float32)
         self._odometry = np.zeros([self.num_envs, self.num_obs], dtype=np.float32)
         self.img_array = np.zeros((self.num_envs, self.frame_dim[0]*self.frame_dim[1]), dtype=np.float32)
         self._reward = np.zeros(self.num_envs, dtype=np.float32)
@@ -42,17 +43,21 @@ class FlightEnvVec(VecEnv):
         return
 
     def obs_array2image(self):
-        self._observation[:,:,:] = self.img_array.reshape((self.num_envs, self.frame_dim[0], self.frame_dim[1]), order='F')
-        return 1  
+        return self.img_array.reshape((self.num_envs, self.frame_dim[0], self.frame_dim[1]), order='F')
 
     def step(self, action):
         self.wrapper.step(action, self._odometry, self.img_array,
                           self._reward, self._done, self._extraInfo)
-        self.obs_array2image()
-        # if self.count < 100:
-        #     cv.imwrite('images/img'+str(self.count)+'.png', self._observation[0,:,:]/15*255)
-        #     self.count = self.count + 1
+        
+        self._observation = self._odometry
+
+        # Images are accessible from here, self._images is of shape [self.num_envs, self.frame_dim[0], self.frame_dim[1]]
+        self._images = self.obs_array2image()
+
         # ----- Uncomment below to check if images are correct -----
+        # if self.count < 100:
+        #     cv.imwrite('images/img'+str(self.count)+'.png', self._images[0,:,:]/15*255)
+        #     self.count = self.count + 1
 
         if len(self._extraInfoNames) is not 0:
             info = [{'extra_info': {
@@ -69,6 +74,9 @@ class FlightEnvVec(VecEnv):
                 epinfo = {"r": eprew, "l": eplen}
                 info[i]['episode'] = epinfo
                 self.rewards[i].clear()
+
+        # The observations returned are only the one related to the odometry NO images
+        # you have to change the observation space in order to use them
 
         return self._observation.copy(), self._reward.copy(), \
             self._done.copy(), info.copy()
