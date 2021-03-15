@@ -114,7 +114,7 @@ def main():
         # Single episode until termination.
         while not (done or (ep_len >= max_ep_length)):
             
-            actions = obstacle_avoidance_agent.getActions(obs, rew, done, infos, images)
+            actions = obstacle_avoidance_agent.getActions(obs, done, images)
 
             if ep_len == 5:
                 env.set_objects_densities(object_density_fractions= object_density_fractions_different_episodes[n_roll].reshape(1, -1)) 
@@ -125,7 +125,7 @@ def main():
         
             drone_pos = obs[0, :3]
             current_goal , done_from_high_level_planner, high_level_planner_goal_reached_number = high_level_planner.get_current_goal(drone_position=drone_pos, num_run=int(n_roll%num_rollouts_per_density))      
-            env.set_goal_position(current_goal)
+            
             
             if done:
                 episodes_terminal_goal_number[n_roll] = high_level_planner_goal_reached_number
