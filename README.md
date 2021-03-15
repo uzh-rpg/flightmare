@@ -99,9 +99,15 @@ We have added some auxiliary code to help you start with the challenge using rei
    This script will launch a reinforcement learning training with PPO. Note that this model will not see any images, so it won't be able to solve the task.
 
 
-3. To evaluate the trained checkpoint (assuming it's path is contained in the variable $MODEL_PATH), run the following command:
+3. To evaluate the trained checkpoint (assuming its path is contained in the variable $MODEL_PATH), run the following command:
 
    `cd $FLIGHTMARE_PATH/flightrl/examples && python run_drone_control.py --train 0 --weight $MODEL_PATH`
+
+4. The final evaluation, which will be the one you will be ranked with, can be run with the command 
+   
+   `cd $FLIGHTMARE_PATH/flightrl/rpg_baselines/evaluation && python evaluation.py`
+   
+   This code will import the custom agent from the file `obstacle_avoidance_agent.py` as a class. In order to evaluate your agent you will need to change that file and use your model inside the function `getActions` to map observations into control commands.
 
 To enable training with images, access the file [vec_env_wrapper.py](https://github.com/uzh-rpg/flightmare/blob/ddc_challenge/flightrl/rpg_baselines/envs/vec_env_wrapper.py#L54) and modify the observation space to pass images to the policy (this will require some reshaping to keep compatibility with the PPO framework) . You will also need to change the evaluation function [test_model.py]() to account for the difference in observation. 
 
