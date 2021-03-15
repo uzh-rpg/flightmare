@@ -80,6 +80,9 @@ class FlightEnvVec(VecEnv):
 
         return self._observation.copy(), self._reward.copy(), \
             self._done.copy(), info.copy()
+    
+    def getImages(self):
+        return self._images.copy()
 
     def stepUnity(self, action, send_id):
         receive_id = self.wrapper.stepUnity(action, self._odometry, self.img_array,

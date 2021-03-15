@@ -20,8 +20,3 @@ _build/
 _posts
 _site
 externals/*
-
-#Flightmare
-flightlib
-flightrl
-flighros
