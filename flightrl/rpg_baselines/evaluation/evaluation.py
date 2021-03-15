@@ -10,6 +10,7 @@ import time
 import sys
 import torch
 import pickle
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
@@ -140,6 +141,7 @@ def main():
                 episodes_survived[n_roll] = 1
                 
         episodes_lengths[n_roll] = ep_len
+        n_roll = n_roll + 1
         
         
         
@@ -210,7 +212,7 @@ def main():
         else:
             survival_on_density_y_axis[density_idx]                      = np.mean(episodes_results[range_start:])
             mean_goal_reached_on_density_y_axis[density_idx]             = np.mean(episodes_terminal_goal_number[range_start:])
-        
+    matplotlib.use('Agg')    
     fig = plt.figure(figsize=(18, 12), tight_layout=True)
     gs = gridspec.GridSpec(nrows=2, ncols=2)
     survival_on_density                       = fig.add_subplot(gs[0, 0])
@@ -232,7 +234,7 @@ def main():
        
     plt.tight_layout()
     plt.savefig("./evaluation_result_graphs.png")
-    plt.show()
+    # plt.show()
         
 
 if __name__ == "__main__":
