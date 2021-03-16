@@ -72,11 +72,12 @@ The apt dependencies are already installed. A FLIGHTMARE_PATH environment variab
    
    The next time you want to run the container change the name of the image in the `docker run` command to the new name e tag you chose.
 
-6. The Unity standalone will be running on your PC and will communicate with Flightmare using the port mentioned above. You can download the standalone [here](http://rpg.ifi.uzh.ch/challenges/DodgeDrone2021/standalone.zip). When downloaded and unzip, in a terminal in your computer (not in docker!) run the following command:
+6. The Unity standalone will be running on your PC and will communicate with Flightmare using the port mentioned above. You can download the standalone [here](http://rpg.ifi.uzh.ch/challenges/DodgeDrone2021/Standalone_Forest.zip). When downloaded and unzip, in a terminal in your computer (not in docker!) run the following command:
 
-`./STANDALONE_PATH/simple_env.x86_64 -static-obstacles 0`
+   `./STANDALONE_PATH/RPG_Flightmare.x86_64 -static-obstacles 0`
 
-if you do not need to visualize what the drone is doing add the option `-batchmode` after the command for a faster simulation.
+   If you do not need to visualize what the drone is doing add the option `-batchmode` after the command for a faster simulation. In the standalone you will find two environments built in. The first is a box environment, which is very small and lightweight. You should reserve this for training and developing your algorithms (it can run up to 700 fps on a common desktop). The second is a more complex forest environment, which is significantly slower. You might want to reserve this testing, but feel free to also train with it if you wish! You can switch between environments by changing [this flag](https://github.com/uzh-rpg/flightmare/blob/ddc_challenge/flightlib/configs/vec_env.yaml#L3).
+   For everybody with a small GPU and limited computational power, we also prepared a standalone which only contains the box environment (in that case the previous flag will not have any effects). This standalone is faster to download and to execute. You can download this standalone [here](http://rpg.ifi.uzh.ch/challenges/DodgeDrone2021/Standalone_Simple.zip).
 
 7. In a terminal with docker, run the following command:
 
@@ -88,16 +89,15 @@ if you do not need to visualize what the drone is doing add the option `-batchmo
 
 We have added some auxiliary code to help you start with the challenge using reinforcement learning. However, if you want to use something else, feel free to make all the changes you need. Just be sure that everything works fine when you submit!
 
-1. In a terminal (not within docker), launch the unity standalone. The flag controls if you want to train/test on static or dynamic environments:
+1. In a terminal (not within docker), launch the unity standalone. The flag controls if you want to train/test on static or dynamic environments (the following will launch with dynamic obstacles):
 
-`./STANDALONE_PATH/simple_env.x86_64 -static-obstacles 0`
+  `./STANDALONE_PATH/RPG_Flightmare.x86_64 -static-obstacles 0`
 
 2. In a terminal within Docker, run the following command:
 
    `cd $FLIGHTMARE_PATH/flightrl/examples && python run_drone_control.py`
 
    This script will launch a reinforcement learning training with PPO. Note that this model will not see any images, so it won't be able to solve the task.
-
 
 3. To evaluate the trained checkpoint (assuming its path is contained in the variable $MODEL_PATH), run the following command:
 
@@ -106,10 +106,18 @@ We have added some auxiliary code to help you start with the challenge using rei
 4. The final evaluation, which will be the one you will be ranked with, can be run with the command 
    
    `cd $FLIGHTMARE_PATH/flightrl/rpg_baselines/evaluation && python evaluation.py`
-   
-   This code will import the custom agent from the file `obstacle_avoidance_agent.py` as a class. In order to evaluate your agent you will need to change that file and use your model inside the function `getActions` to map observations into control commands.
 
-To enable training with images, access the file [vec_env_wrapper.py](https://github.com/uzh-rpg/flightmare/blob/ddc_challenge/flightrl/rpg_baselines/envs/vec_env_wrapper.py#L54) and modify the observation space to pass images to the policy (this will require some reshaping to keep compatibility with the PPO framework) . You will also need to change the evaluation function [test_model.py]() to account for the difference in observation. 
+   To run this evaluation, you will have to adapt the definition of your agent in the file [obstacle\_avoidance\_agent.py](https://github.com/uzh-rpg/flightmare/blob/ddc_challenge/flightrl/rpg_baselines/evaluation/obstacle_avoidance_agent.py). In particular, you will have to adapt the function `getActions` to generate control commands according to your policy.
+   
+In the provided example, you will not be able to directly access the images, so you won't be able to solve the task. To enable access to images during training, access the file [vec_env_wrapper.py](https://github.com/uzh-rpg/flightmare/blob/ddc_challenge/flightrl/rpg_baselines/envs/vec_env_wrapper.py#L54) and modify the observation space to pass images to the policy.
+
+Note that if you want to keep using this training code and pass both images and the drone's state, you will have to make some changes to the training algorithms. There are multiple ways to do it, and you can chose the one you prefer. We reccomed the following:
+
+1. Clone the [stable-baselines code](https://github.com/DLR-RM/stable-baselines3).
+2. Adapt the functions [train](https://github.com/DLR-RM/stable-baselines3/blob/master/stable_baselines3/ppo/ppo.py#L159), [collect_rollouts](https://github.com/DLR-RM/stable-baselines3/blob/master/stable_baselines3/common/on_policy_algorithm.py#L126), and [learn](https://github.com/DLR-RM/stable-baselines3/blob/master/stable_baselines3/common/on_policy_algorithm.py#L205) to make the observation space a tuple of images and state instead of list.
+3. Adapt the training code to use this local version of stable-baselines.
+
+Please not that this is not the best but just one of the many possible solutions, and you can chose the one you prefer!
 
 ## Submission
 
