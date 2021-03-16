@@ -56,10 +56,8 @@ First, [Install Docker Engine on Ubuntu](https://docs.docker.com/engine/install/
    
    * `/bin/bash` run a bash terminal in the container once is created
 
-  Now you can navigate inside the container as it was on a normal Ubuntu machine.  
-  If you wish to open another terminal connected to the container use:
-   
-   `docker exec -it ddc-challenge bash`
+    Now you can navigate inside the container as it was on a normal Ubuntu machine.  
+    If you wish to open another terminal connected to the container use: `docker exec -it ddc-challenge bash`.
 
 5. In this terminal, follow the instructions that you can find here [uzh-rpg/flightmare Wiki](https://github.com/uzh-rpg/flightmare/wiki/Install-with-pip) to install flightmare and its dependencies.
 The apt dependencies are already installed. A FLIGHTMARE_PATH environment variable has already been added in the .bashrc pointing to  `/root/challenge/flightmare` , in case you choose different names in the process please change accordingly.
@@ -117,7 +115,7 @@ Note that if you want to keep using this training code and pass both images and 
 2. Adapt the functions [train](https://github.com/DLR-RM/stable-baselines3/blob/master/stable_baselines3/ppo/ppo.py#L159), [collect_rollouts](https://github.com/DLR-RM/stable-baselines3/blob/master/stable_baselines3/common/on_policy_algorithm.py#L126), and [learn](https://github.com/DLR-RM/stable-baselines3/blob/master/stable_baselines3/common/on_policy_algorithm.py#L205) to make the observation space a tuple of images and state instead of list.
 3. Adapt the training code to use this local version of stable-baselines.
 
-Please not that this is not the best but just one of the many possible solutions, and you can chose the one you prefer!
+Please note that this is not the best but just one of the many possible solutions, and you can chose the one you prefer!
 
 ## Submission
 
