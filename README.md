@@ -107,9 +107,9 @@ We have added some auxiliary code to help you start with the challenge using rei
 
    To run this evaluation, you will have to adapt the definition of your agent in the file [obstacle\_avoidance\_agent.py](https://github.com/uzh-rpg/flightmare/blob/ddc_challenge/flightrl/rpg_baselines/evaluation/obstacle_avoidance_agent.py). In particular, you will have to adapt the function `getActions` to generate control commands according to your policy.
    
-In the provided example, you will not be able to directly access the images, so you won't be able to solve the task. To enable access to images during training, access the file [vec_env_wrapper.py](https://github.com/uzh-rpg/flightmare/blob/ddc_challenge/flightrl/rpg_baselines/envs/vec_env_wrapper.py#L54) and modify the observation space to pass images to the policy.
+In the provided example, you will not be able to directly access the images from the wrapper step function, so you won't be able to solve the task by directly train using stable baselines. To enable access to images during training the function [get_images](https://github.com/uzh-rpg/flightmare/blob/bdaffdfdb56396be34844121397aac80e80141d9/flightrl/rpg_baselines/envs/vec_env_wrapper.py#L84) is already available.
 
-Note that if you want to keep using this training code and pass both images and the drone's state, you will have to make some changes to the training algorithms. There are multiple ways to do it, and you can chose the one you prefer. We reccomed the following:
+However, note that if you want to keep using this training code and pass both images and the drone's state, you will have to make some changes to the training algorithms. There are multiple ways to do it, and you can chose the one you prefer. We reccomed the following:
 
 1. Clone the [stable-baselines code](https://github.com/DLR-RM/stable-baselines3).
 2. Adapt the functions [train](https://github.com/DLR-RM/stable-baselines3/blob/master/stable_baselines3/ppo/ppo.py#L159), [collect_rollouts](https://github.com/DLR-RM/stable-baselines3/blob/master/stable_baselines3/common/on_policy_algorithm.py#L126), and [learn](https://github.com/DLR-RM/stable-baselines3/blob/master/stable_baselines3/common/on_policy_algorithm.py#L205) to make the observation space a tuple of images and state instead of list.
