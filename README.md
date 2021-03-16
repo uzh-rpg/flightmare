@@ -143,3 +143,16 @@ The submission which will achieve the highest score in the forest with dynamic o
 ## Issues
 
 For any problem in running the simulator or making a submission, please open an issue in this repository by explicitily mentioning that the problem is related to the challenge. In addition, please send an email to the organizers to make sure we do not lose track of any issue.
+
+## Publication
+
+If you use this code in a publication, please cite the following paper **[PDF](http://rpg.ifi.uzh.ch/docs/CoRL20_Yunlong.pdf)**
+
+```
+@article{song2020flightmare,
+    title={Flightmare: A Flexible Quadrotor Simulator},
+    author={Song, Yunlong and Naji, Selim and Kaufmann, Elia and Loquercio, Antonio and Scaramuzza, Davide},
+    booktitle={Conference on Robot Learning},
+    year={2020}
+}
+```
