@@ -68,7 +68,7 @@ The apt dependencies are already installed. A FLIGHTMARE_PATH environment variab
    
    `docker commit CONTAINER_ID name-you-want-to-give:tag-you-want-to-give`
    
-   The next time you want to run the container change the name of the image in the `docker run` command to the new name e tag you chose.
+   The next time you want to run the container change the name of the image in the `docker run` command to the new name and tag you choose.
 
 6. The Unity standalone will be running on your PC and will communicate with Flightmare using the port mentioned above. You can download the standalone [here](http://rpg.ifi.uzh.ch/challenges/DodgeDrone2021/Standalone_Forest.zip). When downloaded and unzip, in a terminal in your computer (not in docker!) run the following command:
 
@@ -109,13 +109,13 @@ We have added some auxiliary code to help you start with the challenge using rei
    
 In the provided example, you will not be able to directly access the images from the wrapper step function, so you won't be able to solve the task by directly train using stable baselines. To enable access to images during training the function [get_images](https://github.com/uzh-rpg/flightmare/blob/bdaffdfdb56396be34844121397aac80e80141d9/flightrl/rpg_baselines/envs/vec_env_wrapper.py#L84) is already available.
 
-However, note that if you want to keep using this training code and pass both images and the drone's state, you will have to make some changes to the training algorithms. There are multiple ways to do it, and you can chose the one you prefer. We reccomed the following:
+However, note that if you want to keep using this training code and pass both images and the drone's state, you will have to make some changes to the training algorithms. There are multiple ways to do it, and you can choose the one you prefer. We recommend the following:
 
 1. Clone the [stable-baselines code](https://github.com/DLR-RM/stable-baselines3).
 2. Adapt the functions [train](https://github.com/DLR-RM/stable-baselines3/blob/master/stable_baselines3/ppo/ppo.py#L159), [collect_rollouts](https://github.com/DLR-RM/stable-baselines3/blob/master/stable_baselines3/common/on_policy_algorithm.py#L126), and [learn](https://github.com/DLR-RM/stable-baselines3/blob/master/stable_baselines3/common/on_policy_algorithm.py#L205) to make the observation space a tuple of images and state instead of list.
 3. Adapt the training code to use this local version of stable-baselines.
 
-Please note that this is not the best but just one of the many possible solutions, and you can chose the one you prefer!
+Please note that this is not the best but just one of the many possible solutions, and you can choose the one you prefer!
 
 ## Submission
 
@@ -142,4 +142,4 @@ The submission which will achieve the highest score in the forest with dynamic o
 
 ## Issues
 
-For any problem in running the simulator or making a submission, please open an issue in this repository by explicitely mentioning that the problem is related to the challenge. In addition, please send an email to the organizers to make sure we do not lose track of any issue.
+For any problem in running the simulator or making a submission, please open an issue in this repository by explicitily mentioning that the problem is related to the challenge. In addition, please send an email to the organizers to make sure we do not lose track of any issue.
