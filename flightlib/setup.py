@@ -100,7 +100,7 @@ setup(
     long_description='',
     ext_modules=[CMakeExtension('flightlib')],
     install_requires=['gym==0.17.3', 'ruamel.yaml',
-                      'numpy', 'stable_baselines==2.10.1'],
+                      'numpy', 'stable_baselines==2.10.1', 'stable-baselines3[extra]'],
     cmdclass=dict(build_ext=CMakeBuild),
     include_package_data=True,
     zip_safe=False,
