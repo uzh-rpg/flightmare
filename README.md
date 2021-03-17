@@ -38,7 +38,7 @@ First, [Install Docker Engine on Ubuntu](https://docs.docker.com/engine/install/
    
    `git clone git@github.com:YOUR-GITHUB-ACCOUNT/flightmare.git`
 
-   `cd flightmare && git checkout dd_challenge`
+   `cd flightmare && git checkout ddc_challenge`
 
    Before continuing, be sure to be on the right Flightmare branch!
 
