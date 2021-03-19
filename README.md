@@ -59,15 +59,14 @@ First, [Install Docker Engine on Ubuntu](https://docs.docker.com/engine/install/
     Now you can navigate inside the container as it was on a normal Ubuntu machine.  
     If you wish to open another terminal connected to the container use: `docker exec -it ddc-challenge bash`.
 
-5. In this terminal, follow the instructions that you can find here [uzh-rpg/flightmare Wiki](https://github.com/uzh-rpg/flightmare/wiki/Install-with-pip) to install flightmare and its dependencies.
-The apt dependencies are already installed. A FLIGHTMARE_PATH environment variable has already been added in the .bashrc pointing to  `/root/challenge/flightmare` , in case you choose different names in the process please change accordingly.
+5. In this terminal, follow the instructions that you can find here [uzh-rpg/flightmare Wiki](https://github.com/uzh-rpg/flightmare/wiki/Install-with-pip) to install flightmare and its dependencies. The apt dependencies are already installed. For example, if you want to usa anaconda, please use these commands:
+   a. `conda create --name RL python=3.6`
+   b. `conda activate RL`
+   c. `conda install pytorch==1.7.1 torchvision==0.8.2 torchaudio==0.7.2 -c pytorch`
+   d. `cd flightmare/flightlib && pip install .`
+   e. `pip install stable-baselines3`
 
-   If you want to try example code:
-   1. `conda create --name RL python=3.6`
-   2. `conda activate RL`
-   3. `conda install pytorch==1.7.1 torchvision==0.8.2 torchaudio==0.7.2 -c pytorch`
-   4. `cd flightmare/flightlib && pip install .`
-   5. `pip install stable-baselines3`
+    A FLIGHTMARE_PATH environment variable has already been added in the .bashrc pointing to  `/root/challenge/flightmare` , in case you choose different names in the process please change accordingly.
 
 6. A Docker container state is volatile so once you create your environment you can save the status of the container using this workflow:
    
