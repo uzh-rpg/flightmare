@@ -82,8 +82,8 @@ int main(int argc, char *argv[]) {
   std::size_t num_waypoints = way_points.size();
   Eigen::VectorXd segment_times(num_waypoints);
   segment_times << 10.0, 10.0, 10.0, 10.0;
-  Eigen::VectorXd minimization_weights(num_waypoints);
-  minimization_weights << 1.0, 1.0, 1.0, 1.0;
+  Eigen::VectorXd minimization_weights(5);
+  minimization_weights << 0.0, 1.0, 1.0, 1.0, 1.0;
 
   polynomial_trajectories::PolynomialTrajectorySettings trajectory_settings =
     polynomial_trajectories::PolynomialTrajectorySettings(
