@@ -14,7 +14,7 @@ class ObstacleAvoidanceAgent():
     
     # initialization
         
-  def getActions(self, obs, done, images):
+  def getActions(self, obs, done, images, current_goal_position):
     action = np.zeros([self._num_envs,self._num_acts], dtype=np.float32)
     action[0,0] += -0.01
     return action
