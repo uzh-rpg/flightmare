@@ -136,7 +136,6 @@ def main():
                 obs = env.reset()
                 images = env.get_images()
                 current_goal , _ , _ = high_level_planner.get_current_goal(drone_position=drone_pos, num_run=int(n_roll%num_rollouts_per_density))      
-                env.set_goal_position(current_goal)
                 episodes_terminal_goal_number[n_roll] = high_level_planner_goal_reached_number
                 episodes_survived[n_roll] = 1
                 
