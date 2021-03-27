@@ -1,5 +1,6 @@
-#include <flightros/ros_utils.hpp>
 #include <cv_bridge/cv_bridge.h>
+
+#include <flightros/ros_utils.hpp>
 
 namespace flightros {
 
@@ -18,7 +19,8 @@ void imageToMsg(const cv::Mat& image, int64_t t, sensor_msgs::ImagePtr& msg) {
   cv_image.header.stamp = toRosTime(t);
   msg = cv_image.toImageMsg();
 }
-void imageFloatToMsg(const cv::Mat& image, int64_t t, sensor_msgs::ImagePtr& msg) {
+void imageFloatToMsg(const cv::Mat& image, int64_t t,
+                     sensor_msgs::ImagePtr& msg) {
   cv_bridge::CvImage cv_image;
   cv_image.image = image;
   cv_image.encoding = "32FC1";
@@ -33,18 +35,21 @@ void eventsToMsg(const EventsVector& events, int width, int height,
     dvs_msgs::Event ev;
     ev.x = e.coord_x;
     ev.y = e.coord_y;
-    int64_t event_time=e.time;
-    ev.ts = toRosTime((event_time*1000 + starting_time) );
+    int64_t event_time = e.time;
+    ev.ts = toRosTime((event_time * 1000 + starting_time));
     ev.polarity = e.polarity;
-    if(e.time>0){
-    events_list.push_back(ev);
+    if (e.time > 0) {
+      events_list.push_back(ev);
     }
   }
 
   msg->events = events_list;
   msg->height = height;
   msg->width = width;
-  msg->header.stamp = events_list.back().ts;
+  if (events_list.size() == 0) {
+    msg->header.stamp = toRosTime(starting_time + 1);
+  } else {
+    msg->header.stamp = events_list.back().ts;
+  }
 }
-
 }  // namespace flightros
