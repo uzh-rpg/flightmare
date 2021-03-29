@@ -21,10 +21,11 @@ class StaticObject {
   const std::string& getID(void) { return id_; };
   const std::string& getPrefabID(void) { return prefab_id_; };
 
- private:
+private:
   std::string id_;
   std::string prefab_id_;
 
+protected:
   Vector<3> position_{0.0, 0.0, 0.0};
   Quaternion quat_{1.0, 0.0, 0.0, 0.0};
   Vector<3> size_{1.0, 1.0, 1.0};
