@@ -11,7 +11,9 @@ class StaticObject {
 
   // public set functions
   virtual void setPosition(const Vector<3>& position) { position_ = position; };
-  virtual void setQuaternion(const Quaternion& quaternion) { quat_ = quaternion; };
+  virtual void setQuaternion(const Quaternion& quaternion) {
+    quat_ = quaternion;
+  };
   virtual void setSize(const Vector<3>& size) { size_ = size; };
 
   // public get functions
@@ -21,11 +23,11 @@ class StaticObject {
   const std::string& getID(void) { return id_; };
   const std::string& getPrefabID(void) { return prefab_id_; };
 
-private:
+ private:
   std::string id_;
   std::string prefab_id_;
 
-protected:
+ protected:
   Vector<3> position_{0.0, 0.0, 0.0};
   Quaternion quat_{1.0, 0.0, 0.0, 0.0};
   Vector<3> size_{1.0, 1.0, 1.0};
