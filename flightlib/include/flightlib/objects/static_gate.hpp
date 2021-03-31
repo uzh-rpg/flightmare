@@ -5,7 +5,7 @@
 namespace flightlib {
 class StaticGate : public StaticObject {
  public:
-  StaticGate(const std::string& id, const std::string& prefab_id="rpg_gate")
+  StaticGate(const std::string& id, const std::string& prefab_id = "rpg_gate")
     : StaticObject(id, prefab_id) {}
   ~StaticGate() {}
 };
