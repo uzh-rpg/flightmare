@@ -5,7 +5,7 @@
 namespace flightlib {
 class StaticObject {
  public:
-  StaticObject(std::string id, std::string prefab_id)
+  StaticObject(const std::string& id, const std::string& prefab_id)
     : id_(id), prefab_id_(prefab_id){};
   virtual ~StaticObject(){};
 
