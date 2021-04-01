@@ -57,7 +57,7 @@ Check `here <https://docs.anaconda.com/anaconda/install/linux>`_ for Anaconda in
    conda activate ENVNAME
 
 
-Install Flightmare
+Clone Flightmare
 ^^^^^^^^^^^^^^^^^^
 
 Clone the project to your desktop (or any other directory)
@@ -86,7 +86,8 @@ Install dependencies
 
    conda activate ENVNAME
    cd flightmare/
-   pip install -r requirements.txt
+   # install tensorflow GPU (for non-gpu user, use pip install tensorflow==1.14)
+   pip install tensorflow-gpu==1.14
 
 
 ### Install Flighmare (flightlib) 
