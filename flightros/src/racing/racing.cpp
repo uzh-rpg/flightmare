@@ -46,18 +46,24 @@ int main(int argc, char *argv[]) {
   // Initialize gates
   std::string object_id = "unity_gate";
   std::string prefab_id = "rpg_gate";
-  std::shared_ptr<StaticGate> gate_1 =
-    std::make_shared<StaticGate>(object_id, prefab_id);
-  gate_1->setPosition(Eigen::Vector3f(5, 0, 2.5));
-  gate_1->setRotation(
-    Quaternion(std::cos(1 * M_PI_2), 0.0, 0.0, std::sin(1 * M_PI_2)));
+  std::shared_ptr<StaticObject> gate_1 =
+    std::make_shared<StaticObject>(object_id, prefab_id);
+  gate_1->setPosition(Eigen::Vector3f(0, 10, 2.5));
+  gate_1->setQuaternion(
+    Quaternion(std::cos(1 * M_PI_4), 0.0, 0.0, std::sin(1 * M_PI_4)));
 
   std::string object_id_2 = "unity_gate_2";
   std::shared_ptr<StaticGate> gate_2 =
-    std::make_shared<StaticGate>(object_id_2, prefab_id);
-  gate_2->setPosition(Eigen::Vector3f(-5, 0, 2.5));
-  gate_2->setRotation(
-    Quaternion(std::cos(1 * M_PI_2), 0.0, 0.0, std::sin(1 * M_PI_2)));
+    std::make_shared<StaticGate>(object_id_2);
+  gate_2->setPosition(Eigen::Vector3f(0, -10, 2.5));
+  gate_2->setQuaternion(
+    Quaternion(std::cos(1 * M_PI_4), 0.0, 0.0, std::sin(1 * M_PI_4)));
+
+  std::string object_id_3 = "moving_gate";
+  std::shared_ptr<StaticGate> gate_3 =
+    std::make_shared<StaticGate>(object_id_3);
+  gate_3->setPosition(Eigen::Vector3f(5, 0, 2.5));
+  gate_3->setQuaternion(Quaternion(0.0, 0.0, 0.0, 1.0));
 
   // Define path through gates
   std::vector<Eigen::Vector3d> way_points;
@@ -86,6 +92,7 @@ int main(int argc, char *argv[]) {
 
   unity_bridge_ptr->addStaticObject(gate_1);
   unity_bridge_ptr->addStaticObject(gate_2);
+  unity_bridge_ptr->addStaticObject(gate_3);
   unity_bridge_ptr->addQuadrotor(quad_ptr);
   // connect unity
   unity_ready = unity_bridge_ptr->connectUnity(scene_id);
@@ -105,6 +112,10 @@ int main(int argc, char *argv[]) {
     quad_state.x[QS::ATTZ] = (Scalar)desired_pose.orientation.z();
 
     quad_ptr->setState(quad_state);
+
+    auto gate_position = gate_3->getPosition();
+    gate_position(0) = (Scalar)desired_pose.position.x();
+    gate_3->setPosition(gate_position);
 
     unity_bridge_ptr->getRender(frame_id);
     unity_bridge_ptr->handleOutput();

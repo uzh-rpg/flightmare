@@ -115,8 +115,8 @@ bool UnityBridge::getRender(const FrameID frame_id) {
 
   for (size_t idx = 0; idx < pub_msg_.objects.size(); idx++) {
     std::shared_ptr<StaticObject> gate = static_objects_[idx];
-    pub_msg_.objects[idx].position = positionRos2Unity(gate->getPos());
-    pub_msg_.objects[idx].rotation = quaternionRos2Unity(gate->getQuat());
+    pub_msg_.objects[idx].position = positionRos2Unity(gate->getPosition());
+    pub_msg_.objects[idx].rotation = quaternionRos2Unity(gate->getQuaternion());
   }
 
   // create new message object
@@ -187,8 +187,8 @@ bool UnityBridge::addStaticObject(std::shared_ptr<StaticObject> static_object) {
   Object_t object_t;
   object_t.ID = static_object->getID();
   object_t.prefab_ID = static_object->getPrefabID();
-  object_t.position = positionRos2Unity(static_object->getPos());
-  object_t.rotation = quaternionRos2Unity(static_object->getQuat());
+  object_t.position = positionRos2Unity(static_object->getPosition());
+  object_t.rotation = quaternionRos2Unity(static_object->getQuaternion());
   object_t.size = scalarRos2Unity(static_object->getSize());
 
   static_objects_.push_back(static_object);

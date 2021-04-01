@@ -21,15 +21,15 @@ using SceneID = size_t;
 // Define `Dynamic` matrix size.
 static constexpr int Dynamic = Eigen::Dynamic;
 
-// Using shorthand for `Matrix<ros, cols>` with scalar type.
+// Using shorthand for `Matrix<rows, cols>` with scalar type.
 template<int rows = Dynamic, int cols = Dynamic>
 using Matrix = Eigen::Matrix<Scalar, rows, cols>;
 
-// Using shorthand for `Matrix<ros, cols>` with scalar type.
+// Using shorthand for `Matrix<rows, cols>` with scalar type.
 template<int rows = Dynamic, int cols = Dynamic>
 using MatrixRowMajor = Eigen::Matrix<Scalar, rows, cols, Eigen::RowMajor>;
 
-// Using shorthand for `Vector<ros>` with scalar type.
+// Using shorthand for `Vector<rows>` with scalar type.
 template<int rows = Dynamic>
 using Vector = Matrix<rows, 1>;
 

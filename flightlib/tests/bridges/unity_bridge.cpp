@@ -177,9 +177,7 @@ TEST(UnityBridge, SpawnStaticGate) {
   unity_bridge.addQuadrotor(quad);
 
   std::string object_id = "unity_gate";
-  std::string prefab_id = "rpg_gate";
-  std::shared_ptr<StaticGate> obj =
-    std::make_shared<StaticGate>(object_id, prefab_id);
+  std::shared_ptr<StaticGate> obj = std::make_shared<StaticGate>(object_id);
   obj->setPosition(Eigen::Vector3f(0, -10, -3));
   unity_bridge.addStaticObject(obj);
 
@@ -208,9 +206,7 @@ TEST(UnityBridge, Spawn100StaticGate) {
   for (int i = 0; i < 4; i++) {
     for (int j = 0; j < 25; j++) {
       std::string object_id = "unity_gate" + std::to_string(25 * i + j);
-      std::string prefab_id = "rpg_gate";
-      std::shared_ptr<StaticGate> obj =
-        std::make_shared<StaticGate>(object_id, prefab_id);
+      std::shared_ptr<StaticGate> obj = std::make_shared<StaticGate>(object_id);
       obj->setPosition(Eigen::Vector3f(j - 12, -10 + i, -3));
       unity_bridge.addStaticObject(obj);
     }

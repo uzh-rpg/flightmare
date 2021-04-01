@@ -5,23 +5,32 @@
 namespace flightlib {
 class StaticObject {
  public:
-  StaticObject(std::string id, std::string prefab_id)
+  StaticObject(const std::string& id, const std::string& prefab_id)
     : id_(id), prefab_id_(prefab_id){};
   virtual ~StaticObject(){};
 
-  // publich get functions
-  virtual Vector<3> getPos(void) = 0;
-  virtual Quaternion getQuat(void) = 0;
-  virtual Vector<3> getSize(void) = 0;
+  // public set functions
+  virtual void setPosition(const Vector<3>& position) { position_ = position; };
+  virtual void setQuaternion(const Quaternion& quaternion) {
+    quat_ = quaternion;
+  };
+  virtual void setSize(const Vector<3>& size) { size_ = size; };
 
   // public get functions
-  const std::string getID(void) { return id_; };
-  const std::string getPrefabID(void) { return prefab_id_; };
+  virtual Vector<3> getPosition(void) { return position_; };
+  virtual Quaternion getQuaternion(void) { return quat_; };
+  virtual Vector<3> getSize(void) { return size_; };
+  const std::string& getID(void) { return id_; };
+  const std::string& getPrefabID(void) { return prefab_id_; };
 
+ private:
+  std::string id_;
+  std::string prefab_id_;
 
  protected:
-  const std::string id_;
-  const std::string prefab_id_;
+  Vector<3> position_{0.0, 0.0, 0.0};
+  Quaternion quat_{1.0, 0.0, 0.0, 0.0};
+  Vector<3> size_{1.0, 1.0, 1.0};
 };
 
 }  // namespace flightlib
