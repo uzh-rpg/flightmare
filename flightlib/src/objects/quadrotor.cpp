@@ -277,5 +277,6 @@ bool Quadrotor::getEventCamera(const size_t cam_id,
   camera = event_cameras_[cam_id];
   return true;
 }
+bool Quadrotor::getCollision() const { return collision_; }
 
 }  // namespace flightlib

@@ -45,6 +45,7 @@ class Quadrotor : ObjectBase {
 
   bool getCamera(const size_t cam_id, std::shared_ptr<RGBCamera> camera) const;
   bool getEventCamera(const size_t cam_id, std::shared_ptr<EventCamera> camera) const;
+  bool getCollision() const;
 
   // public set functions
   bool setState(const QuadState& state);

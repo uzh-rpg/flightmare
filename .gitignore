@@ -17,14 +17,8 @@ flightros/params/local.yaml
 !.vscode/extensions.json
 
 # General
-build/
 _build/
 .sass-cache
 _posts
 _site
-externals/*
 
-#Flightmare
-flightlib
-flightrl
-flighros

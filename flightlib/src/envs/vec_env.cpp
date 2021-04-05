@@ -152,7 +152,7 @@ void VecEnv<EnvBase>::perAgentStep(int agent_id, Ref<MatrixRowMajor<>> act,
   done(agent_id) = envs_[agent_id]->isTerminalState(terminal_reward);
 
   envs_[agent_id]->updateExtraInfo();
-  for (int j = 0; j < extra_info.size(); j++)
+  for (int j = 0; j < extra_info.cols(); j++)
     extra_info(agent_id, j) =
       envs_[agent_id]->extra_info_[extra_info_names_[j]];
 
