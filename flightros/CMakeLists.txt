@@ -44,7 +44,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -Wall -g")
 include_directories(include)
 
 cs_add_library(ros_utils
-    src/ros_utils.cpp)
+    src/utils/ros_utils.cpp)
 #pilot
 
 cs_add_library(flight_pilot
@@ -68,7 +68,7 @@ target_link_libraries(flight_pilot_node
 )
 
 cs_add_library(rosbag_writer
-src/rosbag_writer.cpp
+src/utils/rosbag_writer.cpp
 )
 
 cs_add_executable(testing
@@ -86,7 +86,7 @@ target_link_libraries(testing
 
 
 cs_add_executable(record
-src/record.cpp)
+src/event_camera/record.cpp)
 
 target_link_libraries(record
     ${catkin_LIBRARIES}
