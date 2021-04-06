@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="quad_name" default="hummingbird"/>
+
+  <arg name="debug" default="0" />
+  <rosparam command="load" file="$(find flightros)/params/snaga.yaml" />
+  <rosparam command="load" file="$(find flightros)/params/local.yaml" />
+
+  <node pkg="flightros" type="record" name="record" output="screen" launch-prefix="gdb -ex run --args" if="$(arg debug)">    
+    <!-- <rosparam file="$(find flightros)/params/default.yaml" /> -->
+    <!-- <remap from="flight_pilot/state_estimate" to="ground_truth/odometry" /> -->
+  </node>
+
+  <node pkg="flightros" type="record" name="record" output="screen" unless="$(arg debug)">    
+    <!-- <rosparam file="$(find flightros)/params/default.yaml" /> -->
+    <!-- <remap from="flight_pilot/state_estimate" to="ground_truth/odometry" /> -->
+  </node>
+
+</launch>

@@ -10,7 +10,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>catkin_simple</buildtool_depend>
-
+  <depend>ze_common</depend>
   <depend>gtest</depend>
 
 </package>

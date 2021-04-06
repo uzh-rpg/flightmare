@@ -10,6 +10,11 @@ option(BUILD_MP "Build Motion Planning" OFF)
 
 catkin_simple()
 
+catkin_package(
+    LIBRARIES
+    CATKIN_DEPENDS
+    )
+
 # Setup Default Build Type as Release
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
@@ -36,6 +41,10 @@ add_compile_options(-O3)
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_ARCH_FLAGS} -Wall -DNDEBUG -fPIC")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -Wall -g")
 
+include_directories(include)
+
+cs_add_library(ros_utils
+    src/utils/ros_utils.cpp)
 #pilot
 
 cs_add_library(flight_pilot
@@ -44,8 +53,8 @@ cs_add_library(flight_pilot
 
 target_link_libraries(flight_pilot
   ${catkin_LIBRARIES}
-  ${OpenCV_LIBRARIES}
-  stdc++fs
+  ${OpenCV_LIBRARIES}	
+  stdc++fs	
 )
 
 cs_add_executable(flight_pilot_node
@@ -54,8 +63,39 @@ cs_add_executable(flight_pilot_node
 
 target_link_libraries(flight_pilot_node
   flight_pilot
-  ${OpenCV_LIBRARIES}
+  ${OpenCV_LIBRARIES}	
   stdc++fs
+)
+
+cs_add_library(rosbag_writer
+src/utils/rosbag_writer.cpp
+)
+
+cs_add_executable(testing
+src/test/testing.cpp)
+
+target_link_libraries(testing
+    ${catkin_LIBRARIES}
+    ${OpenCV_LIBRARIES}
+    stdc++fs
+    rosbag_writer
+    ros_utils
+    zmq
+    zmqpp)
+
+
+
+cs_add_executable(record
+src/event_camera/record.cpp)
+
+target_link_libraries(record
+    ${catkin_LIBRARIES}
+    ${OpenCV_LIBRARIES}
+    stdc++fs
+    rosbag_writer
+    ros_utils
+    zmq
+    zmqpp
 )
 
 # motion_planning
