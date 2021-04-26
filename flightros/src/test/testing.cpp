@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
   ros::NodeHandle pnh("~");
   ros::Rate(50.0);
   image_transport::ImageTransport my_image_transport(nh);
-  std::vector<ze::real_t> times, mean_errors, stddev_errors;
+  // std::vector<ze::real_t> times, mean_errors, stddev_errors;
 
   // quad initialization
   testing::quad_ptr_ = std::make_unique<Quadrotor>();
@@ -181,14 +181,14 @@ int main(int argc, char* argv[]) {
     testing::quad_state_.x[QS::ATTY] = (Scalar)desired_pose.orientation.y();
     testing::quad_state_.x[QS::ATTZ] = (Scalar)desired_pose.orientation.z();
 
-    ze::Transformation tcv;
-    testing::quad_state_.qx.normalize();
-    tcv.getRotation() = ze::Quaternion(
-      testing::quad_state_.x[QS::ATTW], testing::quad_state_.x[QS::ATTX],
-      testing::quad_state_.x[QS::ATTY], testing::quad_state_.x[QS::ATTZ]);
-    tcv.getPosition() = ze::Position((Scalar)desired_pose.position.x(),
-                                     (Scalar)desired_pose.position.y(),
-                                     (Scalar)desired_pose.position.z());
+    // ze::Transformation tcv;
+    // testing::quad_state_.qx.normalize();
+    // tcv.getRotation() = ze::Quaternion(
+    //   testing::quad_state_.x[QS::ATTW], testing::quad_state_.x[QS::ATTX],
+    //   testing::quad_state_.x[QS::ATTY], testing::quad_state_.x[QS::ATTZ]);
+    // tcv.getPosition() = ze::Position((Scalar)desired_pose.position.x(),
+    //                                  (Scalar)desired_pose.position.y(),
+    //                                  (Scalar)desired_pose.position.z());
     testing::quad_ptr_->setState(testing::quad_state_);
     ROS_INFO_STREAM("time " << testing::event_camera_->getSecSimTime());
 
@@ -367,26 +367,26 @@ int main(int argc, char* argv[]) {
     // setup variables for next rendering
     if (frame < 10 || frame % 1 == 0) L_reconstructed = L.clone();
     else if (frame > 10) {
-      times.push_back(frame);
-      mean_errors.push_back(mean_error[0]);
-      stddev_errors.push_back(stddev_error[0]);
+      // times.push_back(frame);
+      // mean_errors.push_back(mean_error[0]);
+      // stddev_errors.push_back(stddev_error[0]);
     }
     L_last = L.clone();
 
     time_ += 0.001;
     frame++;
   }
-  // Plot the mean and stddev reconstruction error over time
-  ze::plt::plot(times, mean_errors, "r");
-  ze::plt::plot(times, stddev_errors, "b--");
-  std::stringstream title;
-  title << "C = " << cp << ", sigma = " << testing::event_camera_->getsigmaCm()
-        << ", bias = " << 0;
-  ze::plt::title(title.str());
-  ze::plt::xlabel("Time (s)");
-  ze::plt::ylabel("Mean / Stddev reconstruction error");
-  ze::plt::grid(true);
-  ze::plt::show();
+  // // Plot the mean and stddev reconstruction error over time
+  // ze::plt::plot(times, mean_errors, "r");
+  // ze::plt::plot(times, stddev_errors, "b--");
+  // std::stringstream title;
+  // title << "C = " << cp << ", sigma = " << testing::event_camera_->getsigmaCm()
+  //       << ", bias = " << 0;
+  // ze::plt::title(title.str());
+  // ze::plt::xlabel("Time (s)");
+  // ze::plt::ylabel("Mean / Stddev reconstruction error");
+  // ze::plt::grid(true);
+  // ze::plt::show();
   testing::events_text_file_.close();
   return 0;
 }

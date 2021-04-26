@@ -1,12 +1,12 @@
 #include <flightros/rosbag_writer.hpp>
 
-DECLARE_double(ros_publisher_camera_info_rate);
-DECLARE_double(ros_publisher_frame_rate);
-DECLARE_double(ros_publisher_depth_rate);
-DECLARE_double(ros_publisher_pointcloud_rate);
-DECLARE_double(ros_publisher_optic_flow_rate);
-DEFINE_string(path_to_output_bag, "",
-              "Path to which save the output bag file.");
+// DECLARE_double(ros_publisher_camera_info_rate);
+// DECLARE_double(ros_publisher_frame_rate);
+// DECLARE_double(ros_publisher_depth_rate);
+// DECLARE_double(ros_publisher_pointcloud_rate);
+// DECLARE_double(ros_publisher_optic_flow_rate);
+// DEFINE_string(path_to_output_bag, "",
+//               "Path to which save the output bag file.");
 
 namespace flightros {
 RosbagWriter::RosbagWriter(const std::string& path_to_output_bag) {
@@ -16,8 +16,8 @@ RosbagWriter::RosbagWriter(const std::string& path_to_output_bag) {
   try {
     bag_.open(path_to_output_bag, rosbag::bagmode::Write);
   } catch (rosbag::BagIOException e) {
-    LOG(FATAL) << "Error: could not open rosbag: " << FLAGS_path_to_output_bag
-               << std::endl;
+    // LOG(FATAL) << "Error: could not open rosbag: " << FLAGS_path_to_output_bag
+    //            << std::endl;
     return;
   }
 
@@ -33,8 +33,8 @@ RosbagWriter::RosbagWriter(const std::string& path_to_output_bag,
   try {
     bag_.open(path_to_output_bag, rosbag::bagmode::Write);
   } catch (rosbag::BagIOException e) {
-    LOG(FATAL) << "Error: could not open rosbag: " << FLAGS_path_to_output_bag
-               << std::endl;
+    // L<OG(FATAL) << "Error: could not open rosbag: " << FLAGS_path_to_output_bag
+    //            << std::endl;>
     return;
   }
   last_published_camera_info_time_ = 0;
@@ -42,9 +42,9 @@ RosbagWriter::RosbagWriter(const std::string& path_to_output_bag,
 }
 
 RosbagWriter::~RosbagWriter() {
-  LOG(INFO) << "Finalizing the bag...";
+  // LOG(INFO) << "Finalizing the bag...";
   bag_.close();
-  LOG(INFO) << "Finished writing to bag: " << FLAGS_path_to_output_bag;
+  // LOG(INFO) << "Finished writing to bag: " << FLAGS_path_to_output_bag;
 }
 
 void RosbagWriter::imageCallback(const ImagePtr& image, int64_t t) {
@@ -122,24 +122,34 @@ void RosbagWriter::eventsCallback(const EventsVector& events, int64_t t) {
              msg);
 }
 
-void RosbagWriter::poseCallback(const ze::Transformation& T_W_C, int64_t t) {
+void RosbagWriter::poseCallback(QuadState& quad_state, int64_t t) {
   geometry_msgs::PoseStamped pose_stamped_msg;
-  geometry_msgs::TransformStamped transform_stamped_msg;
-  transform_stamped_msg.header.frame_id = "map";
-  transform_stamped_msg.header.stamp = toRosTime(t + starting_time);
-  tf::tfMessage tf_msg;
+  pose_stamped_msg.header.frame_id = "map";
+  pose_stamped_msg.header.stamp = toRosTime(t + starting_time);
+  pose_stamped_msg.pose.orientation.x=quad_state.x[QS::ATTX];
+  pose_stamped_msg.pose.orientation.y=quad_state.x[QS::ATTY];
+  pose_stamped_msg.pose.orientation.z=quad_state.x[QS::ATTZ];
+  pose_stamped_msg.pose.orientation.w=quad_state.x[QS::ATTW];
 
-  tf::poseStampedKindrToMsg(T_W_C, toRosTime(t + starting_time), "map",
-                            &pose_stamped_msg);
+  pose_stamped_msg.pose.position.x=quad_state.x[QS::POSX];
+  pose_stamped_msg.pose.position.y=quad_state.x[QS::POSY];
+  pose_stamped_msg.pose.position.z=quad_state.x[QS::POSZ];
+
   bag_.write(getTopicName(topic_name_prefix_, 0, "pose"),
-             toRosTime(t + starting_time), pose_stamped_msg);
+            toRosTime(t + starting_time), pose_stamped_msg);
 
-  // Write tf transform to bag
-  std::stringstream ss;
-  ss << "cam";
-  transform_stamped_msg.child_frame_id = ss.str();
-  tf::transformKindrToMsg(T_W_C, &transform_stamped_msg.transform);
-  tf_msg.transforms.push_back(transform_stamped_msg);
-  bag_.write("/tf", toRosTime(t + starting_time), tf_msg);
+  // geometry_msgs::TransformStamped transform_stamped_msg;
+  // tf::tfMessage tf_msg;
+  // transform_stamped_msg.header.frame_id = "map";
+  // transform_stamped_msg.header.stamp = toRosTime(t + starting_time);
+  // std::stringstream ss;
+  // ss << "cam";
+  // transform_stamped_msg.child_frame_id = ss.str();
+  // // tf::transformKindrToMsg(T_W_C, &transform_stamped_msg.transform);
+  // transform_stamped_msg.transform.translation.
+
+  // tf_msg.transforms.push_back(transform_stamped_msg);
+  // bag_.write("/tf", toRosTime(t + starting_time), tf_msg);
+
 }
 }  // namespace flightros

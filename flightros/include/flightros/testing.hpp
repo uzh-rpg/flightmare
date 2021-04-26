@@ -43,13 +43,6 @@
 #include <quadrotor_common/trajectory_point.h>
 
 #include <fstream>
-#include <ze/common/file_utils.hpp>
-#include <ze/common/path_utils.hpp>
-#include <ze/common/string_utils.hpp>
-#include <ze/common/test_entrypoint.hpp>
-#include <ze/common/time_conversions.hpp>
-#include <ze/common/transformation.hpp>
-#include <ze/matplotlib/matplotlibcpp.hpp>
 
 using namespace flightlib;
 using namespace flightros;
@@ -86,7 +79,7 @@ RenderMessage_t unity_output_;
 uint16_t receive_id_{0};
 std::ofstream events_text_file_;
 int count_;
-std::vector<ze::real_t> values, amount;
+// std::vector<ze::real_t> values, amount;
 std::vector<float> errors;
 int num_cam=1;
 const std::string path_to_output_bag= "/home/gian/bags_flightmare/out.bag";

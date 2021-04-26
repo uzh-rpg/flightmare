@@ -408,16 +408,10 @@ int main(int argc, char* argv[]) {
     line_pub_.publish(desired_path);
 
     // define new position and orientation
-    ze::Transformation twc;
     record::quad_state_.qx.normalize();
-    twc.getRotation() = ze::Quaternion(
-      record::quad_state_.x[QS::ATTW], record::quad_state_.x[QS::ATTX],
-      record::quad_state_.x[QS::ATTY], record::quad_state_.x[QS::ATTZ]);
-    twc.getPosition() = ze::Position(record::quad_state_.x[QS::POSX],
-                                     record::quad_state_.x[QS::POSY],
-                                     record::quad_state_.x[QS::POSZ]);
+
     // writ position to rosbag
-    record::writer_->poseCallback(twc, record::event_camera_->getNanoSimTime());
+    record::writer_->poseCallback(record::quad_state_, record::event_camera_->getNanoSimTime());
 
     ROS_INFO_STREAM("pose " << record::quad_state_.x[QS::POSX] << "/"
                             << record::quad_state_.x[QS::POSY] << "/"
