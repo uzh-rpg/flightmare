@@ -113,7 +113,8 @@ bool UnityBridge::getRender(const FrameID frame_id) {
     unity_quadrotors_[idx]->getState(&quad_state);
     pub_msg_.vehicles[idx].position = positionRos2Unity(quad_state.p);
     pub_msg_.vehicles[idx].rotation = quaternionRos2Unity(quad_state.q());
-    pub_msg_.vehicles[idx].size = scalarRos2Unity(unity_quadrotors_[idx]->getSize());
+    pub_msg_.vehicles[idx].size =
+      scalarRos2Unity(unity_quadrotors_[idx]->getSize());
   }
 
   // Update static objects as well
