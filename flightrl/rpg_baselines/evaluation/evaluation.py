@@ -97,7 +97,6 @@ def main():
     
     object_density_fractions_initial = np.linspace(0, 1.0, num=num_density_values, dtype=np.float32)
     object_density_fractions_different_episodes = np.repeat(object_density_fractions_initial, num_rollouts_per_density)
-    object_density_fractions_different_episodes[(num_rollouts_per_density-1):-1] = object_density_fractions_different_episodes[num_rollouts_per_density:]
     env.set_objects_densities(object_density_fractions = object_density_fractions_initial[0].reshape(1, -1))
     
     episodes_terminal_goal_number = np.zeros([num_rollouts], dtype=np.float32)
@@ -116,7 +115,7 @@ def main():
         current_goal , _, _ = high_level_planner.get_current_goal(drone_position=drone_pos, num_run=int(n_roll%num_rollouts_per_density))
             
         # Single episode until termination.
-        while not (done or (ep_len >= max_ep_length)):
+        while not (done or done_from_high_level_planner or (ep_len >= max_ep_length)):
             actions = obstacle_avoidance_agent.getActions(obs, done, images, current_goal)
 
             if ep_len == 5:
