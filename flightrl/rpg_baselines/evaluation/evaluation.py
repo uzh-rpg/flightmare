@@ -97,6 +97,7 @@ def main():
     
     object_density_fractions_initial = np.linspace(0, 1.0, num=num_density_values, dtype=np.float32)
     object_density_fractions_different_episodes = np.repeat(object_density_fractions_initial, num_rollouts_per_density)
+    object_density_fractions_different_episodes[(num_rollouts_per_density-1):-1] = object_density_fractions_different_episodes[num_rollouts_per_density:]
     env.set_objects_densities(object_density_fractions = object_density_fractions_initial[0].reshape(1, -1))
     
     episodes_terminal_goal_number = np.zeros([num_rollouts], dtype=np.float32)
@@ -106,7 +107,7 @@ def main():
     while n_roll < num_rollouts:
         drone_pos, drone_vel, euler, deuler, goal_pos, reward_instant = [], [], [], [], [], []
         actions = []     
-        done, ep_len = False, 0
+        done, done_from_high_level_planner, ep_len = False, False, 0
         if (n_roll == 0):
             obs = env.reset()
             images = env.get_images()
