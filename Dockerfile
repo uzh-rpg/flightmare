@@ -27,7 +27,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN apt-get update && apt-get install -y python3-setuptools && pip3 install catkin-tools 
 
 RUN /bin/bash cd /home && git clone https://github.com/uzh-rpg/flightmare.git \
-    && echo "export FLIGHTMARE_PATH=/home/flightmare" >> ~/.bashrc
+    && echo "export FLIGHTMARE_PATH=/home/flightmare" >> ~/.bashrc \
     && source ~/.bashrc
 
 RUN /bin/bash cd /home/flightmare/flightlib && pip3 install . \
