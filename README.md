@@ -26,7 +26,7 @@ Installation instructions can be found in our [Wiki](https://github.com/uzh-rpg/
 If you use this code in a publication, please cite the following paper **[PDF](http://rpg.ifi.uzh.ch/docs/CoRL20_Yunlong.pdf)**
 
 ```
-@article{song2020flightmare,
+@inproceedings{song2020flightmare,
     title={Flightmare: A Flexible Quadrotor Simulator},
     author={Song, Yunlong and Naji, Selim and Kaufmann, Elia and Loquercio, Antonio and Scaramuzza, Davide},
     booktitle={Conference on Robot Learning},
