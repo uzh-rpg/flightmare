@@ -5,6 +5,7 @@
 namespace flightlib {
 class StaticObject {
  public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   StaticObject(const std::string& id, const std::string& prefab_id)
     : id_(id), prefab_id_(prefab_id){};
   virtual ~StaticObject(){};
