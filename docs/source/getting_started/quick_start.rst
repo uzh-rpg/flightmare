@@ -128,7 +128,7 @@ Install system and ROS dependencies (on **Ubuntu20.04**, replace `python-vcstool
 
 .. code-block:: bash
 
-   sudo apt-get install libgoogle-glog-dev protobuf-compiler ros-$ROS_DISTRO-octomap-msgs ros-$ROS_DISTRO-octomap-ros ros-$ROS_DISTRO-joy python-vcstool
+   sudo apt-get install libgoogle-glog-dev protobuf-compiler ros-$ROS_DISTRO-octomap-msgs ros-$ROS_DISTRO-octomap ros-$ROS_DISTRO-joy python-vcstool
 
 
 Before continuing, make sure that your protobuf compiler version is 3.0.0.
