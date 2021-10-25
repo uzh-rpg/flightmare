@@ -1,6 +1,6 @@
 #include <cv_bridge/cv_bridge.h>
 
-#include <flightros/ros_utils.hpp>
+#include "flightros/event_camera/ros_utils.hpp"
 
 namespace flightros {
 

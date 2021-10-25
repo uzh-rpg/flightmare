@@ -44,7 +44,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -Wall -g")
 include_directories(include)
 
 cs_add_library(ros_utils
-    src/utils/ros_utils.cpp)
+    src/event_camera/ros_utils.cpp)
 #pilot
 
 cs_add_library(flight_pilot
@@ -68,11 +68,11 @@ target_link_libraries(flight_pilot_node
 )
 
 cs_add_library(rosbag_writer
-src/utils/rosbag_writer.cpp
+src/event_camera/rosbag_writer.cpp
 )
 
 cs_add_executable(testing
-src/test/testing.cpp)
+src/event_camera/testing.cpp)
 
 target_link_libraries(testing
     ${catkin_LIBRARIES}
@@ -169,11 +169,11 @@ cs_add_executable(racing
 )
 
 target_link_libraries(racing
-${catkin_LIBRARIES}
-${OpenCV_LIBRARIES}
-stdc++fs
-zmq
-zmqpp
+    ${catkin_LIBRARIES}
+    ${OpenCV_LIBRARIES}
+    stdc++fs
+    zmq
+    zmqpp
 )
 
 # camera
@@ -183,11 +183,11 @@ cs_add_executable(camera
 )
 
 target_link_libraries(camera
-${catkin_LIBRARIES}
-${OpenCV_LIBRARIES}
-stdc++fs
-zmq
-zmqpp
+    ${catkin_LIBRARIES}
+    ${OpenCV_LIBRARIES}
+    stdc++fs
+    zmq
+    zmqpp
 )
 
 # Finish

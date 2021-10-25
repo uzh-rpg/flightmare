@@ -1,4 +1,4 @@
-#include "flightros/testing.hpp"
+#include "flightros/event_camera/testing.hpp"
 
 bool testing::setUnity(const bool render) {
   unity_render_ = render;
@@ -93,9 +93,9 @@ int main(int argc, char* argv[]) {
   testing::rgb_camera_->setPostProcesscing(
     std::vector<bool>{true, false, true});  // depth, segmentation, optical flow
   testing::quad_ptr_->addRGBCamera(testing::rgb_camera_);
-  
+
   // initialize event camera, careful with the image size.
-  // h,w should be a mutliple of 8 otherwise the thread groups in the compute 
+  // h,w should be a mutliple of 8 otherwise the thread groups in the compute
   // shader need to be adapted
   testing::event_camera_->setFOV(83);
   testing::event_camera_->setWidth(512);
@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
   testing::event_camera_->setLogEps(0.0001);
   testing::quad_ptr_->addEventCamera(testing::event_camera_);
 
-  // scene can be changed 
+  // scene can be changed
   // testing::scene_id_ = 1;
   double cp = testing::event_camera_->getCp();
   double cm = testing::event_camera_->getCm();
@@ -136,7 +136,7 @@ int main(int argc, char* argv[]) {
   // connect unity
   testing::connectUnity();
 
-  // Define path 
+  // Define path
   std::vector<Eigen::Vector3d> way_points;
   way_points.push_back(Eigen::Vector3d(0, 10, 2.5));
   way_points.push_back(Eigen::Vector3d(5, 0, 2.5));
@@ -168,7 +168,6 @@ int main(int argc, char* argv[]) {
   float time_ = 0;
   while (ros::ok() && testing::unity_render_ && testing::unity_ready_ &&
          frame < 200) {
-
     quadrotor_common::TrajectoryPoint desired_pose =
       polynomial_trajectories::getPointFromTrajectory(trajectory,
                                                       ros::Duration(time_));
@@ -195,7 +194,7 @@ int main(int argc, char* argv[]) {
     testing::unity_bridge_ptr_->getRender(0);
     testing::unity_bridge_ptr_->handleOutput(true);
 
-    //make some checks
+    // make some checks
     cv::Mat new_image, rgb_img, of_img, depth_img;
     testing::event_camera_->getRGBImage(new_image);
 
@@ -229,7 +228,8 @@ int main(int argc, char* argv[]) {
       cv_bridge::CvImage(std_msgs::Header(), "32FC1", depth_img).toImageMsg();
     testing::depth_pub_.publish(depth_msg);
 
-    ROS_INFO_STREAM("recieved OF and depth " << was_of_empty << " / "<< was_depth_empty);
+    ROS_INFO_STREAM("recieved OF and depth " << was_of_empty << " / "
+                                             << was_depth_empty);
     ROS_INFO_STREAM("new image type " << testing::type2str(of_img.type()));
 
     // coonvert rgb image to gray
@@ -365,7 +365,8 @@ int main(int argc, char* argv[]) {
                     << max.x);
 
     // setup variables for next rendering
-    if (frame < 10 || frame % 1 == 0) L_reconstructed = L.clone();
+    if (frame < 10 || frame % 1 == 0)
+      L_reconstructed = L.clone();
     else if (frame > 10) {
       // times.push_back(frame);
       // mean_errors.push_back(mean_error[0]);
@@ -380,7 +381,8 @@ int main(int argc, char* argv[]) {
   // ze::plt::plot(times, mean_errors, "r");
   // ze::plt::plot(times, stddev_errors, "b--");
   // std::stringstream title;
-  // title << "C = " << cp << ", sigma = " << testing::event_camera_->getsigmaCm()
+  // title << "C = " << cp << ", sigma = " <<
+  // testing::event_camera_->getsigmaCm()
   //       << ", bias = " << 0;
   // ze::plt::title(title.str());
   // ze::plt::xlabel("Time (s)");

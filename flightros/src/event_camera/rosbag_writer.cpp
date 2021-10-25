@@ -1,4 +1,4 @@
-#include <flightros/rosbag_writer.hpp>
+#include "flightros/event_camera/rosbag_writer.hpp"
 
 // DECLARE_double(ros_publisher_camera_info_rate);
 // DECLARE_double(ros_publisher_frame_rate);
@@ -13,13 +13,16 @@ RosbagWriter::RosbagWriter(const std::string& path_to_output_bag) {
   num_cameras_ = 1;
   sensor_size_ = cv::Size(100, 100);
   starting_time = 1;
-  try {
-    bag_.open(path_to_output_bag, rosbag::bagmode::Write);
-  } catch (rosbag::BagIOException e) {
-    // LOG(FATAL) << "Error: could not open rosbag: " << FLAGS_path_to_output_bag
-    //            << std::endl;
-    return;
-  }
+  // try {
+  bag_.open(path_to_output_bag, rosbag::bagmode::Write);
+  std::cout << "Successfully open the ros bag. " << path_to_output_bag
+            << std::endl;
+  // } catch (rosbag::BagIOException e) {
+  //   // LOG(FATAL) << "Error: could not open rosbag: " <<
+  //   // FLAGS_path_to_output_bag
+  //   //            << std::endl;
+  //   return;
+  // }
 
   last_published_camera_info_time_ = 0;
   last_published_image_time_ = 0;
@@ -30,13 +33,14 @@ RosbagWriter::RosbagWriter(const std::string& path_to_output_bag,
   sensor_size_ = cv::Size(100, 100);
 
   starting_time = 1;  // stime
-  try {
-    bag_.open(path_to_output_bag, rosbag::bagmode::Write);
-  } catch (rosbag::BagIOException e) {
-    // L<OG(FATAL) << "Error: could not open rosbag: " << FLAGS_path_to_output_bag
-    //            << std::endl;>
-    return;
-  }
+                      // try {
+  bag_.open(path_to_output_bag, rosbag::bagmode::Write);
+  // } catch (rosbag::BagIOException e) {
+  //   // L<OG(FATAL) << "Error: could not open rosbag: " <<
+  //   // FLAGS_path_to_output_bag
+  //   //            << std::endl;>
+  //   return;
+  // }
   last_published_camera_info_time_ = 0;
   last_published_image_time_ = 0;
 }
@@ -126,17 +130,17 @@ void RosbagWriter::poseCallback(QuadState& quad_state, int64_t t) {
   geometry_msgs::PoseStamped pose_stamped_msg;
   pose_stamped_msg.header.frame_id = "map";
   pose_stamped_msg.header.stamp = toRosTime(t + starting_time);
-  pose_stamped_msg.pose.orientation.x=quad_state.x[QS::ATTX];
-  pose_stamped_msg.pose.orientation.y=quad_state.x[QS::ATTY];
-  pose_stamped_msg.pose.orientation.z=quad_state.x[QS::ATTZ];
-  pose_stamped_msg.pose.orientation.w=quad_state.x[QS::ATTW];
+  pose_stamped_msg.pose.orientation.x = quad_state.x[QS::ATTX];
+  pose_stamped_msg.pose.orientation.y = quad_state.x[QS::ATTY];
+  pose_stamped_msg.pose.orientation.z = quad_state.x[QS::ATTZ];
+  pose_stamped_msg.pose.orientation.w = quad_state.x[QS::ATTW];
 
-  pose_stamped_msg.pose.position.x=quad_state.x[QS::POSX];
-  pose_stamped_msg.pose.position.y=quad_state.x[QS::POSY];
-  pose_stamped_msg.pose.position.z=quad_state.x[QS::POSZ];
+  pose_stamped_msg.pose.position.x = quad_state.x[QS::POSX];
+  pose_stamped_msg.pose.position.y = quad_state.x[QS::POSY];
+  pose_stamped_msg.pose.position.z = quad_state.x[QS::POSZ];
 
   bag_.write(getTopicName(topic_name_prefix_, 0, "pose"),
-            toRosTime(t + starting_time), pose_stamped_msg);
+             toRosTime(t + starting_time), pose_stamped_msg);
 
   // geometry_msgs::TransformStamped transform_stamped_msg;
   // tf::tfMessage tf_msg;
@@ -150,6 +154,5 @@ void RosbagWriter::poseCallback(QuadState& quad_state, int64_t t) {
 
   // tf_msg.transforms.push_back(transform_stamped_msg);
   // bag_.write("/tf", toRosTime(t + starting_time), tf_msg);
-
 }
 }  // namespace flightros

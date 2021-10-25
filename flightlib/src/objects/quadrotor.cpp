@@ -240,7 +240,7 @@ bool Quadrotor::addRGBCamera(std::shared_ptr<RGBCamera> camera) {
   return true;
 }
 
-  bool Quadrotor::addEventCamera(std::shared_ptr<EventCamera> camera){
+bool Quadrotor::addEventCamera(std::shared_ptr<EventCamera> camera) {
   event_cameras_.push_back(camera);
   return true;
 }

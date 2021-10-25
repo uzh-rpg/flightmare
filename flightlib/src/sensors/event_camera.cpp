@@ -34,7 +34,8 @@ bool EventCamera::setRelPose(const Ref<Vector<3>> B_r_BC,
                              const Ref<Matrix<3, 3>> R_BC) {
   if (!B_r_BC.allFinite() || !R_BC.allFinite()) {
     logger_.error(
-      "The setting value for Camera Relative Pose Matrix is not valid, discard "
+      "The setting value for Camera Relative Pose Matrix is not valid, "
+      "discard "
       "the setting.");
     return false;
   }

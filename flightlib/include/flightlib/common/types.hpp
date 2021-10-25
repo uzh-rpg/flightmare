@@ -122,6 +122,4 @@ using RGBImagePtr = std::shared_ptr<RGBImage>;
 using RGBImagePtrVector = std::vector<RGBImagePtr>;
 
 
-
-
 }  // namespace flightlib

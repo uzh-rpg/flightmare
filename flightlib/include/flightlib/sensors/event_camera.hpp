@@ -75,7 +75,7 @@ class EventCamera : SensorBase {
   cv::Mat createEventimages();
 
  private:
-  Logger logger_{"RBGCamera"};
+  Logger logger_{"EventCamera"};
 
   // camera parameters
   int channels_;

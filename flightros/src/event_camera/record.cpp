@@ -1,4 +1,4 @@
-#include "flightros/record.hpp"
+#include "flightros/event_camera/record.hpp"
 
 bool record::setUnity(const bool render) {
   unity_render_ = render;
@@ -90,7 +90,7 @@ void record::createMinSnap(const std::vector<Eigen::Vector3d> waypoints,
   // identify the segment times
   Eigen::VectorXd segment_times = Eigen::VectorXd::Ones(waypoints.size() - 1);
   double desired_speed = 1.0;
-  for (int i = 0; i < waypoints.size() - 1; i++) {
+  for (int i = 0; i < (int)waypoints.size() - 1; i++) {
     segment_times[i] =
       (waypoints.at(i + 1) - waypoints.at(i)).norm() / desired_speed;
     ROS_INFO_STREAM("seg time" << segment_times[i]);
@@ -131,7 +131,7 @@ polynomial_trajectories::PolynomialTrajectory record::createOwnSnap(
   const std::vector<Eigen::Vector3d> waypoints_in,
   Eigen::VectorXd segment_times_in) {
   double desired_speed_in = 1.0;
-  for (int i = 0; i < waypoints_in.size() - 1; i++) {
+  for (int i = 0; i < (int)waypoints_in.size() - 1; i++) {
     segment_times_in[i] =
       (waypoints_in.at(i + 1) - waypoints_in.at(i)).norm() / desired_speed_in;
     ROS_INFO_STREAM("seg time: " << segment_times_in[i]);
@@ -316,11 +316,11 @@ int main(int argc, char* argv[]) {
         generateMinimumSnapRingTrajectory(segment_times, trajectory_settings,
                                           20.0, 20.0, 6.0);
   } else {
-    for (int it = 0; it < waypts_x.size(); it++) {
+    for (int it = 0; it < (int)waypts_x.size(); it++) {
       way_points.push_back(
         Eigen::Vector3d(waypts_x.at(it), waypts_y.at(it), waypts_z.at(it)));
     }
-    for (int it = 0; it < waypts_x.size() - 1; it++) {
+    for (int it = 0; it < (int)waypts_x.size() - 1; it++) {
       seg_times[it] = 10.0;
     }
   }
@@ -411,7 +411,8 @@ int main(int argc, char* argv[]) {
     record::quad_state_.qx.normalize();
 
     // writ position to rosbag
-    record::writer_->poseCallback(record::quad_state_, record::event_camera_->getNanoSimTime());
+    record::writer_->poseCallback(record::quad_state_,
+                                  record::event_camera_->getNanoSimTime());
 
     ROS_INFO_STREAM("pose " << record::quad_state_.x[QS::POSX] << "/"
                             << record::quad_state_.x[QS::POSY] << "/"
