@@ -204,7 +204,6 @@ int main(int argc, char* argv[]) {
   pnh.getParam("/rosbag/rotate", rotate);
   pnh.getParam("/rosbag/trajectory_rotation", trajectory_rotation);
   pnh.getParam("/rosbag/position_trajectory", position_trajectory);
-  pnh.getParam("/rosbag/path", record::path_to_output_bag);
   pnh.getParam("/rosbag/ring_traj", ring_traj);
   pnh.getParam("/rosbag/scene_id", scene);
   pnh.getParam("/rosbag/trajectory", which_trajectory);

@@ -246,7 +246,7 @@ bool UnityBridge::addStaticObject(std::shared_ptr<StaticObject> static_object) {
 
 bool UnityBridge::handleOutput() {
   bool always = false;
-  handleOutput(always);
+  return handleOutput(always);
 }
 
 bool UnityBridge::handleOutput(bool always) {
@@ -391,32 +391,31 @@ bool UnityBridge::handleOutput(bool always) {
 
 bool UnityBridge::getPointCloud(PointCloudMessage_t& pointcloud_msg,
                                 Scalar time_out) {
-  // // create new message object
-  // zmqpp::message msg;
-  // // add topic header
-  // msg << "PointCloud";
-  // // create JSON object for initial settings
-  // json json_msg = pointcloud_msg;
-  // msg << json_msg.dump();
-  // // send message without blocking
-  // pub_.send(msg, true);
+  // create new message object
+  zmqpp::message msg;
+  // add topic header
+  msg << "PointCloud";
+  // create JSON object for initial settings
+  json json_msg = pointcloud_msg;
+  msg << json_msg.dump();
+  // send message without blocking
+  pub_.send(msg, true);
 
-  // std::cout << "Generate PointCloud: Timeout=" << (int)time_out << "
-  // seconds."
-  //           << std::endl;
+  std::cout << "Generate PointCloud: Timeout=" << (int)time_out << "seconds."
+            << std::endl;
 
-  // Scalar run_time = 0.0;
-  // while (!std::experimental::filesystem::exists(
-  //   pointcloud_msg.path + pointcloud_msg.file_name + ".ply")) {
-  //   if (run_time >= time_out) {
-  //     logger_.warn("Timeout... PointCloud was not saved within expected
-  //     time."); return false;
-  //   }
-  //   std::cout << "Waiting for Pointcloud: Current Runtime=" << (int)run_time
-  //             << " seconds." << std::endl;
-  //   usleep((time_out / 10.0) * 1e6);
-  //   run_time += time_out / 10.0;
-  // }
+  Scalar run_time = 0.0;
+  while (!std::experimental::filesystem::exists(
+    pointcloud_msg.path + pointcloud_msg.file_name + ".ply")) {
+    if (run_time >= time_out) {
+      logger_.warn("Timeout... PointCloud was not saved within expected time.");
+      return false;
+    }
+    std::cout << "Waiting for Pointcloud: Current Runtime=" << (int)run_time
+              << " seconds." << std::endl;
+    usleep((time_out / 10.0) * 1e6);
+    run_time += time_out / 10.0;
+  }
   return true;
 }
 

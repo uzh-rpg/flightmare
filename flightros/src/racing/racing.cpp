@@ -32,7 +32,6 @@ int main(int argc, char *argv[]) {
   // Flightmare(Unity3D)
   std::shared_ptr<UnityBridge> unity_bridge_ptr = UnityBridge::getInstance();
   SceneID scene_id{UnityScene::WAREHOUSE};
-  scene_id = 4;
   bool unity_ready{false};
 
   // unity quadrotor
