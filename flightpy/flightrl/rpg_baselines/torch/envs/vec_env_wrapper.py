@@ -61,8 +61,7 @@ class FlightEnvVec(VecEnv):
             [self.num_envs, self.rew_dim - 1], dtype=np.float64
         )
 
-        self._quadstate = np.zeros([self.num_envs, 44], dtype=np.float64)
-        self._gatecorners = np.zeros([self.num_envs, 24], dtype=np.float64)
+        self._quadstate = np.zeros([self.num_envs, 25], dtype=np.float64)
         self._quadact = np.zeros([self.num_envs, 4], dtype=np.float64)
         self._flightmodes = np.zeros([self.num_envs, 1], dtype=np.float64)
 
@@ -178,9 +177,6 @@ class FlightEnvVec(VecEnv):
     def getProgress(self):
         return self._reward_components[:, 0]
 
-    def getNumGates(self):
-        return self.wrapper.getNumGates()
-
     def getImage(self, rgb=False):
         if rgb:
             self.wrapper.getImage(self._rgb_img_obs, True)
@@ -237,31 +233,9 @@ class FlightEnvVec(VecEnv):
         self.wrapper.getQuadState(self._quadstate)
         return self._quadstate
 
-    def getFlightmodes(self):
-        self.wrapper.getFlightmode(self._flightmodes)
-        return self._flightmodes.copy()
-
     def getQuadAct(self):
         self.wrapper.getQuadAct(self._quadact)
         return self._quadact
-
-    def getGateCorners(self, n_gate):
-        gatecorners = np.zeros([self.num_envs, 24 * n_gate], dtype=np.float64)
-        self.wrapper.getGateCorners(gatecorners, n_gate)
-        return gatecorners
-
-    def getGateCornersObs(self, normalized=False):
-        gatecorners_obs = np.zeros([self.num_envs, 8], dtype=np.float64)
-        self.wrapper.getGateCornersObs(gatecorners_obs, normalized)
-        return gatecorners_obs.reshape((self.num_envs, 2, 4), order="F")
-
-    def getGateState(self, n_gate):
-        gatestate = np.zeros([self.num_envs, 7 * n_gate], dtype=np.float64)
-        self.wrapper.getGateState(gatestate, n_gate)
-        return gatestate
-
-    def addInitialGateState(self, quad_state, gate_idx):
-        self.wrapper.addInitialQuadState(quad_state, gate_idx)
 
     def getExtraInfo(self):
         return self._extraInfo

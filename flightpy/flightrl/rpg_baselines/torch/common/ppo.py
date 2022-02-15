@@ -2,19 +2,19 @@ import os
 import warnings
 from typing import Any, Callable, Dict, Optional, Type, Union
 
-import gym
+import pandas as pd
 import numpy as np
 import torch as th
 from gym import spaces
 #
 from flightrl.rpg_baselines.torch.common.on_policy_algorithm import OnPolicyAlgorithm
+from flightrl.rpg_baselines.torch.common.util import traj_rollout
 
 # 
 from stable_baselines3.common.policies import ActorCriticPolicy
 from stable_baselines3.common.type_aliases import GymEnv, MaybeCallback
 from stable_baselines3.common.utils import explained_variance, get_schedule_fn
 from torch.nn import functional as F
-
 
 class PPO(OnPolicyAlgorithm):
     """
@@ -297,8 +297,19 @@ class PPO(OnPolicyAlgorithm):
         if self.clip_range_vf is not None:
             self.logger.record("train/clip_range_vf", clip_range_vf)
 
-    def eval(self) -> None:
-        pass
+    def eval(self, iteration) -> None:
+        save_path = self.logger.get_dir() + "/TestTraj"
+        os.makedirs(save_path, exist_ok=True)
+
+        # 
+        self.policy.eval()
+        self.eval_env.load_rms(
+            self.logger.get_dir() + "/RMS/iter_{0:05d}.npz".format(iteration)
+        )
+
+        # rollout trajectory
+        traj_df = traj_rollout(self.eval_env, self.policy, [[0]])
+        traj_df.to_csv(save_path + "/test_traj_{0:05d}.csv".format(iteration))
 
     def learn(
         self,

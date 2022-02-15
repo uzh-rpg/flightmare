@@ -221,10 +221,14 @@ bool Quadrotor::getMotorThrusts(Ref<Vector<4>> motor_thrusts) const {
   return true;
 }
 
+Vector<4> Quadrotor::getMotorThrusts() const { return motor_thrusts_; }
+
 bool Quadrotor::getMotorOmega(Ref<Vector<4>> motor_omega) const {
   motor_omega = motor_omega_;
   return true;
 }
+
+Vector<4> Quadrotor::getMotorOmega() const { return motor_omega_; }
 
 bool Quadrotor::getDynamics(QuadrotorDynamics *const dynamics) const {
   if (!dynamics_.valid()) return false;

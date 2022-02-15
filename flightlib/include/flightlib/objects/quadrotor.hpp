@@ -36,7 +36,9 @@ class Quadrotor : ObjectBase {
   // public get functions
   bool getState(QuadState* const state) const;
   bool getMotorThrusts(Ref<Vector<4>> motor_thrusts) const;
+  Vector<4> getMotorThrusts(void) const;
   bool getMotorOmega(Ref<Vector<4>> motor_omega) const;
+  Vector<4> getMotorOmega(void) const;
   bool getDynamics(QuadrotorDynamics* const dynamics) const;
 
   const QuadrotorDynamics& getDynamics();

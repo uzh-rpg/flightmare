@@ -158,7 +158,9 @@ bool QuadrotorEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs,
     return false;
   //
   pi_act_ = act.cwiseProduct(act_std_) + act_mean_;
+
   cmd_.t += sim_dt_;
+  quad_state_.t += sim_dt_;
 
   if (rotor_ctrl_ == Command::SINGLEROTOR) {
     cmd_.thrusts = pi_act_;
@@ -220,7 +222,9 @@ bool QuadrotorEnv::getQuadAct(Ref<Vector<>> act) const {
 
 bool QuadrotorEnv::getQuadState(Ref<Vector<>> obs) const {
   if (quad_state_.t >= 0.0 && (obs.rows() == quadenv::kNQuadState)) {
-    obs << quad_state_.p, quad_state_.qx, quad_state_.v, quad_state_.w;
+    obs << quad_state_.t, quad_state_.p, quad_state_.qx, quad_state_.v,
+      quad_state_.w, quad_state_.a, quad_ptr_->getMotorOmega(),
+      quad_ptr_->getMotorThrusts();
     return true;
   }
   logger_.error("Get Quadrotor state failed.");

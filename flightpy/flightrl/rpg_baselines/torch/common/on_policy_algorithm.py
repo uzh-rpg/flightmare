@@ -1,3 +1,4 @@
+from genericpath import exists
 import os
 import time
 from typing import Any, Dict, List, Optional, Tuple, Type, Union
@@ -327,19 +328,18 @@ class OnPolicyAlgorithm(BaseAlgorithm):
             self.train()
 
             if iteration % 10 == 0 and iteration <= 1000:
+                # update running mean and standard deivation for state normalization
                 self.env.update_rms()
 
             if log_interval is not None and iteration % log_interval[1] == 0:
                 policy_path = self.logger.get_dir() + "/Policy"
-                if not os.path.exists(policy_path):
-                    os.mkdir(policy_path)
-                # save the model parameters
+                os.makedirs(policy_path, exist_ok=True)
                 self.policy.save(policy_path + "/iter_{0:05d}.pth".format(iteration))
 
                 self.env.save_rms(
                     save_dir=self.logger.get_dir() + "/RMS", n_iter=iteration
                 )
-            #     self.eval()
+                self.eval(iteration)
 
         callback.on_training_end()
 

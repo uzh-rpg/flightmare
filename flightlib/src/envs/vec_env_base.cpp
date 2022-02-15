@@ -67,7 +67,7 @@ void VecEnvBase<EnvBaseName>::configEnv(const YAML::Node& cfg_node) {
             << "num_envs   =            [" << num_envs_ << "]\n"
             << "num_thread =            [" << num_threads_ << "]\n"
             << "seed       =            [" << seed_ << "]\n"
-            << "scene_id   =            [" << scene_id_ << std::endl;
+            << "scene_id   =            [" << scene_id_ << "]" << std::endl;
 }
 
 template<typename EnvBaseName>
