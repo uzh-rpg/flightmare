@@ -1,24 +1,19 @@
-import numpy as np
-import pickle
 import os
+import pickle
 from copy import deepcopy
-import gym
-from gym import spaces
 from typing import Any, Callable, List, Optional, Sequence, Type, Union
-from numpy.core.fromnumeric import shape
 
-from stable_baselines3.common.vec_env.base_vec_env import (
-    VecEnv,
-    VecEnvIndices,
-    VecEnvObs,
-    VecEnvStepReturn,
-)
-from stable_baselines3.common.vec_env.util import (
-    copy_obs_dict,
-    dict_to_obs,
-    obs_space_info,
-)
+import gym
+import numpy as np
+from gym import spaces
+from numpy.core.fromnumeric import shape
 from stable_baselines3.common.running_mean_std import RunningMeanStd
+from stable_baselines3.common.vec_env.base_vec_env import (VecEnv,
+                                                           VecEnvIndices,
+                                                           VecEnvObs,
+                                                           VecEnvStepReturn)
+from stable_baselines3.common.vec_env.util import (copy_obs_dict, dict_to_obs,
+                                                   obs_space_info)
 
 
 class FlightEnvVec(VecEnv):
@@ -26,7 +21,7 @@ class FlightEnvVec(VecEnv):
     def __init__(self, impl):
         self.wrapper = impl
         self.act_dim = self.wrapper.getActDim()
-        self.obs_dim = self.wrapper.getObsDim() 
+        self.obs_dim = self.wrapper.getObsDim()
         self.rew_dim = self.wrapper.getRewDim()
         self.img_width = self.wrapper.getImgWidth()
         self.img_height = self.wrapper.getImgHeight()
@@ -40,8 +35,7 @@ class FlightEnvVec(VecEnv):
             high=np.ones(self.act_dim) * 1.0,
             dtype=np.float64,
         )
-        self._observation = np.zeros(
-            [self.num_envs, self.obs_dim], dtype=np.float64)
+        self._observation = np.zeros([self.num_envs, self.obs_dim], dtype=np.float64)
         self._rgb_img_obs = np.zeros(
             [self.num_envs, self.img_width * self.img_height * 3], dtype=np.uint8
         )
@@ -87,8 +81,13 @@ class FlightEnvVec(VecEnv):
         self.obs_rms = self.obs_rms_new
 
     def teststep(self, action):
-        self.wrapper.testStep(action, self._observation,
-                              self._reward_components, self._done, self._extraInfo)
+        self.wrapper.testStep(
+            action,
+            self._observation,
+            self._reward_components,
+            self._done,
+            self._extraInfo,
+        )
         obs = self.normalize_obs(self._observation)
         return (
             obs,
@@ -112,7 +111,7 @@ class FlightEnvVec(VecEnv):
         self.obs_rms_new.update(self._observation)
         obs = self.normalize_obs(self._observation)
 
-        if len(self._extraInfoNames) is not 0:
+        if len(self._extraInfoNames) != 0:
             info = [
                 {
                     "extra_info": {
@@ -128,15 +127,13 @@ class FlightEnvVec(VecEnv):
         for i in range(self.num_envs):
             self.rewards[i].append(self._reward_components[i, -1])
             for j in range(self.rew_dim - 1):
-                self.sum_reward_components[i,
-                                           j] += self._reward_components[i, j]
+                self.sum_reward_components[i, j] += self._reward_components[i, j]
             if self._done[i]:
                 eprew = sum(self.rewards[i])
                 eplen = len(self.rewards[i])
                 epinfo = {"r": eprew, "l": eplen}
                 for j in range(self.rew_dim - 1):
-                    epinfo[self.reward_names[j]
-                           ] = self.sum_reward_components[i, j]
+                    epinfo[self.reward_names[j]] = self.sum_reward_components[i, j]
                     self.sum_reward_components[i, j] = 0.0
                 info[i]["episode"] = epinfo
                 self.rewards[i].clear()

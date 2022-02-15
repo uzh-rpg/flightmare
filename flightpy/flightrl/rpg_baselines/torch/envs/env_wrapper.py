@@ -1,24 +1,19 @@
-import numpy as np
-import pickle
 import os
+import pickle
 from copy import deepcopy
-import gym
-from gym import spaces
 from typing import Any, Callable, List, Optional, Sequence, Type, Union
-from numpy.core.fromnumeric import shape
 
-from stable_baselines3.common.vec_env.base_vec_env import (
-    VecEnv,
-    VecEnvIndices,
-    VecEnvObs,
-    VecEnvStepReturn,
-)
-from stable_baselines3.common.vec_env.util import (
-    copy_obs_dict,
-    dict_to_obs,
-    obs_space_info,
-)
+import gym
+import numpy as np
+from gym import spaces
+from numpy.core.fromnumeric import shape
 from stable_baselines3.common.running_mean_std import RunningMeanStd
+from stable_baselines3.common.vec_env.base_vec_env import (VecEnv,
+                                                           VecEnvIndices,
+                                                           VecEnvObs,
+                                                           VecEnvStepReturn)
+from stable_baselines3.common.vec_env.util import (copy_obs_dict, dict_to_obs,
+                                                   obs_space_info)
 
 
 class FlightEnv(object):
@@ -48,8 +43,7 @@ class FlightEnv(object):
         self._quadstate = np.zeros([44], dtype=np.float64)
         self._quadact = np.zeros([4], dtype=np.float64)
         self._gatepose = np.zeros([7 * self.num_gates, 1], dtype=np.float64)
-        self._gatecorners = np.zeros(
-            [24 * self.num_gates, 1], dtype=np.float64)
+        self._gatecorners = np.zeros([24 * self.num_gates, 1], dtype=np.float64)
         self._nextgatecorners = np.zeros([24, 1], dtype=np.float64)
         self._frontgatecorner = np.zeros([12, 1], dtype=np.float64)
         self._quadact = np.zeros([4], dtype=np.float64)
@@ -60,8 +54,7 @@ class FlightEnv(object):
         self.obs_rms_new = RunningMeanStd(shape=[1, self.obs_dim])
 
     def step(self, action):
-        done = self.wrapper.step(
-            action, self._observation, self._reward_components)
+        done = self.wrapper.step(action, self._observation, self._reward_components)
         # print(done)
         obs_u = np.reshape(self._observation, (1, self.obs_dim))
         obs = self.normalize_obs(obs_u)

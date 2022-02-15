@@ -1,18 +1,15 @@
 #!/usr/bin/env python3
-from ruamel.yaml import YAML, dump, RoundTripDumper
-
+import argparse
+import math
 #
 import os
-import math
-import argparse
+
 import numpy as np
 import torch
-
-
 from flightgym import QuadrotorEnv_v1
-from rpg_baselines.torch.envs import vec_env_wrapper as wrapper
-from ppo import PPO
-from ppo_test import test_model
+from flightrl.rpg_baselines.torch.common.ppo import PPO
+from flightrl.rpg_baselines.torch.envs import vec_env_wrapper as wrapper
+from ruamel.yaml import YAML, RoundTripDumper, dump
 from stable_baselines3.common.utils import get_device
 from stable_baselines3.ppo.policies import MlpPolicy
 
@@ -99,24 +96,24 @@ def main():
 
         #
         model.learn(total_timesteps=int(50000000), log_interval=(10, 50))
-    else:
-        #
-        weight = "./saved/PPO_{0}/Policy/iter_{1:05d}.pth".format(args.trial, args.iter)
-        env_rms = "./saved/PPO_{0}/RMS/iter_{1:05d}.npz".format(args.trial, args.iter)
+    # else:
+    #     #
+    #     weight = "./saved/PPO_{0}/Policy/iter_{1:05d}.pth".format(args.trial, args.iter)
+    #     env_rms = "./saved/PPO_{0}/RMS/iter_{1:05d}.npz".format(args.trial, args.iter)
 
-        device = get_device("auto")
-        saved_variables = torch.load(weight, map_location=device)
-        # Create policy object
-        policy = MlpPolicy(**saved_variables["data"])
-        #
-        policy.action_net = torch.nn.Sequential(policy.action_net, torch.nn.Tanh())
-        # Load weights
-        policy.load_state_dict(saved_variables["state_dict"], strict=False)
-        policy.to(device)
+    #     device = get_device("auto")
+    #     saved_variables = torch.load(weight, map_location=device)
+    #     # Create policy object
+    #     policy = MlpPolicy(**saved_variables["data"])
+    #     #
+    #     policy.action_net = torch.nn.Sequential(policy.action_net, torch.nn.Tanh())
+    #     # Load weights
+    #     policy.load_state_dict(saved_variables["state_dict"], strict=False)
+    #     policy.to(device)
 
-        # policy = MlpPolicy.load(weight)
-        env.load_rms(env_rms)
-        test_model(env, policy, render=args.render, save_dir="./traj.png")
+    #     # policy = MlpPolicy.load(weight)
+    #     env.load_rms(env_rms)
+    #     test_model(env, policy, render=args.render, save_dir="./traj.png")
 
 
 if __name__ == "__main__":

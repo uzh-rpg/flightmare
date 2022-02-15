@@ -1,0 +1,9 @@
+black
+isort
+mypy
+pydocstyle
+pylint
+pytest
+setuptools
+tqdm
+wheel

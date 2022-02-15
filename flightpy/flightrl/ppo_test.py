@@ -1,8 +1,7 @@
+import cv2
+import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 import numpy as np
-import matplotlib.gridspec as gridspec
-import cv2
-
 from scipy.spatial.transform import Rotation as R
 
 state_label = [
