@@ -2,24 +2,48 @@
 
 namespace flightlib {
 
-QuadrotorDynamics::QuadrotorDynamics(const Scalar mass, const Scalar arm_l)
-  : mass_(mass),
-    arm_l_(arm_l),
-    t_BM_(
-      arm_l * sqrt(0.5) *
-      (Matrix<3, 4>() << 1, -1, -1, 1, -1, -1, 1, 1, 0, 0, 0, 0).finished()),
-    J_(mass / 12.0 * arm_l * arm_l * Vector<3>(4.5, 4.5, 7).asDiagonal()),
-    J_inv_(J_.inverse()),
-    motor_omega_min_(150.0),
-    motor_omega_max_(2000.0),
-    motor_tau_inv_(1.0 / 0.05),
-    thrust_map_(1.3298253500372892e-06, 0.0038360810526746033,
-                -1.7689986848125325),
-    kappa_(0.016),
-    thrust_min_(0.0),
-    thrust_max_(motor_omega_max_ * motor_omega_max_ * thrust_map_(0) +
-                motor_omega_max_ * thrust_map_(1) + thrust_map_(2)),
-    omega_max_(Vector<3>::Constant(6.0)) {}
+QuadrotorDynamics::QuadrotorDynamics(const Scalar mass) : mass_(mass) {
+  // motor drag coefficient
+  kappa_ = 0.016;
+
+
+  // inertia matrix
+  J_ = Matrix<3, 3>(Vector<3>(0.0025, 0.0021, 0.0043).asDiagonal());
+  J_inv_ = J_.inverse();
+
+  // translational matrix. from motor to body
+  t_BM_ << 0.075, -0.075, -0.075, 0.075, -0.10, 0.10, -0.10, 0.10, 0.0, 0.0,
+    0.0, 0.0;
+
+  // motor spped limits
+  motor_omega_min_ = 150.0;
+  motor_omega_max_ = 2000.0;
+
+  // motor dynamics
+  motor_tau_inv_ = 1.0 / 0.033;
+
+  // thrust mapping coefficients;
+  // thrust = t1 * motor_omega * motor_omega + t2 * motor_omega + t3
+  thrust_map_ << 1.562522e-6, 0.0, 0.0;
+
+  // thrust limit
+  thrust_min_ = 0.0;
+  thrust_max_ = motor_omega_max_ * motor_omega_max_ * thrust_map_(0) +
+                motor_omega_max_ * thrust_map_(1) + thrust_map_(2);
+
+  omega_max_ << 6.0, 6.0, 2.0;
+
+  // allocation matrix
+  B_allocation_ =
+    (Matrix<4, 4>() << Vector<4>::Ones().transpose(), t_BM_.row(1),
+     -t_BM_.row(0), kappa_ * Vector<4>(-1.0, -1.0, 1.0, 1.0).transpose())
+      .finished();
+
+  // body drag coefficients
+  cd1_ << 0.0, 0.0, 0.0;
+  cd3_ << 0.0, 0.0, 0.0;
+  cdz_h_ = 0.0;
+}
 
 QuadrotorDynamics::~QuadrotorDynamics() {}
 
@@ -87,6 +111,19 @@ bool QuadrotorDynamics::valid() const {
   return check;
 }
 
+Vector<3> QuadrotorDynamics::clampTorque(const Vector<3>& torque) const {
+  return torque.cwiseMax(force_torque_min_.segment<3>(1))
+    .cwiseMin(force_torque_max_.segment<3>(1));
+}
+
+Scalar QuadrotorDynamics::clampTotalForce(const Scalar force) const {
+  return std::clamp(force, force_torque_min_(0), force_torque_max_(0));
+}
+
+Scalar QuadrotorDynamics::clampCollectiveThrust(const Scalar thrust) const {
+  return std::clamp(thrust, collective_thrust_min_, collective_thrust_max_);
+}
+
 Vector<4> QuadrotorDynamics::clampThrust(const Vector<4> thrusts) const {
   return thrusts.cwiseMax(thrust_min_).cwiseMin(thrust_max_);
 }
@@ -123,10 +160,39 @@ Vector<4> QuadrotorDynamics::motorThrustToOmega(
   return offset + scale * root;
 }
 
-Matrix<4, 4> QuadrotorDynamics::getAllocationMatrix() const {
-  return (Matrix<4, 4>() << Vector<4>::Ones().transpose(), t_BM_.topRows<2>(),
-          kappa_ * Vector<4>(1, -1, 1, -1).transpose())
-    .finished();
+Matrix<4, 4> QuadrotorDynamics::getAllocationMatrix(void) const {
+  // compute column-wise cross product
+  // tau_i = t_BM_i x F_i
+  return B_allocation_;
+}
+
+Vector<3> QuadrotorDynamics::getBodyDrag(const Vector<3>& body_vel) {
+  return cd1_.cwiseProduct(body_vel) +
+         cd3_.cwiseProduct(body_vel.array().pow(3.0).matrix()) -
+         (Vector<3>() << 0.0, 0.0,
+          cdz_h_ * (body_vel.x() * body_vel.x() + body_vel.y() * body_vel.y()))
+           .finished();
+}
+
+bool QuadrotorDynamics::updateBodyDragCoeff1(const Vector<3>& cd1) {
+  if (!cd1.allFinite()) {
+    return false;
+  }
+  cd1_ = cd1;
+  return true;
+}
+
+bool QuadrotorDynamics::updateBodyDragCoeff3(const Vector<3>& cd3) {
+  if (!cd3.allFinite()) {
+    return false;
+  }
+  cd3_ = cd3;
+  return true;
+}
+
+bool QuadrotorDynamics::updateBodyDragCoeffZH(const Scalar cdz_h) {
+  cdz_h_ = cdz_h;
+  return true;
 }
 
 bool QuadrotorDynamics::setMass(const Scalar mass) {
@@ -134,20 +200,9 @@ bool QuadrotorDynamics::setMass(const Scalar mass) {
     return false;
   }
   mass_ = mass;
-  // update inertial matrix and its inverse
-  updateInertiaMarix();
   return true;
 }
 
-bool QuadrotorDynamics::setArmLength(const Scalar arm_length) {
-  if (arm_length < 0.0) {
-    return false;
-  }
-  arm_l_ = arm_length;
-  // update torque mapping matrix, inertial matrix and its inverse
-  updateInertiaMarix();
-  return true;
-}
 
 bool QuadrotorDynamics::setMotortauInv(const Scalar tau_inv) {
   if (tau_inv < 1.0) {
@@ -157,49 +212,119 @@ bool QuadrotorDynamics::setMotortauInv(const Scalar tau_inv) {
   return true;
 }
 
+
 bool QuadrotorDynamics::updateParams(const YAML::Node& params) {
   if (params["quadrotor_dynamics"]) {
     // load parameters from a yaml configuration file
     mass_ = params["quadrotor_dynamics"]["mass"].as<Scalar>();
-    arm_l_ = params["quadrotor_dynamics"]["arm_l"].as<Scalar>();
+    kappa_ = params["quadrotor_dynamics"]["kappa"].as<Scalar>();
+
     motor_omega_min_ =
       params["quadrotor_dynamics"]["motor_omega_min"].as<Scalar>();
     motor_omega_max_ =
       params["quadrotor_dynamics"]["motor_omega_max"].as<Scalar>();
     motor_tau_inv_ =
       (1.0 / params["quadrotor_dynamics"]["motor_tau"].as<Scalar>());
+
+    //
     std::vector<Scalar> thrust_map;
     thrust_map =
       params["quadrotor_dynamics"]["thrust_map"].as<std::vector<Scalar>>();
     thrust_map_ = Map<Vector<3>>(thrust_map.data());
-    kappa_ = params["quadrotor_dynamics"]["kappa"].as<Scalar>();
+
+    // compute minmum thrust and maximum thrust
+    thrust_min_ = 0.0;
+    thrust_max_ = motor_omega_max_ * motor_omega_max_ * thrust_map_(0) +
+                  motor_omega_max_ * thrust_map_(1) + thrust_map_(2);
+
+    //
+    collective_thrust_min_ = 4.0 * thrust_min_ / mass_;
+    collective_thrust_max_ = 4.0 * thrust_max_ / mass_;
+
+    // bodyrates constraints
     std::vector<Scalar> omega_max;
     omega_max =
       params["quadrotor_dynamics"]["omega_max"].as<std::vector<Scalar>>();
     omega_max_ = Map<Vector<3>>(omega_max.data());
 
-    // update relevant variables
-    updateInertiaMarix();
+
+    // inertia matrix
+    std::vector<Scalar> inertia_vec;
+    inertia_vec =
+      params["quadrotor_dynamics"]["inertia"].as<std::vector<Scalar>>();
+    J_ = Map<Vector<3>>(inertia_vec.data()).asDiagonal();
+    J_inv_ = J_.inverse();
+
+
+    std::vector<Scalar> tbm_fr;
+    tbm_fr = params["quadrotor_dynamics"]["tbm_fr"].as<std::vector<Scalar>>();
+    std::vector<Scalar> tbm_bl;
+    tbm_bl = params["quadrotor_dynamics"]["tbm_bl"].as<std::vector<Scalar>>();
+    std::vector<Scalar> tbm_br;
+    tbm_br = params["quadrotor_dynamics"]["tbm_br"].as<std::vector<Scalar>>();
+    std::vector<Scalar> tbm_fl;
+    tbm_fl = params["quadrotor_dynamics"]["tbm_fl"].as<std::vector<Scalar>>();
+
+    t_BM_.row(0) << tbm_fr[0], tbm_bl[0], tbm_br[0], tbm_fl[0];
+    t_BM_.row(1) << tbm_fr[1], tbm_bl[1], tbm_br[1], tbm_fl[1];
+    t_BM_.row(2) << tbm_fr[2], tbm_bl[2], tbm_br[2], tbm_fl[2];
+
+    // body drag coefficients
+    std::vector<Scalar> body_drag_1;
+    body_drag_1 =
+      params["quadrotor_dynamics"]["body_drag_1"].as<std::vector<Scalar>>();
+    cd1_ = Map<Vector<3>>(body_drag_1.data());
+
+    std::vector<Scalar> body_drag_3;
+    body_drag_3 =
+      params["quadrotor_dynamics"]["body_drag_3"].as<std::vector<Scalar>>();
+    cd3_ = Map<Vector<3>>(body_drag_3.data());
+
+    cdz_h_ = params["quadrotor_dynamics"]["body_drag_h"].as<Scalar>();
+
+    // allocation matrix
+    // compute column-wise cross product
+    // tau_i = t_BM_i * F_i
+    B_allocation_ =
+      (Matrix<4, 4>() << Vector<4>::Ones().transpose(), t_BM_.row(1),
+       -t_BM_.row(0), kappa_ * Vector<4>(-1.0, -1.0, 1.0, 1.0).transpose())
+        .finished();
+
+    force_torque_min_(0) = 0.0;
+    force_torque_max_(0) = thrust_max_ * 4;
+    // torque x
+    force_torque_min_(1) =
+      B_allocation_.row(1) *
+      (Vector<4>() << thrust_max_, 0.0, thrust_max_, 0.0).finished();
+    force_torque_max_(1) =
+      B_allocation_.row(1) *
+      (Vector<4>() << 0.0, thrust_max_, 0.0, thrust_max_).finished();
+    // torque y
+    force_torque_min_(2) =
+      B_allocation_.row(2) *
+      (Vector<4>() << thrust_max_, 0.0, 0.0, thrust_max_).finished();
+    force_torque_max_(2) =
+      B_allocation_.row(2) *
+      (Vector<4>() << 0.0, thrust_max_, thrust_max_, 0.0).finished();
+    // torque z
+    force_torque_min_(3) =
+      B_allocation_.row(3) *
+      (Vector<4>() << thrust_max_, thrust_max_, 0.0, 0.0).finished();
+    force_torque_max_(3) =
+      B_allocation_.row(3) *
+      (Vector<4>() << 0.0, 0.0, thrust_max_, thrust_max_).finished();
     return valid();
   } else {
     return false;
   }
 }
 
-bool QuadrotorDynamics::updateInertiaMarix() {
-  if (!valid()) return false;
-  t_BM_ = arm_l_ * sqrt(0.5) *
-          (Matrix<3, 4>() << 1, -1, -1, 1, -1, -1, 1, 1, 0, 0, 0, 0).finished();
-  J_ = mass_ / 12.0 * arm_l_ * arm_l_ * Vector<3>(4.5, 4.5, 7).asDiagonal();
-  J_inv_ = J_.inverse();
-  return true;
-}
+bool QuadrotorDynamics::updateInertiaMarix() { return true; }
 
 std::ostream& operator<<(std::ostream& os, const QuadrotorDynamics& quad) {
   os.precision(3);
   os << "Quadrotor Dynamics:\n"
      << "mass =             [" << quad.mass_ << "]\n"
-     << "arm_l =            [" << quad.arm_l_ << "]\n"
      << "t_BM =             [" << quad.t_BM_.row(0) << "]\n"
      << "                   [" << quad.t_BM_.row(1) << "]\n"
      << "                   [" << quad.t_BM_.row(2) << "]\n"
@@ -213,6 +338,8 @@ std::ostream& operator<<(std::ostream& os, const QuadrotorDynamics& quad) {
      << "kappa =            [" << quad.kappa_ << "]\n"
      << "thrust_min =       [" << quad.thrust_min_ << "]\n"
      << "thrust_max =       [" << quad.thrust_max_ << "]\n"
+     << "cthrust_min =       [" << quad.collective_thrust_min_ << "]\n"
+     << "cthrust_max =       [" << quad.collective_thrust_max_ << "]\n"
      << "omega_max =        [" << quad.omega_max_.transpose() << "]"
      << std::endl;
   os.precision();

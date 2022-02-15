@@ -4,10 +4,15 @@ namespace flightlib {
 
 RGBCamera::RGBCamera()
   : channels_(3),
-    width_(720),
+    width_(640),
     height_(480),
-    fov_{70.0},
+    fov_{90.0},
     depth_scale_{0.2},
+    T_BC_{(Matrix<4, 4>() << 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)
+            .finished()},
+    K_{(Matrix<3, 3>() << 174.246, 0.0, 320.0, 0.0, 130.684, 240.0, 0.0, 0.0,
+        1.0)
+         .finished()},
     enabled_layers_({false, false, false}) {}
 
 RGBCamera::~RGBCamera() {}
@@ -55,23 +60,46 @@ bool RGBCamera::setRelPose(const Ref<Vector<3>> B_r_BC,
 }
 
 bool RGBCamera::setWidth(const int width) {
-  if (width <= 0.0) {
+  if (width <= 0) {
     logger_.warn(
       "The setting value for Image Width is not valid, discard the setting.");
     return false;
   }
   width_ = width;
+  updateCameraIntrinsics();
   return true;
 }
 
 bool RGBCamera::setHeight(const int height) {
-  if (height <= 0.0) {
+  if (height <= 0) {
     logger_.warn(
       "The setting value for Image Height is not valid, discard the "
       "setting.");
     return false;
   }
   height_ = height;
+  updateCameraIntrinsics();
+  return true;
+}
+
+bool RGBCamera::updateCameraIntrinsics(void) {
+  K_(0, 0) = (height_ / 2) / (std::tanh(M_PI * fov_ / 180));
+  K_(1, 1) = (height_ / 2) / (std::tanh(M_PI * fov_ / 180));
+  K_(0, 2) = (int)width_ / 2;
+  K_(1, 2) = (int)height_ / 2;
+  K_(2, 2) = 1;
+  return true;
+}
+
+bool RGBCamera::setChannels(const int channels) {
+  if (!(channels == 1 || channels == 2 || channels == 3)) {
+    logger_.warn(
+      "The setting value for Image channel is not valid, discard the setting. "
+      "%d",
+      channels);
+    return false;
+  }
+  channels_ = channels;
   return true;
 }
 
@@ -83,6 +111,7 @@ bool RGBCamera::setFOV(const Scalar fov) {
     return false;
   }
   fov_ = fov;
+  updateCameraIntrinsics();
   return true;
 }
 
@@ -97,7 +126,7 @@ bool RGBCamera::setDepthScale(const Scalar depth_scale) {
   return true;
 }
 
-bool RGBCamera::setPostProcesscing(const std::vector<bool>& enabled_layers) {
+bool RGBCamera::setPostProcessing(const std::vector<bool>& enabled_layers) {
   if (enabled_layers_.size() != enabled_layers.size()) {
     logger_.warn(
       "Vector size does not match. The vector size should be equal to %d.",
@@ -106,6 +135,39 @@ bool RGBCamera::setPostProcesscing(const std::vector<bool>& enabled_layers) {
   }
   enabled_layers_ = enabled_layers;
   return true;
+}
+
+Vector<2> RGBCamera::projectPointToImage(const Ref<Matrix<4, 4>> T_BW,
+                                         const Ref<Vector<3>> point_W,
+                                         const bool normalized) {
+  if (!T_BW.allFinite()) {
+    logger_.error(
+      "Transformation matrix is not valid. Cannot project point to the image "
+      "plane");
+  }
+  // transformation matrix from body frame to the camera frame
+  Matrix<4, 4> T_BC = T_BC_;
+  T_BC.block<3, 3>(0, 0) =
+    (AngleAxis(-90.0 * M_PI / 180.0, Vector<3>::UnitZ()) *
+     AngleAxis(-90 * M_PI / 180.0, Vector<3>::UnitX()))
+      .toRotationMatrix();
+  Matrix<4, 4> T_CB = inversePoseMatrix(T_BC);
+
+  // transfer point in the world frame to the camera frame
+  const Vector<4> point_C =
+    T_CB * T_BW * (Vector<4>() << point_W, 1.0).finished();
+
+  //
+  Vector<2> point_uv;
+  point_uv[0] = (K_(0, 0) * point_C[0]) / point_C[2] + K_(0, 2);
+  point_uv[1] = (K_(1, 1) * point_C[1]) / point_C[2] + K_(1, 2);
+
+  if (normalized) {
+    point_uv[0] = 2.0 * (point_uv[0] - (Scalar)width_ / 2.0) / (Scalar)width_;
+    point_uv[1] = 2.0 * (point_uv[1] - (Scalar)height_ / 2.0) / (Scalar)height_;
+    point_uv = point_uv.cwiseMax(-1.0).cwiseMin(1.0);
+  }
+  return point_uv;
 }
 
 std::vector<bool> RGBCamera::getEnabledLayers(void) const {
@@ -123,6 +185,8 @@ int RGBCamera::getHeight(void) const { return height_; }
 Scalar RGBCamera::getFOV(void) const { return fov_; }
 
 Scalar RGBCamera::getDepthScale(void) const { return depth_scale_; }
+
+Matrix<3, 3> RGBCamera::getIntrinsic(void) const { return K_; }
 
 void RGBCamera::enableDepth(const bool on) {
   if (enabled_layers_[CameraLayer::DepthMap] == on) {

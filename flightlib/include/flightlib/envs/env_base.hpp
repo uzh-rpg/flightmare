@@ -1,3 +1,7 @@
+//
+// This is inspired by RaiGym, thanks.
+// https://raisim.com/
+//
 #pragma once
 
 // standard library

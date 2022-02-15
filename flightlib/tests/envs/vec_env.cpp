@@ -1,11 +1,12 @@
-#include "flightlib/envs/vec_env.hpp"
-#include "flightlib/envs/quadrotor_env/quadrotor_env.hpp"
-
 #include <gtest/gtest.h>
 #include <yaml-cpp/yaml.h>
+
 #include <fstream>
 #include <iostream>
 #include <vector>
+
+#include "flightlib/envs/quadrotor_env/quadrotor_env.hpp"
+#include "flightlib/envs/vec_env_base.hpp"
 
 using namespace flightlib;
 

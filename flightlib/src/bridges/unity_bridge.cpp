@@ -1,5 +1,7 @@
 #include "flightlib/bridges/unity_bridge.hpp"
 
+#include <filesystem>
+
 namespace flightlib {
 
 // constructor
@@ -31,6 +33,7 @@ bool UnityBridge::initializeConnections() {
   sub_.subscribe("");
 
   logger_.info("Initializing ZMQ connections done!");
+
   return true;
 }
 
@@ -115,8 +118,8 @@ bool UnityBridge::getRender(const FrameID frame_id) {
 
   for (size_t idx = 0; idx < pub_msg_.objects.size(); idx++) {
     std::shared_ptr<StaticObject> gate = static_objects_[idx];
-    pub_msg_.objects[idx].position = positionRos2Unity(gate->getPosition());
-    pub_msg_.objects[idx].rotation = quaternionRos2Unity(gate->getQuaternion());
+    pub_msg_.objects[idx].position = positionRos2Unity(gate->getPos());
+    pub_msg_.objects[idx].rotation = quaternionRos2Unity(gate->getQuat());
   }
 
   // create new message object
@@ -187,9 +190,9 @@ bool UnityBridge::addStaticObject(std::shared_ptr<StaticObject> static_object) {
   Object_t object_t;
   object_t.ID = static_object->getID();
   object_t.prefab_ID = static_object->getPrefabID();
-  object_t.position = positionRos2Unity(static_object->getPosition());
-  object_t.rotation = quaternionRos2Unity(static_object->getQuaternion());
-  object_t.size = scalarRos2Unity(static_object->getSize());
+  object_t.position = positionRos2Unity(static_object->getPos());
+  object_t.rotation = quaternionRos2Unity(static_object->getQuat());
+  object_t.size = scalarRos2Unity(static_object->getScale());
 
   static_objects_.push_back(static_object);
   settings_.objects.push_back(object_t);
@@ -198,14 +201,29 @@ bool UnityBridge::addStaticObject(std::shared_ptr<StaticObject> static_object) {
   return true;
 }
 
-bool UnityBridge::handleOutput() {
-  // create new message object
+FrameID UnityBridge::handleOutput(const FrameID sent_frame_id) {
   zmqpp::message msg;
-  sub_.receive(msg);
-  // unpack message metadata
-  std::string json_sub_msg = msg.get(0);
-  // parse metadata
-  SubMessage_t sub_msg = json::parse(json_sub_msg);
+  SubMessage_t sub_msg;
+  int count = 0;
+  for (int i = 0; i < max_output_request_; i++) {
+    // create new message object zmqpp::message msg;
+    sub_.receive(msg);
+    // unpack message metadata
+    std::string json_sub_msg = msg.get(0);
+    // parse metadata
+    sub_msg = json::parse(json_sub_msg);
+    count += 1;
+
+    //
+    if (sub_msg.frame_id == sent_frame_id) break;
+
+    if (i >= (max_output_request_ - 1)) {
+      logger_.error(
+        "Cannot find the updated frame id aftet %d request. Using the last "
+        "request data.",
+        max_output_request_);
+    }
+  }
 
   size_t image_i = 1;
   // ensureBufferIsAllocated(sub_msg);
@@ -234,15 +252,12 @@ bool UnityBridge::handleOutput() {
           memcpy(new_image.data, image_data, image_len);
           // Flip image since OpenCV origin is upper left, but Unity's is lower
           // left.
-          new_image = new_image * (100.f);
+          new_image = new_image * (30.f);
           cv::flip(new_image, new_image, 0);
-
 
           unity_quadrotors_[idx]
             ->getCameras()[cam.output_index]
             ->feedImageQueue(layer_idx, new_image);
-
-
         } else {
           uint32_t image_len = cam.width * cam.height * cam.channels;
           // Get raw image bytes from ZMQ message.
@@ -271,7 +286,7 @@ bool UnityBridge::handleOutput() {
       }
     }
   }
-  return true;
+  return sub_msg.frame_id;
 }
 
 bool UnityBridge::getPointCloud(PointCloudMessage_t& pointcloud_msg,
@@ -286,18 +301,17 @@ bool UnityBridge::getPointCloud(PointCloudMessage_t& pointcloud_msg,
   // send message without blocking
   pub_.send(msg, true);
 
-  std::cout << "Generate PointCloud: Timeout=" << (int)time_out << " seconds."
-            << std::endl;
+  logger_.info("Generate PointCloud: Timeout= %d seconds", (int)time_out);
 
   Scalar run_time = 0.0;
-  while (!std::experimental::filesystem::exists(
-    pointcloud_msg.path + pointcloud_msg.file_name + ".ply")) {
+  while (!std::filesystem::exists(pointcloud_msg.path +
+                                  pointcloud_msg.file_name + ".ply")) {
     if (run_time >= time_out) {
       logger_.warn("Timeout... PointCloud was not saved within expected time.");
       return false;
     }
-    std::cout << "Waiting for Pointcloud: Current Runtime=" << (int)run_time
-              << " seconds." << std::endl;
+    logger_.info("Waiting for Pointcloud: Current Runtime= %d seconds",
+                 (int)run_time);
     usleep((time_out / 10.0) * 1e6);
     run_time += time_out / 10.0;
   }

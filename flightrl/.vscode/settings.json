@@ -1,9 +1,0 @@
-{
-  "python.autoComplete.extraPaths": [
-    "/home/sysadmin/Projects/RPG_PendulumGate/catkin_gate/devel/lib/python2.7/dist-packages",
-    "/opt/ros/melodic/lib/python2.7/dist-packages",
-    "/home/sysadmin/GitHub/high_mpc",
-    "/home/sysadmin/GitHub/flightmare/flightrl",
-    "/usr/local/python3"
-  ]
-}
