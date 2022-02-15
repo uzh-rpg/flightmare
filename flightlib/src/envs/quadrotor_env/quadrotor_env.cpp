@@ -144,6 +144,11 @@ bool QuadrotorEnv::getObs(Ref<Vector<>> obs) {
   // observation dim : 3 + 9 + 3 = 15
   obs.segment<quadenv::kNObs>(quadenv::kObs) << quad_state_.p, ori,
     quad_state_.v;
+
+  // use the following observations if use single rotor thrusts as input
+  // observation dim : 3 + 9 + 3 + 3= 18
+  // obs.segment<quadenv::kNObs>(quadenv::kObs) << quad_state_.p, ori,
+  //   quad_state_.v, quad_state_.w;
   return true;
 }
 
@@ -192,12 +197,12 @@ bool QuadrotorEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs,
 }
 
 bool QuadrotorEnv::isTerminalState(Scalar &reward) {
-  // if (quad_state_.x(QS::POSZ) <= 0.02) {
-  //   reward = -0.02;
-  //   return true;
-  // }
+  if (quad_state_.x(QS::POSZ) <= 0.02) {
+    reward = -1.0;
+    return true;
+  }
 
-  if (cmd_.t > max_t_) {
+  if (cmd_.t >= max_t_ - sim_dt_) {
     reward = 0.0;
     return true;
   }

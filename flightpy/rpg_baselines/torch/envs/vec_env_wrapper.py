@@ -26,9 +26,7 @@ class FlightEnvVec(VecEnv):
     def __init__(self, impl):
         self.wrapper = impl
         self.act_dim = self.wrapper.getActDim()
-        self.histobs_dim = self.wrapper.getHistDim()
-        self.histobs_length = self.wrapper.getHistLength()
-        self.obs_dim = self.wrapper.getObsDim() + self.histobs_length * self.histobs_dim
+        self.obs_dim = self.wrapper.getObsDim() 
         self.rew_dim = self.wrapper.getRewDim()
         self.img_width = self.wrapper.getImgWidth()
         self.img_height = self.wrapper.getImgHeight()
