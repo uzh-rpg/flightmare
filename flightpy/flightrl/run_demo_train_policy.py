@@ -82,7 +82,7 @@ def main():
     )
 
     #
-    model.learn(total_timesteps=int(50000000), log_interval=(10, 50))
+    model.learn(total_timesteps=int(1e7), log_interval=(10, 50))
     # else:
     #     #
     #     weight = "./saved/PPO_{0}/Policy/iter_{1:05d}.pth".format(args.trial, args.iter)

@@ -2,13 +2,18 @@ import os
 import warnings
 from typing import Any, Callable, Dict, Optional, Type, Union
 
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+from mpl_toolkits.mplot3d import Axes3D
+# 
 import pandas as pd
+import scipy
 import numpy as np
 import torch as th
 from gym import spaces
 #
 from flightrl.rpg_baselines.torch.common.on_policy_algorithm import OnPolicyAlgorithm
-from flightrl.rpg_baselines.torch.common.util import traj_rollout
+from flightrl.rpg_baselines.torch.common.util import plot3d_traj, traj_rollout
 
 # 
 from stable_baselines3.common.policies import ActorCriticPolicy
@@ -307,9 +312,41 @@ class PPO(OnPolicyAlgorithm):
             self.logger.get_dir() + "/RMS/iter_{0:05d}.npz".format(iteration)
         )
 
-        # rollout trajectory
-        traj_df = traj_rollout(self.eval_env, self.policy, [[0]])
+        # rollout trajectory and save the trajectory
+        traj_df = traj_rollout(self.eval_env, self.policy)
         traj_df.to_csv(save_path + "/test_traj_{0:05d}.csv".format(iteration))
+
+        # generate plots
+        fig1 = plt.figure(figsize=(10, 6))
+        # fig1.subplots_adjust(
+        #     left=None, bottom=None, right=None, top=None, wspace=None, hspace=None
+        # )
+        gs1 = gridspec.GridSpec(4, 3)
+        ax3d = fig1.add_subplot(gs1[1:3, 0:3], projection="3d")
+        axpos = []
+        for i in range(3):
+            axpos.append(fig1.add_subplot(gs1[0, i]))
+        episode_idx = traj_df.episode_id.unique()
+        for ep_i in episode_idx:
+            conditions = "episode_id == {0}".format(ep_i)
+            traj_episode_i = traj_df.query(conditions)
+            pos = traj_episode_i.loc[:, [
+                "px", "py", "pz"]].to_numpy(dtype=np.float64)
+            vel = traj_episode_i.loc[:, [
+                "vx", "vy", "vz"]].to_numpy(dtype=np.float64)
+            
+            # 
+            axpos[0].plot(pos[:, 0])
+            axpos[1].plot(pos[:, 1])
+            axpos[2].plot(pos[:, 2])
+            plot3d_traj(ax3d=ax3d, pos=pos, vel=vel)
+        # 
+        ax3d.set_xlim([-5, 5])
+        ax3d.set_ylim([-5, 5])
+        ax3d.set_zlim([-0,  8])
+        save_path = self.logger.get_dir() + "/TestTraj" + "/Plots"
+        os.makedirs(save_path, exist_ok=True)
+        fig1.savefig(save_path + "/traj_3d_{0:05d}.png".format(iteration))
 
     def learn(
         self,
