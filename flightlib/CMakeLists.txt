@@ -7,7 +7,7 @@ message(STATUS "======================  !Flightmare!  ======================")
 ################################################################################
 # Options
 ################################################################################
-option(BUILD_TESTS "Building the tests" OFF)
+option(BUILD_TESTS "Building the tests" ON)
 option(BUILD_UNITY_BRIDGE_TESTS "Building the Unity Bridge tests" ON)
 option(BUILD_BENCH "Building the benchmark." OFF)
 option(ENABLE_FAST "Build with optimizations for speed" ON)
@@ -249,31 +249,31 @@ if(ENABLE_BLAS AND BLAS_FOUND AND LAPACK_FOUND)
 endif()
 
 # Build tests for flightlib gym wrapper
-# if(BUILD_TESTS AND FLIGHTLIB_GYM_TEST_SOURCES)
-#   add_executable(test_gym ${FLIGHTLIB_GYM_TEST_SOURCES})
-#   target_link_libraries(test_gym
-#     ${LIBRARY_NAME}
-#     gtest
-#     gtest_main)
-# add_test(test_gym test_gym)
-# endif()
+if(BUILD_TESTS AND FLIGHTLIB_GYM_TEST_SOURCES)
+  add_executable(test_gym ${FLIGHTLIB_GYM_TEST_SOURCES})
+  target_link_libraries(test_gym
+    ${LIBRARY_NAME}
+    gtest
+    gtest_main)
+add_test(test_gym test_gym)
+endif()
 
-# # # Build tests for flightlib
-# if(BUILD_TESTS AND FLIGHTLIB_TEST_SOURCES)
-#   add_executable(test_lib ${FLIGHTLIB_TEST_SOURCES})
-#   target_link_libraries(test_lib PUBLIC
-#     ${LIBRARY_NAME}
-#     gtest
-#     gtest_main)
-# add_test(test_lib test_lib)
-# endif()
+# # Build tests for flightlib
+if(BUILD_TESTS AND FLIGHTLIB_TEST_SOURCES)
+  add_executable(test_lib ${FLIGHTLIB_TEST_SOURCES})
+  target_link_libraries(test_lib PUBLIC
+    ${LIBRARY_NAME}
+    gtest
+    gtest_main)
+add_test(test_lib test_lib)
+endif()
 
-# # Build tests for flightlib unity bridge
-# if(BUILD_UNITY_BRIDGE_TESTS AND FLIGHTLIB_UNITY_BRIDGE_TEST_SOURCES)
-#   add_executable(test_unity_bridge ${FLIGHTLIB_UNITY_BRIDGE_TEST_SOURCES})
-#   target_link_libraries(test_unity_bridge PUBLIC
-#     ${LIBRARY_NAME}
-#     gtest
-#     gtest_main)
-# add_test(test_unity_bridge test_unity_bridge)
-# endif()
+# Build tests for flightlib unity bridge
+if(BUILD_UNITY_BRIDGE_TESTS AND FLIGHTLIB_UNITY_BRIDGE_TEST_SOURCES)
+  add_executable(test_unity_bridge ${FLIGHTLIB_UNITY_BRIDGE_TEST_SOURCES})
+  target_link_libraries(test_unity_bridge PUBLIC
+    ${LIBRARY_NAME}
+    gtest
+    gtest_main)
+add_test(test_unity_bridge test_unity_bridge)
+endif()

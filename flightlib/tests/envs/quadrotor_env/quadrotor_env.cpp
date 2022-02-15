@@ -1,15 +1,18 @@
 #include "flightlib/envs/quadrotor_env/quadrotor_env.hpp"
-#include "flightlib/common/logger.hpp"
 
 #include <gtest/gtest.h>
 #include <yaml-cpp/yaml.h>
+
 #include <fstream>
 #include <iostream>
 
+#include "flightlib/common/logger.hpp"
+
 using namespace flightlib;
 
-static constexpr int OBS_DIM = 12;
+static constexpr int OBS_DIM = 15;
 static constexpr int ACT_DIM = 4;
+static constexpr int REW_DIM = 5;
 static constexpr int SIM_STEPS_N = 20;
 static constexpr Scalar TOL = 1e-3;
 
@@ -19,9 +22,10 @@ TEST(QuadrotorEnv, Constructor) {
   // create env and load configuration from a yaml file.
   std::string config_path =
     getenv("FLIGHTMARE_PATH") +
-    std::string("/flightlib/configs/quadrotor_env.yaml");
+    std::string("/flightpy/configs/control/config.yaml");
   logger.info("Environment configuration path \"%s\".", config_path.c_str());
-  QuadrotorEnv env0(config_path);
+  const int env_id = 0;
+  QuadrotorEnv env0(config_path, env_id);
 
   Vector<3> debug{3.0, 3.0, 3.0};
 
@@ -37,17 +41,13 @@ TEST(QuadrotorEnv, Constructor) {
   EXPECT_TRUE(env1.loadParam(cfg));
 
   // evaluate parameters
-  Scalar expect_sim_dt = cfg["quadrotor_env"]["sim_dt"].as<Scalar>();
-
   const int obs_dim1 = env1.getObsDim();
   const int act_dim1 = env1.getActDim();
-  const Scalar sim_dt = env1.getSimTimeStep();
   Matrix<OBS_DIM, OBS_DIM> Q;
   Matrix<ACT_DIM, ACT_DIM> Q_act;
 
   EXPECT_EQ(obs_dim1, OBS_DIM);
   EXPECT_EQ(act_dim1, ACT_DIM);
-  EXPECT_EQ(expect_sim_dt, sim_dt);
 
   //
   std::cout << env1 << std::endl;
@@ -79,29 +79,32 @@ TEST(QuadrotorEnv, StepEnv) {
   Vector<ACT_DIM> act{0, 0, 0, 0};
   Vector<OBS_DIM> obs;
   Vector<OBS_DIM> next_obs;
+  Vector<REW_DIM> rew;
 
   env.reset(obs, false);
-  Scalar reward = env.step(act, next_obs);
+  bool success = env.step(act, next_obs, rew);
 
   // check control command
-  Command cmd;
-  EXPECT_TRUE(env.getAct(&cmd));
-  if (cmd.isRatesThrust()) {
-    EXPECT_EQ(cmd.collective_thrust, -Gz);
-    EXPECT_TRUE(cmd.omega.allFinite());
-  } else if (cmd.isSingleRotorThrusts()) {
-    // TODO: Not tested yet.
-    EXPECT_TRUE(cmd.thrusts.allFinite());
-  }
+  // Command cmd;
+  // Vector<4> cmd;
+  // EXPECT_TRUE(env.getQuadAct(cmd));
+  // if (cmd.isRatesThrust()) {
+  //   EXPECT_EQ(cmd.collective_thrust, -Gz);
+  //   EXPECT_TRUE(cmd.omega.allFinite());
+  // } else if (cmd.isSingleRotorThrusts()) {
+  //   // TODO: Not tested yet.
+  //   EXPECT_TRUE(cmd.thrusts.allFinite());
+  // }
 
-  Vector<ACT_DIM> executed_act;
-  EXPECT_TRUE(env.getAct(executed_act));
+  // Vector<ACT_DIM> executed_act;
+  // EXPECT_TRUE(env.getAct(executed_act));
 
   for (int i = 0; i < SIM_STEPS_N; i++) {
-    reward = env.step(act, next_obs);
+    success = env.step(act, next_obs, rew);
   }
 
-  std::cout << reward << std::endl;
+  EXPECT_TRUE(success);
+  // std::cout << reward << std::endl;
   // in case this failed, decrease motor_tau in the Quadrotor class.
   // EXPECT_TRUE(((next_obs - obs).norm() < 1.0));
 }

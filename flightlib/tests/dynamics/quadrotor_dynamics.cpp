@@ -7,11 +7,10 @@
 
 using namespace flightlib;
 
-static constexpr Scalar MASS = 1.2;
-static constexpr Scalar ARM_LENGTH = 0.25;
+static constexpr Scalar MASS = 1.0;
 
 TEST(QuadrotorDynamics, Constructor) {
-  QuadrotorDynamics quad(MASS, ARM_LENGTH);
+  QuadrotorDynamics quad(MASS);
 
   QuadrotorDynamics quad_copy(quad);
 
@@ -19,8 +18,9 @@ TEST(QuadrotorDynamics, Constructor) {
   Matrix<3, 3> J = quad_copy.getJ();
   Matrix<3, 3> J_inv = quad_copy.getJInv();
 
-  Matrix<3, 3> expected_J = (mass / 12.0 * ARM_LENGTH * ARM_LENGTH *
-                             Vector<3>(4.5, 4.5, 7).asDiagonal());
+  // agilicious drone
+  Matrix<3, 3> expected_J =
+    Matrix<3, 3>(Vector<3>(0.0025, 0.0021, 0.0043).asDiagonal());
   Matrix<3, 3> expected_J_inv = expected_J.inverse();
 
   EXPECT_EQ(mass, MASS);
@@ -32,7 +32,7 @@ TEST(QuadrotorDynamics, Constructor) {
 
 
 TEST(QuadrotorDynamics, Dynamics) {
-  QuadrotorDynamics quad(MASS, ARM_LENGTH);
+  QuadrotorDynamics quad(MASS);
 
   QuadState hover;
   hover.setZero();
@@ -77,7 +77,7 @@ TEST(QuadrotorDynamics, Dynamics) {
 }
 
 TEST(QuadrotorDynamics, VectorReference) {
-  const QuadrotorDynamics quad(MASS, ARM_LENGTH);
+  const QuadrotorDynamics quad(MASS);
 
   static constexpr int N = 128;
   Matrix<QuadState::SIZE, N> states = Matrix<QuadState::SIZE, N>::Random();
@@ -94,19 +94,18 @@ TEST(QuadrotorDynamics, VectorReference) {
 }
 
 TEST(QuadrotorDynamics, LoadParams) {
-  QuadrotorDynamics quad(MASS, ARM_LENGTH);
+  QuadrotorDynamics quad(MASS);
   std::string cfg_path = getenv("FLIGHTMARE_PATH") +
-                         std::string("/flightlib/configs/quadrotor_env.yaml");
+                         std::string("/flightpy/configs/control/config.yaml");
+
 
   YAML::Node cfg = YAML::LoadFile(cfg_path);
   const Scalar mass = cfg["quadrotor_dynamics"]["mass"].as<Scalar>();
-  const Scalar arm_l = cfg["quadrotor_dynamics"]["arm_l"].as<Scalar>();
   const Scalar motor_tau_inv =
     (1.0 / cfg["quadrotor_dynamics"]["motor_tau"].as<Scalar>());
 
   EXPECT_TRUE(quad.updateParams(cfg));
   EXPECT_EQ(mass, quad.getMass());
-  EXPECT_EQ(arm_l, quad.getArmLength());
   EXPECT_EQ(motor_tau_inv, quad.getMotorTauInv());
 
   //

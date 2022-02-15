@@ -6,30 +6,24 @@
 #include <vector>
 
 #include "flightlib/envs/quadrotor_env/quadrotor_env.hpp"
-#include "flightlib/envs/vec_env_base.hpp"
+#include "flightlib/envs/quadrotor_env/quadrotor_vec_env.hpp"
 
 using namespace flightlib;
 
 static constexpr int SIM_STEPS_N = 20;
+static constexpr int REW_DIM = 5;
 
-TEST(VecEnv, Constructor) {
+TEST(QuadrotorVecEnv, Constructor) {
   std::string config_path =
-    getenv("FLIGHTMARE_PATH") + std::string("/flightlib/configs/vec_env.yaml");
+    getenv("FLIGHTMARE_PATH") +
+    std::string("/flightpy/configs/control/config.yaml");
 
-  QuadrotorEnv env(config_path);
-  // load configurations
+  const int env_id = 0;
+  QuadrotorEnv env(config_path, env_id);
   YAML::Node cfg = YAML::LoadFile(config_path);
 
-  // constructor 0
-  VecEnv<QuadrotorEnv> vec_env_v0(
-    config_path);  // construct object from yaml file
-  // constructor 1
-  VecEnv<QuadrotorEnv> vec_env_v1(cfg);  // construct object from yaml::node
-  // // constructor 2
-  // VecEnv<QuadrotorEnv> vec_env_v2(
-  //   "{env: { seed : 1, scene_id: 0, num_envs: 10, num_threads: 10, render: "
-  //   "no}}",
-  //   false);
+  // constructor
+  QuadrotorVecEnv<QuadrotorEnv> vec_env_v0;
 
   const int vec_obs_dim = vec_env_v0.getObsDim();
   const int vec_act_dim = vec_env_v0.getActDim();
@@ -39,36 +33,26 @@ TEST(VecEnv, Constructor) {
   EXPECT_EQ(vec_obs_dim, obs_dim);
   EXPECT_EQ(vec_act_dim, act_dim);
 
-  const int seed = cfg["env"]["seed"].as<int>();
-  const size_t scene_id = cfg["env"]["scene_id"].as<size_t>();
-  const int num_envs = cfg["env"]["num_envs"].as<int>();
-  const bool render = cfg["env"]["render"].as<bool>();
+  const int seed = cfg["main"]["seed"].as<int>();
+  const size_t scene_id = cfg["main"]["scene_id"].as<size_t>();
+  const int num_envs = cfg["main"]["num_envs"].as<int>();
+  const bool render = cfg["main"]["render"].as<bool>();
 
   const int vec_seed_v0 = vec_env_v0.getSeed();
   const size_t vec_scene_id_v0 = vec_env_v0.getSceneID();
   const int vec_num_envs_v0 = vec_env_v0.getNumOfEnvs();
   const bool vec_render_v0 = vec_env_v0.getUnityRender();
 
-  const int vec_seed_v1 = vec_env_v1.getSeed();
-  const size_t vec_scene_id_v1 = vec_env_v1.getSceneID();
-  const int vec_num_envs_v1 = vec_env_v1.getNumOfEnvs();
-  const bool vec_render_v1 = vec_env_v1.getUnityRender();
-
   //
   EXPECT_EQ(seed, vec_seed_v0);
   EXPECT_EQ(scene_id, vec_scene_id_v0);
   EXPECT_EQ(num_envs, vec_num_envs_v0);
   EXPECT_EQ(render, vec_render_v0);
-
-  EXPECT_EQ(seed, vec_seed_v1);
-  EXPECT_EQ(scene_id, vec_scene_id_v1);
-  EXPECT_EQ(num_envs, vec_num_envs_v1);
-  EXPECT_EQ(render, vec_render_v1);
 }
 
-TEST(VecEnv, ResetEnv) {
+TEST(QuadrotorVecEnv, ResetEnv) {
   QuadrotorEnv env;
-  VecEnv<QuadrotorEnv> vec_env;
+  QuadrotorVecEnv<QuadrotorEnv> vec_env;
   //
   const int vec_obs_dim = vec_env.getObsDim();
   const int vec_act_dim = vec_env.getActDim();
@@ -90,10 +74,11 @@ TEST(VecEnv, ResetEnv) {
 }
 
 
-TEST(VecEnv, StepEnv) {
-  VecEnv<QuadrotorEnv> vec_env;
+TEST(QuadrotorVecEnv, StepEnv) {
+  QuadrotorVecEnv<QuadrotorEnv> vec_env;
   const int obs_dim = vec_env.getObsDim();
   const int act_dim = vec_env.getActDim();
+  const int rew_dim = vec_env.getActDim();
   const int num_envs = vec_env.getNumOfEnvs();
   const std::vector<std::string> extra_info_names = vec_env.getExtraInfoNames();
 
@@ -107,7 +92,7 @@ TEST(VecEnv, StepEnv) {
   act.resize(num_envs, act_dim);
   obs.resize(num_envs, obs_dim);
   extra_info.resize(num_envs, extra_info_names.size());
-  reward.resize(num_envs);
+  reward.resize(num_envs, rew_dim);
   done.resize(num_envs);
 
   EXPECT_TRUE(vec_env.reset(obs));

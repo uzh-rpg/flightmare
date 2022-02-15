@@ -3,6 +3,7 @@
 namespace flightlib {
 
 QuadrotorDynamics::QuadrotorDynamics(const Scalar mass) : mass_(mass) {
+  // all the parameters are hard coded according to the agilicious drone
   // motor drag coefficient
   kappa_ = 0.016;
 

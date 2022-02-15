@@ -9,7 +9,6 @@
 using namespace flightlib;
 
 static constexpr Scalar MASS = 1.0;
-static constexpr Scalar ARM_LENGTH = 0.25;
 
 TEST(Integrators, ManualEulerAccelerationCheck) {
   static constexpr Scalar dt = 1.0;
@@ -19,7 +18,7 @@ TEST(Integrators, ManualEulerAccelerationCheck) {
   QuadState initial;
   initial.setZero();
 
-  const QuadrotorDynamics quad(MASS, ARM_LENGTH);
+  const QuadrotorDynamics quad(MASS);
 
   IntegratorEuler euler(quad.getDynamicsFunction());
 
@@ -43,7 +42,7 @@ TEST(Integrators, ManualRungeKuttaAccelerationCheck) {
   QuadState initial;
   initial.setZero();
 
-  const QuadrotorDynamics quad(MASS, ARM_LENGTH);
+  const QuadrotorDynamics quad(MASS);
 
   IntegratorRK4 rungekutta(quad.getDynamicsFunction());
 
@@ -67,7 +66,7 @@ TEST(Integrators, QuadStateInterface) {
   QuadState initial;
   initial.setZero();
 
-  const QuadrotorDynamics quad(MASS, ARM_LENGTH);
+  const QuadrotorDynamics quad(MASS);
 
   QuadState int_euler;
   QuadState int_rungekutta;
@@ -96,7 +95,7 @@ TEST(Integrators, CheckEulerAgainstRungeKutta) {
   // Using lower tolerance for check because of accuracy of forward Euler.
   static constexpr Scalar tol = 1;
 
-  const QuadrotorDynamics quad(MASS, ARM_LENGTH);
+  const QuadrotorDynamics quad(MASS);
   const IntegratorEuler euler(quad.getDynamicsFunction());
   const IntegratorRK4 rungekutta(quad.getDynamicsFunction());
 
