@@ -352,7 +352,8 @@ std::ostream &operator<<(std::ostream &os, const QuadrotorEnv &quad_env) {
      << "act_mean =           [" << quad_env.act_mean_.transpose() << "]\n"
      << "act_std =            [" << quad_env.act_std_.transpose() << "]\n"
      << "obs_mean =           [" << quad_env.obs_mean_.transpose() << "]\n"
-     << "obs_std =            [" << quad_env.obs_std_.transpose() << std::endl;
+     << "obs_std =            [" << quad_env.obs_std_.transpose() << "]"
+     << std::endl;
   os.precision();
   return os;
 }

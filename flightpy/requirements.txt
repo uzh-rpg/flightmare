@@ -7,3 +7,4 @@ pytest
 setuptools
 tqdm
 wheel
+stable-baselines3
