@@ -43,7 +43,7 @@ class FlightEnvVec(VecEnv):
             [self.num_envs, self.img_width * self.img_height], dtype=np.uint8
         )
         self._depth_img_obs = np.zeros(
-            [self.num_envs, self.img_width * self.img_height], dtype=np.float64
+            [self.num_envs, self.img_width * self.img_height], dtype=np.float32
         )
         #
         self._reward_components = np.zeros(

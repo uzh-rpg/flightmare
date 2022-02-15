@@ -8,7 +8,7 @@ main:
 environment:
   sim_dt: 0.02
   max_t: 5.0
-  use_camera: no
+  use_camera: yes 
   rotor_ctrl: 1 # 0 single rotor, 1 body rate
 
 quadrotor_dynamics:
@@ -54,6 +54,6 @@ rgb_camera:
   width: 720
   height: 480
   fov: 70.0
-  enable_depth: yes
+  enable_depth: yes 
   enable_segmentation: no
   enable_opticalflow: no

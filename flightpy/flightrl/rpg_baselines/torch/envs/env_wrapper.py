@@ -117,35 +117,11 @@ class FlightEnv(object):
         self.wrapper.getQuadState(self._quadstate)
         return self._quadstate.copy()
 
-    def getFlightmodes(self):
-        return self.wrapper.getFlightmode()
 
     def getQuadAct(self):
         self.wrapper.getQuadAct(self._quadact)
         return self._quadact.copy()
 
-    def getGateCorners(self, reshape=True):
-        self.wrapper.getGateCorners(self._gatecorners, self.num_gates)
-        if reshape:
-            return self._gatecorners.reshape(self.num_gates, 24).copy()
-        return self._gatecorners.reshape(-1, self.num_gates * 24)[0]
-
-    def getNextGateCorners(self, reshape=True):
-        self.wrapper.getNextGateCorners(self._nextgatecorners)
-        if reshape:
-            return self._nextgatecorners.reshape(1, 24).copy()
-        return self._nextgatecorners
-
-    def getFrontGateCornerByID(self, gate_id):
-        self.wrapper.getGateCornerByID(self._frontgatecorner, gate_id)
-        return self._frontgatecorner.reshape(1, 12).copy()
-
-    def getGateState(self):
-        self.wrapper.getGateState(self._gatepose, self.num_gates)
-        return self._gatepose.reshape(self.num_gates, 7).copy()
-
-    def getLapTime(self):
-        return self.wrapper.getLapTime()
 
     @property
     def observation_space(self):

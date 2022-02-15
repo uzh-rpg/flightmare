@@ -252,7 +252,7 @@ FrameID UnityBridge::handleOutput(const FrameID sent_frame_id) {
           memcpy(new_image.data, image_data, image_len);
           // Flip image since OpenCV origin is upper left, but Unity's is lower
           // left.
-          new_image = new_image * (30.f);
+          new_image = new_image * (1.f);
           cv::flip(new_image, new_image, 0);
 
           unity_quadrotors_[idx]

@@ -1,4 +1,3 @@
-from genericpath import exists
 import os
 import time
 from typing import Any, Dict, List, Optional, Tuple, Type, Union
@@ -6,6 +5,7 @@ from typing import Any, Dict, List, Optional, Tuple, Type, Union
 import gym
 import numpy as np
 import torch as th
+from genericpath import exists
 from ruamel.yaml import YAML
 from stable_baselines3.common.base_class import BaseAlgorithm
 from stable_baselines3.common.buffers import RolloutBuffer
