@@ -1,4 +1,5 @@
 #include "flightlib/common/math.hpp"
+
 #include "iostream"
 
 namespace flightlib {
@@ -193,6 +194,22 @@ std::vector<Scalar> scalarRos2Unity(const Vector<3>& ros_scalar) {
   /// to Unity coordinate system (left hand)
   std::vector<Scalar> unity_scalar{ros_scalar(0), ros_scalar(2), ros_scalar(1)};
   return unity_scalar;
+}
+
+
+Vector<3> cartesianToSpherical(const Ref<Vector<3>> cart_vec) {
+  return (Vector<3>() << cart_vec.norm(), std::atan2(cart_vec(1), cart_vec(0)),
+          std::atan2(cart_vec.segment(0, 2).norm(), cart_vec(2)))
+    .finished();
+}
+
+Matrix<4, 4> inversePoseMatrix(const Ref<Matrix<4, 4>> t_mat) {
+  Matrix<4, 4> inv_t_mat;
+  inv_t_mat.row(3) << 0.0, 0.0, 0.0, 1.0;
+  inv_t_mat.block<3, 3>(0, 0) = t_mat.block<3, 3>(0, 0).transpose();
+  inv_t_mat.block<3, 1>(0, 3) =
+    -t_mat.block<3, 3>(0, 0).transpose() * t_mat.block<3, 1>(0, 3);
+  return inv_t_mat;
 }
 
 }  // namespace flightlib

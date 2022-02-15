@@ -10,18 +10,30 @@ namespace flightlib {
 struct Command {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
+  enum CMDMODE : int {
+    SINGLEROTOR = 0,
+    THRUSTRATE = 1,
+  };
+
   Command();
 
-  Command(const Scalar t, const Scalar thrust, const Vector<3>& omega);
 
-  Command(const Scalar t, const Vector<4>& thrusts);
-
+  //
   bool valid() const;
   bool isSingleRotorThrusts() const;
-  bool isRatesThrust() const;
+  bool isThrustRates() const;
+
+  //
+  bool setZeros(void);
+  bool setCmdVector(const Ref<Vector<4>> cmd);
+  bool setCmdMode(const int cmd_mode);
+  bool setCmdConstraints(const Ref<Vector<4>> cmd);
 
   /// time in [s]
   Scalar t{NAN};
+
+  /// Single rotor thrusts in [N]
+  Vector<4> thrusts{NAN, NAN, NAN, NAN};
 
   /// Collective mass-normalized thrust in [m/s^2]
   Scalar collective_thrust{NAN};
@@ -29,8 +41,8 @@ struct Command {
   /// Bodyrates in [rad/s]
   Vector<3> omega{NAN, NAN, NAN};
 
-  /// Single rotor thrusts in [N]
-  Vector<4> thrusts{NAN, NAN, NAN, NAN};
+  ///
+  int cmd_mode;
 };
 
 }  // namespace flightlib

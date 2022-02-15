@@ -5,25 +5,53 @@ namespace flightlib {
 
 Command::Command() {}
 
-Command::Command(const Scalar t, const Scalar thrust, const Vector<3>& omega)
-  : t(t), collective_thrust(thrust), omega(omega) {}
-
-Command::Command(const Scalar t, const Vector<4>& thrusts)
-  : t(t), thrusts(thrusts) {}
+bool Command::setCmdMode(const int mode) {
+  if (mode != CMDMODE::SINGLEROTOR && mode != CMDMODE::THRUSTRATE) {
+    return false;
+  }
+  cmd_mode = mode;
+  return true;
+}
 
 bool Command::valid() const {
   return std::isfinite(t) &&
-         ((std::isfinite(collective_thrust) && omega.allFinite()) ^
-          thrusts.allFinite());
+         ((std::isfinite(collective_thrust) && omega.allFinite() &&
+           (cmd_mode == CMDMODE::THRUSTRATE)) ||
+          (thrusts.allFinite() && (cmd_mode == CMDMODE::SINGLEROTOR)));
 }
 
 bool Command::isSingleRotorThrusts() const {
-  return std::isfinite(t) && thrusts.allFinite();
+  return (cmd_mode == CMDMODE::SINGLEROTOR) && thrusts.allFinite();
 }
 
-bool Command::isRatesThrust() const {
-  return std::isfinite(t) && std::isfinite(collective_thrust) &&
-         omega.allFinite();
+bool Command::isThrustRates() const {
+  return (cmd_mode == CMDMODE::THRUSTRATE) &&
+         (std::isfinite(collective_thrust) && omega.allFinite());
+}
+
+
+bool Command::setZeros() {
+  if (cmd_mode == CMDMODE::SINGLEROTOR) {
+    thrusts = Vector<4>::Zero();
+  } else if (cmd_mode == CMDMODE::THRUSTRATE) {
+    collective_thrust = 0;
+    omega = Vector<3>::Zero();
+  } else {
+    return false;
+  }
+  return true;
+}
+
+bool Command::setCmdVector(const Ref<Vector<4>> cmd) {
+  if (cmd_mode == CMDMODE::SINGLEROTOR) {
+    thrusts = cmd;
+  } else if (cmd_mode == CMDMODE::THRUSTRATE) {
+    collective_thrust = cmd(0);
+    omega = cmd.segment<3>(1);
+  } else {
+    return false;
+  }
+  return true;
 }
 
 }  // namespace flightlib

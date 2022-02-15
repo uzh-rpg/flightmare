@@ -45,4 +45,8 @@ std::vector<Scalar> quaternionRos2Unity(const Quaternion& ros_quat);
 
 std::vector<Scalar> scalarRos2Unity(const Vector<3>& ros_scale);
 
+Vector<3> cartesianToSpherical(const Ref<Vector<3>> cart_vec);
+
+Matrix<4, 4> inversePoseMatrix(const Ref<Matrix<4, 4>> pose_mat);
+
 }  // namespace flightlib

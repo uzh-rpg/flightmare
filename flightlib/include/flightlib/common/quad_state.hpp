@@ -73,8 +73,8 @@ struct QuadState {
   Quaternion q() const;
   void q(const Quaternion quaternion);
   Matrix<3, 3> R() const;
-  void setZero();
 
+  void setZero();
   inline bool valid() const { return x.allFinite() && std::isfinite(t); }
 
   Vector<IDX::SIZE> x = Vector<IDX::SIZE>::Constant(NAN);
