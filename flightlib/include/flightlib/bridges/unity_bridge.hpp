@@ -6,7 +6,7 @@
 
 // std libs
 #include <unistd.h>
-#include <experimental/filesystem>
+
 #include <fstream>
 #include <map>
 #include <string>
@@ -44,8 +44,8 @@ class UnityBridge {
   bool disconnectUnity(void);
 
   // public get functions
-  bool getRender(const FrameID frame_id);
-  bool handleOutput();
+  bool getRender(const FrameID sent_frame_id);
+  FrameID handleOutput(const FrameID sent_frame_id);
   bool getPointCloud(PointCloudMessage_t &pointcloud_msg,
                      Scalar time_out = 600.0);
 
@@ -96,6 +96,7 @@ class UnityBridge {
   int64_t u_packet_latency_;
 
   // axuiliary variables
+  const int max_output_request_{100};
   const Scalar unity_connection_time_out_{60.0};
   bool unity_ready_{false};
 };

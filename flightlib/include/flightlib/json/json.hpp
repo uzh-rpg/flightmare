@@ -2249,7 +2249,9 @@ class basic_json {
         break;
       }
 
-      default: { break; }
+      default: {
+        break;
+      }
     }
 
     switch (m_type) {
@@ -2400,7 +2402,9 @@ class basic_json {
         break;
       }
 
-      default: { break; }
+      default: {
+        break;
+      }
     }
 
     assert_invariant();
@@ -2925,8 +2929,8 @@ class basic_json {
   }
 
   /// get a pointer to the value (object)
-  constexpr const object_t* get_impl_ptr(const object_t* /*unused*/) const
-    noexcept {
+  constexpr const object_t* get_impl_ptr(
+    const object_t* /*unused*/) const noexcept {
     return is_object() ? m_value.object : nullptr;
   }
 
@@ -2936,8 +2940,8 @@ class basic_json {
   }
 
   /// get a pointer to the value (array)
-  constexpr const array_t* get_impl_ptr(const array_t* /*unused*/) const
-    noexcept {
+  constexpr const array_t* get_impl_ptr(
+    const array_t* /*unused*/) const noexcept {
     return is_array() ? m_value.array : nullptr;
   }
 
@@ -2947,8 +2951,8 @@ class basic_json {
   }
 
   /// get a pointer to the value (string)
-  constexpr const string_t* get_impl_ptr(const string_t* /*unused*/) const
-    noexcept {
+  constexpr const string_t* get_impl_ptr(
+    const string_t* /*unused*/) const noexcept {
     return is_string() ? m_value.string : nullptr;
   }
 
@@ -2958,8 +2962,8 @@ class basic_json {
   }
 
   /// get a pointer to the value (boolean)
-  constexpr const boolean_t* get_impl_ptr(const boolean_t* /*unused*/) const
-    noexcept {
+  constexpr const boolean_t* get_impl_ptr(
+    const boolean_t* /*unused*/) const noexcept {
     return is_boolean() ? &m_value.boolean : nullptr;
   }
 
@@ -4973,7 +4977,9 @@ class basic_json {
         break;
       }
 
-      default: { break; }
+      default: {
+        break;
+      }
     }
   }
 
@@ -5607,7 +5613,9 @@ class basic_json {
         case value_t::number_float: {
           return lhs.m_value.number_float == rhs.m_value.number_float;
         }
-        default: { return false; }
+        default: {
+          return false;
+        }
       }
     } else if (lhs_type == value_t::number_integer and
                rhs_type == value_t::number_float) {
@@ -5757,7 +5765,9 @@ class basic_json {
         case value_t::number_float: {
           return lhs.m_value.number_float < rhs.m_value.number_float;
         }
-        default: { return false; }
+        default: {
+          return false;
+        }
       }
     } else if (lhs_type == value_t::number_integer and
                rhs_type == value_t::number_float) {
@@ -6501,7 +6511,9 @@ class basic_json {
         break;
       }
 
-      default: { break; }
+      default: {
+        break;
+      }
     }
   }
 
@@ -6702,7 +6714,9 @@ class basic_json {
         break;
       }
 
-      default: { break; }
+      default: {
+        break;
+      }
     }
   }
 
@@ -8217,7 +8231,9 @@ class basic_json {
           }
 
           // use an empty key for all primitive types
-          default: { return ""; }
+          default: {
+            return "";
+          }
         }
       }
 
@@ -10332,7 +10348,9 @@ class basic_json {
           break;
         }
 
-        default: { break; }
+        default: {
+          break;
+        }
       }
 
       // parse float (either explicitly or because a previous conversion
