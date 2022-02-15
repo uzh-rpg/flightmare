@@ -113,8 +113,8 @@ bool QuadrotorEnv::reset(Ref<Vector<>> obs) {
 
   // reset control command
   cmd_.t = 0.0;
+  cmd_.setCmdMode(Command::SINGLEROTOR);
   if (rotor_ctrl_ == Command::SINGLEROTOR) {
-    cmd_.setCmdMode(Command::SINGLEROTOR);
     cmd_.thrusts.setZero();
   } else if (rotor_ctrl_ == Command::THRUSTRATE) {
     cmd_.setCmdMode(Command::THRUSTRATE);

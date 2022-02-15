@@ -25,12 +25,12 @@ set(
 
 message(STATUS "======> Setup Dependencies")
 if(EIGEN_FROM_SYSTTEM)
-  find_package(Eigen3 3.3.4 QUIET)
+  find_package(Eigen3 3.3.9 QUIET)
   if(EIGEN3_FOUND)
     message(STATUS "Using system provided Eigen.")
     message(${EIGEN3_INCLUDE_DIR})
   else()
-    message(STATUS "No sufficient Eigen version (3.3.4) found.")
+    message(STATUS "No sufficient Eigen version (3.3.9) found.")
     message(STATUS "Restoring to download Eigen sources.")
     include(cmake/eigen.cmake)
   endif()
@@ -43,11 +43,15 @@ endif()
 message(STATUS "Eigen3 include dir: ${EIGEN3_INCLUDE_DIR}")
 
 # Including dependencies 
-include(cmake/pybind11.cmake)
-include(cmake/yaml.cmake)
+find_package(yaml-cpp)
+if  (NOT yaml-cpp_FOUND)
+  message(STATUS "YAML not found, downloading...")
+  include(cmake/yaml.cmake)
+endif  ()
 
 # Including dependencies 
 find_package(OpenCV REQUIRED)
+message("Opencv Version ${OpenCV_VERSION}")
 include_directories(${OpenCV_INCLUDE_DIRS})
 find_package(OpenMP REQUIRED)
 
@@ -86,6 +90,7 @@ message(STATUS "======> Setup Compilation")
 add_definitions(-DEIGEN_STACK_ALLOCATION_LIMIT=1048576)
 include_directories(${EIGEN_INCLUDE_DIR} "tests")
 include_directories(${OpenCV_INCLUDE_DIRS})
+# include_directories(${Torch_INCLUDE_DIRS})
 
 # Set default build type
 if (NOT EXISTS ${CMAKE_BINARY_DIR}/CMakeCache.txt)
@@ -147,6 +152,7 @@ file(GLOB_RECURSE FLIGHTLIB_SOURCES
   src/sensors/*.cpp
   src/envs/*.cpp
   src/common/*.cpp
+  src/controller/*.cpp
 )
 
 # Create file lists for flightlib tests
@@ -181,6 +187,8 @@ if(DEFINED CATKIN_DEVEL_PREFIX)
   message(STATUS "======>  Building with -- catkin -- ")
   include(cmake/catkin.cmake)
   return()
+else()
+  include(cmake/pybind11.cmake)
 endif()
 
 ################################################################################
@@ -190,7 +198,7 @@ endif()
 # Setup Testing and Benchmark
 if(BUILD_TESTS OR BUILD_BENCH)
   include(cmake/gtest.cmake)
-  enable_testing()
+enable_testing()
 endif()
 
 # Library and Executables
@@ -205,8 +213,7 @@ else()
     ${OpenCV_LIBRARIES}
     yaml-cpp
     zmq
-    zmqpp
-    stdc++fs)
+    zmqpp)
   set(LIBRARY_NAME ${PROJECT_NAME})
   set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
 endif()
@@ -228,7 +235,8 @@ if(FLIGHTLIB_GYM_SOURCES)
       ${PROJECT_SOURCE_DIR}/externals/eigen/eigen3 #pybind11 use #include <Eigen/Core>, however, flightmare use #include <eigen3/Eigen/Core>
       ${PROJECT_SOURCE_DIR}/include)  
   endif()
-  target_link_libraries(flightgym PRIVATE ${LIBRARY_NAME} )
+  message("${LIBRARY_NAME}")
+  target_link_libraries(flightgym PRIVATE ${LIBRARY_NAME})
 endif()
 
 if(ENABLE_BLAS AND BLAS_FOUND AND LAPACK_FOUND)
@@ -250,7 +258,7 @@ if(BUILD_TESTS AND FLIGHTLIB_GYM_TEST_SOURCES)
 add_test(test_gym test_gym)
 endif()
 
-# Build tests for flightlib
+# # Build tests for flightlib
 if(BUILD_TESTS AND FLIGHTLIB_TEST_SOURCES)
   add_executable(test_lib ${FLIGHTLIB_TEST_SOURCES})
   target_link_libraries(test_lib PUBLIC
@@ -260,7 +268,7 @@ if(BUILD_TESTS AND FLIGHTLIB_TEST_SOURCES)
 add_test(test_lib test_lib)
 endif()
 
-# Build tests for flightlib unity bridge
+# # Build tests for flightlib unity bridge
 if(BUILD_UNITY_BRIDGE_TESTS AND FLIGHTLIB_UNITY_BRIDGE_TEST_SOURCES)
   add_executable(test_unity_bridge ${FLIGHTLIB_UNITY_BRIDGE_TEST_SOURCES})
   target_link_libraries(test_unity_bridge PUBLIC
