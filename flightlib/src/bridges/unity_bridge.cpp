@@ -154,6 +154,7 @@ bool UnityBridge::addQuadrotor(std::shared_ptr<Quadrotor> quad) {
   }
 
   vehicle_t.ID = "quadrotor" + std::to_string(settings_.vehicles.size());
+  std::cout << quad_state.p << quad_state.q() << std::endl;
   vehicle_t.position = positionRos2Unity(quad_state.p);
   vehicle_t.rotation = quaternionRos2Unity(quad_state.q());
   vehicle_t.size = scalarRos2Unity(quad->getSize());

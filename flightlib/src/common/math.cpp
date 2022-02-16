@@ -151,11 +151,11 @@ std::vector<Scalar> transformationRos2Unity(const Matrix<4, 4>& ros_tran_mat) {
   tran_mat(1, 2) = 1.0;
   tran_mat(2, 1) = 1.0;
   tran_mat(3, 3) = 1.0;
+
   //
-  Matrix<4, 4> unity_tran_mat = tran_mat * ros_tran_mat * tran_mat.transpose();
-  // std::vector<Scalar> unity_tran_mat_vec(
-  //   unity_tran_mat.data(),
-  //   unity_tran_mat.data() + unity_tran_mat.rows() * unity_tran_mat.cols());
+  Matrix<4, 4> unity_tran_mat = tran_mat * ros_tran_mat;
+  Matrix<4, 4> tran_mat_transpose = tran_mat.transpose();
+  unity_tran_mat = unity_tran_mat * tran_mat_transpose;
   std::vector<Scalar> tran_unity;
   for (int i = 0; i < 4; ++i) {
     for (int j = 0; j < 4; ++j) {
@@ -168,13 +168,15 @@ std::vector<Scalar> transformationRos2Unity(const Matrix<4, 4>& ros_tran_mat) {
 std::vector<Scalar> quaternionRos2Unity(const Quaternion& ros_quat) {
   /// [ Quaternion ] from ROS coordinate system (right hand)
   /// to Unity coordinate system (left hand)
-  Matrix<3, 3> rot_mat = Matrix<3, 3>::Zero();
+  Matrix<3, 3> rot_mat;
   rot_mat(0, 0) = 1.0;
   rot_mat(1, 2) = 1.0;
   rot_mat(2, 1) = 1.0;
   //
-  Matrix<3, 3> unity_rot_mat =
-    rot_mat * ros_quat.toRotationMatrix() * rot_mat.transpose();
+  Matrix<3, 3> unity_rot_mat = rot_mat * ros_quat.toRotationMatrix();
+  Matrix<3, 3> rot_mat_transpose = rot_mat.transpose();
+  unity_rot_mat = unity_rot_mat * rot_mat_transpose;
+
   Quaternion unity_quat(unity_rot_mat);
   std::vector<Scalar> unity_quat_vec{unity_quat.x(), unity_quat.y(),
                                      unity_quat.z(), unity_quat.w()};

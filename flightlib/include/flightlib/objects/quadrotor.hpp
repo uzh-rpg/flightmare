@@ -20,8 +20,8 @@ namespace flightlib {
 class Quadrotor : ObjectBase {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  Quadrotor(const std::string& cfg_path);
   Quadrotor(const QuadrotorDynamics& dynamics = QuadrotorDynamics(1.0));
+  Quadrotor(const std::string& cfg_path);
   ~Quadrotor();
 
   // reset
