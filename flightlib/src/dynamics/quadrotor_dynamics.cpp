@@ -17,7 +17,7 @@ QuadrotorDynamics::QuadrotorDynamics(const Scalar mass) : mass_(mass) {
     0.0, 0.0;
 
   // motor spped limits
-  motor_omega_min_ = 150.0;
+  motor_omega_min_ = 0.0;
   motor_omega_max_ = 2000.0;
 
   // motor dynamics
@@ -32,6 +32,11 @@ QuadrotorDynamics::QuadrotorDynamics(const Scalar mass) : mass_(mass) {
   thrust_max_ = motor_omega_max_ * motor_omega_max_ * thrust_map_(0) +
                 motor_omega_max_ * thrust_map_(1) + thrust_map_(2);
 
+  //
+  collective_thrust_min_ = 4.0 * thrust_min_ / mass_;
+  collective_thrust_max_ = 4.0 * thrust_max_ / mass_;
+
+  //
   omega_max_ << 6.0, 6.0, 2.0;
 
   // allocation matrix

@@ -73,8 +73,8 @@ class Quadrotor : ObjectBase {
   // quadrotor dynamics, integrators
   QuadrotorDynamics dynamics_;
   IMU imu_;
-  // LowLevelControllerSimple ctrl_;
-  LowLevelControllerBetaflight ctrl_;
+  LowLevelControllerSimple ctrl_;
+  // LowLevelControllerBetaflight ctrl_;
   std::unique_ptr<IntegratorRK4> integrator_ptr_;
   std::vector<std::shared_ptr<RGBCamera>> rgb_cameras_;
   Logger logger_{"Quadrotor"};

@@ -98,8 +98,9 @@ bool VecEnvBase<EnvBaseName>::step(Ref<MatrixRowMajor<>> act,
                                    Ref<MatrixRowMajor<>> extra_info) {
   if (act.rows() != num_envs_ || act.cols() != act_dim_ ||
       obs.rows() != num_envs_ || obs.cols() != obs_dim_ ||
-      reward.rows() != num_envs_ || done.rows() != num_envs_ ||
-      done.cols() != 1 || extra_info.rows() != num_envs_ ||
+      reward.rows() != num_envs_ || reward.cols() != rew_dim_ ||
+      done.rows() != num_envs_ || done.cols() != 1 ||
+      extra_info.rows() != num_envs_ ||
       extra_info.cols() != (long int)extra_info_names_.size()) {
     logger_.error(
       "Input matrix dimensions do not match with that of the environment.");

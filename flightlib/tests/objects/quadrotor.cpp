@@ -30,9 +30,9 @@ TEST(Quadrotor, Constructor) {
   EXPECT_TRUE(quad_state.x.isApprox(expected_state.x));
 
   //
-  const std::string cfg_path =
-    getenv("FLIGHTMARE_PATH") +
-    std::string("/flightlib/configs/quadrotor_env.yaml");
+  std::string cfg_path = getenv("FLIGHTMARE_PATH") +
+                         std::string("/flightpy/configs/control/config.yaml");
+
   Quadrotor quad2(cfg_path);
   quad2.getState(&quad_state);
 
@@ -77,6 +77,9 @@ TEST(Quadrotor, RunQuadCmdFeedThrough) {
   QuadrotorDynamics dynamics = quad.getDynamics();
   Scalar inv_tau = 1.0 / 1e-6;
   dynamics.setMotortauInv(inv_tau);
+  EXPECT_TRUE(dynamics.updateBodyDragCoeff1(Vector<3>(0.0, 0.0, 0.0)));
+  EXPECT_TRUE(dynamics.updateBodyDragCoeff3(Vector<3>(0.0, 0.0, 0.0)));
+  EXPECT_TRUE(dynamics.updateBodyDragCoeffZH(0.0));
   EXPECT_TRUE(quad.updateDynamics(dynamics));
   const Scalar ctl_dt = (1.0 / CTRL_UPDATE_FREQUENCY);
 
@@ -91,6 +94,7 @@ TEST(Quadrotor, RunQuadCmdFeedThrough) {
   const Scalar mass = dynamics.getMass();
 
   Command cmd;
+  cmd.setCmdMode(Command::SINGLEROTOR);
   cmd.t = 0.0;
   cmd.thrusts = Vector<4>::Constant(-Gz * mass) / 4.0;
   for (int i = 0; i < SIM_STEPS_N; i++) {
@@ -115,8 +119,7 @@ TEST(Quadrotor, RunQuadCmdFeedThrough) {
 
   for (int i = 0; i < SIM_STEPS_N; i++) {
     // run quadrotor simulator
-    quad.setCommand(cmd);
-    quad.run(ctl_dt);
+    quad.run(cmd, ctl_dt);
 
     // manually update the state
     quad_state.p += quad_state.v * ctl_dt + ctl_dt * ctl_dt / 2.0 * GVEC;
@@ -167,6 +170,10 @@ TEST(Quadrotor, RunSimulatorBodyRate) {
   QuadrotorDynamics dynamics = quad.getDynamics();
   Scalar inv_tau = (1.0 / 1e-6);
   dynamics.setMotortauInv(inv_tau);
+
+  EXPECT_TRUE(dynamics.updateBodyDragCoeff1(Vector<3>(0.0, 0.0, 0.0)));
+  EXPECT_TRUE(dynamics.updateBodyDragCoeff3(Vector<3>(0.0, 0.0, 0.0)));
+  EXPECT_TRUE(dynamics.updateBodyDragCoeffZH(0.0));
   EXPECT_TRUE(quad.updateDynamics(dynamics));
 
   const Scalar ctl_dt = (1.0 / CTRL_UPDATE_FREQUENCY);
@@ -180,14 +187,14 @@ TEST(Quadrotor, RunSimulatorBodyRate) {
   quad.reset(quad_state);
 
   Command cmd;
+  cmd.setCmdMode(Command::THRUSTRATE);
   cmd.t = 0.0;
   cmd.collective_thrust = -Gz;
   cmd.omega << 0.0, 0.0, 0.0;
 
   for (int i = 0; i < SIM_STEPS_N; i++) {
     // run quadrotor simulator
-    EXPECT_TRUE(quad.setCommand(cmd));
-    EXPECT_TRUE(quad.run(ctl_dt));
+    EXPECT_TRUE(quad.run(cmd, ctl_dt));
 
     quad_state.t += ctl_dt;
   }
@@ -207,8 +214,7 @@ TEST(Quadrotor, RunSimulatorBodyRate) {
 
   for (int i = 0; i < SIM_STEPS_N; i++) {
     // run quadrotor simulator
-    quad.setCommand(cmd);
-    quad.run(ctl_dt);
+    quad.run(cmd, ctl_dt);
 
     // manually update the state
     quad_state.p += quad_state.v * ctl_dt + ctl_dt * ctl_dt / 2.0 * GVEC;

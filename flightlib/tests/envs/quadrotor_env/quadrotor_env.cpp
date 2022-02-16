@@ -66,9 +66,6 @@ TEST(QuadrotorEnv, ResetEnv) {
 
   // reset the environment to the zero state
   EXPECT_TRUE(env.reset(obs, false));
-  EXPECT_EQ(obs(0), 0.0);
-  EXPECT_EQ(obs(1), 0.0);
-  EXPECT_EQ(obs(2), 0.0);
 
   env.reset(obs);
 }

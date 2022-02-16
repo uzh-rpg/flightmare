@@ -76,8 +76,9 @@ bool QuadrotorVecEnv<EnvBaseName>::step(Ref<MatrixRowMajor<>> act,
                                         Ref<MatrixRowMajor<>> extra_info) {
   if (act.rows() != this->num_envs_ || act.cols() != this->act_dim_ ||
       obs.rows() != this->num_envs_ || obs.cols() != this->obs_dim_ ||
-      reward.rows() != this->num_envs_ || done.rows() != this->num_envs_ ||
-      done.cols() != 1 || extra_info.rows() != this->num_envs_ ||
+      reward.rows() != this->num_envs_ || reward.cols() != this->rew_dim_ ||
+      done.rows() != this->num_envs_ || done.cols() != 1 ||
+      extra_info.rows() != this->num_envs_ ||
       extra_info.cols() != (long int)this->extra_info_names_.size()) {
     this->logger_.error(
       "Input matrix dimensions do not match with that of the environment.");

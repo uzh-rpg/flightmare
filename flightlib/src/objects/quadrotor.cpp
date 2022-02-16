@@ -73,7 +73,6 @@ bool Quadrotor::run(const Scalar ctl_dt) {
 
     // Compute linear acceleration and body torque
     const Vector<3> force(0.0, 0.0, force_torques[0]);
-
     // compute the body drag
     const Vector<3> body_vel =
       state_.q().toRotationMatrix().transpose() * state_.v;
@@ -141,7 +140,10 @@ void Quadrotor::runMotors(const Scalar sim_dt,
 }
 
 bool Quadrotor::setCommand(const Command &cmd) {
-  if (!cmd.valid()) return false;
+  if (!cmd.valid()) {
+    logger_.error("Not Valid action");
+    return false;
+  }
   cmd_ = cmd;
 
   if (std::isfinite(cmd_.collective_thrust))

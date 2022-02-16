@@ -78,15 +78,19 @@ TEST(QuadrotorVecEnv, StepEnv) {
   QuadrotorVecEnv<QuadrotorEnv> vec_env;
   const int obs_dim = vec_env.getObsDim();
   const int act_dim = vec_env.getActDim();
-  const int rew_dim = vec_env.getActDim();
+  const int rew_dim = vec_env.getRewDim();
   const int num_envs = vec_env.getNumOfEnvs();
   const std::vector<std::string> extra_info_names = vec_env.getExtraInfoNames();
+
+  std::cout << "Obs dim: " << obs_dim << ", Act dim: " << act_dim
+            << ", Rew dim: " << rew_dim << ", Env dim: " << num_envs
+            << std::endl;
+
 
   // vec_env.setUnity(true);
 
   // reset the environment
-  MatrixRowMajor<> obs, act, extra_info;
-  Vector<> reward;
+  MatrixRowMajor<> obs, act, extra_info, reward;
   BoolVector<> done;
 
   act.resize(num_envs, act_dim);
@@ -113,6 +117,7 @@ TEST(QuadrotorVecEnv, StepEnv) {
   act.resize(num_envs, act_dim - 1);
   act.setRandom();
   act = act.cwiseMax(-1).cwiseMin(1);
+  std::cout << "The RED Error messages below here is expected." << std::endl;
   EXPECT_FALSE(vec_env.step(act, obs, reward, done, extra_info));
 
   // test observation dimension failure case
@@ -120,20 +125,24 @@ TEST(QuadrotorVecEnv, StepEnv) {
   act.setRandom();
   act = act.cwiseMax(-1).cwiseMin(1);
   obs.resize(num_envs, obs_dim + 1);
+  std::cout << "The RED Error messages below here is expected." << std::endl;
   EXPECT_FALSE(vec_env.step(act, obs, reward, done, extra_info));
 
   // test reward dimension failure case
   obs.resize(num_envs, obs_dim);
-  reward.resize(num_envs + 1);
+  reward.resize(num_envs, rew_dim + 1);
+  std::cout << "The RED  Error messages below here is expected." << std::endl;
   EXPECT_FALSE(vec_env.step(act, obs, reward, done, extra_info));
 
   // test done dimension failure case
-  reward.resize(num_envs);
+  reward.resize(num_envs, rew_dim);
   done.resize(num_envs + 1);
+  std::cout << "The RED  Error messages below here is expected." << std::endl;
   EXPECT_FALSE(vec_env.step(act, obs, reward, done, extra_info));
 
   // test extra info failure case
   done.resize(num_envs);
   extra_info.resize(num_envs, extra_info_names.size() + 1);
+  std::cout << "The RED  Error messages below here is expected." << std::endl;
   EXPECT_FALSE(vec_env.step(act, obs, reward, done, extra_info));
 }
