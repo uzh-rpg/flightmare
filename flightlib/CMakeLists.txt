@@ -13,7 +13,7 @@ option(BUILD_BENCH "Building the benchmark." OFF)
 option(ENABLE_FAST "Build with optimizations for speed" ON)
 option(ENABLE_BLAS "Build using BLAS and LAPACK libraries" OFF)
 option(ENABLE_PARALLEL "Build using openmp parallelization" ON)
-option(EIGEN_FROM_SYSTTEM "Use the system-provided Eigen" ON)
+option(EIGEN_FROM_SYSTTEM "Use the system-provided Eigen" OFF)
 set(
   EIGEN_ALTERNATIVE "" CACHE STRING
   "Path to alternative Eigen, autodownload if blank"
