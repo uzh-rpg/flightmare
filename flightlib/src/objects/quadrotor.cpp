@@ -280,4 +280,6 @@ bool Quadrotor::getCamera(const size_t cam_id,
 
 bool Quadrotor::getCollision() const { return collision_; }
 
+int Quadrotor::getNumCamera() const { return rgb_cameras_.size(); }
+
 }  // namespace flightlib

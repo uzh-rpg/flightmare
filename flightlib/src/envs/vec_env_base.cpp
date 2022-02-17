@@ -10,9 +10,9 @@ VecEnvBase<EnvBaseName>::VecEnvBase() {
 template<typename EnvBaseName>
 void VecEnvBase<EnvBaseName>::configEnv(const YAML::Node& cfg_node) {
   // initialization
-  if (!cfg_node["main"]["render"] || !cfg_node["main"]["seed"] ||
-      !cfg_node["main"]["scene_id"] || !cfg_node["main"]["num_envs"] ||
-      !cfg_node["main"]["num_threads"]) {
+  if (!cfg_node["unity"]["render"] || !cfg_node["simulation"]["seed"] ||
+      !cfg_node["unity"]["scene_id"] || !cfg_node["simulation"]["num_envs"] ||
+      !cfg_node["simulation"]["num_threads"]) {
     //
     logger_.warn("Cannot load main configurations. Using default parameters.");
     unity_render_ = false;
@@ -22,12 +22,15 @@ void VecEnvBase<EnvBaseName>::configEnv(const YAML::Node& cfg_node) {
     scene_id_ = 0;
   } else {
     //
-    logger_.info("Load main configuration.");
-    unity_render_ = cfg_node["main"]["render"].as<bool>();
-    seed_ = cfg_node["main"]["seed"].as<int>();
-    num_envs_ = cfg_node["main"]["num_envs"].as<int>();
-    scene_id_ = cfg_node["main"]["scene_id"].as<SceneID>();
-    num_threads_ = cfg_node["main"]["num_threads"].as<int>();
+    logger_.info("Load Unity configuration.");
+    unity_render_ = cfg_node["unity"]["render"].as<bool>();
+    scene_id_ = cfg_node["unity"]["scene_id"].as<SceneID>();
+
+    //
+    logger_.info("Load Simulation configuration.");
+    seed_ = cfg_node["simulation"]["seed"].as<int>();
+    num_envs_ = cfg_node["simulation"]["num_envs"].as<int>();
+    num_threads_ = cfg_node["simulation"]["num_threads"].as<int>();
   }
 
   // set threads
@@ -216,7 +219,7 @@ bool VecEnvBase<EnvBaseName>::setUnity(bool render) {
   unity_bridge_ptr_ = UnityBridge::getInstance();
   // add objects to Unity
   for (int i = 0; i < num_envs_; i++) {
-    envs_[i]->addObjectsToUnity(unity_bridge_ptr_);
+    envs_[i]->addQuadrotorToUnity(unity_bridge_ptr_);
   }
   logger_.info("Flightmare Bridge created.");
   return true;

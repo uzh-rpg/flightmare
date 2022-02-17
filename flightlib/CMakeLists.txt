@@ -25,7 +25,7 @@ set(
 
 message(STATUS "======> Setup Dependencies")
 if(EIGEN_FROM_SYSTTEM)
-  find_package(Eigen3 3.3.9 QUIET)
+  find_package(Eigen3 3.3.4 QUIET)
   if(EIGEN3_FOUND)
     message(STATUS "Using system provided Eigen.")
     message(${EIGEN3_INCLUDE_DIR})
@@ -95,6 +95,7 @@ add_definitions(-fno-finite-math-only)
 add_definitions(-Werror)
 add_definitions(-Wall)
 
+include_directories(include)
 add_definitions(-DEIGEN_STACK_ALLOCATION_LIMIT=1048576)
 include_directories(${EIGEN3_INCLUDE_DIR} "tests")
 include_directories(${OpenCV_INCLUDE_DIRS})
@@ -109,6 +110,7 @@ endif()
 
 # Add c++ flags 
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -fPIC -Wall -DNDEBUG  -fopenmp")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS} -fPIC -Wall -DNDEBUG  -fopenmp")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -fPIC -Wall -g -fopenmp")
 set(CMAKE_CXX_STANDARD 17)
 
@@ -208,9 +210,6 @@ if(BUILD_TESTS OR BUILD_BENCH)
   include(cmake/gtest.cmake)
 enable_testing()
 endif()
-
-# Library and Executables
-include_directories(include)
 
 if(NOT FLIGHTLIB_SOURCES)
 	set(LIBRARY_NAME)

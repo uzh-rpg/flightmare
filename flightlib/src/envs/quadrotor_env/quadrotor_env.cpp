@@ -276,11 +276,10 @@ bool QuadrotorEnv::getImage(Ref<ImgVector<>> img, const bool rgb) {
 
 
 bool QuadrotorEnv::loadParam(const YAML::Node &cfg) {
-  if (cfg["environment"]) {
-    sim_dt_ = cfg["environment"]["sim_dt"].as<Scalar>();
-    max_t_ = cfg["environment"]["max_t"].as<Scalar>();
-    rotor_ctrl_ = cfg["environment"]["rotor_ctrl"].as<int>();
-    use_camera_ = cfg["environment"]["use_camera"].as<bool>();
+  if (cfg["simulation"]) {
+    sim_dt_ = cfg["simulation"]["sim_dt"].as<Scalar>();
+    max_t_ = cfg["simulation"]["max_t"].as<Scalar>();
+    rotor_ctrl_ = cfg["simulation"]["rotor_ctrl"].as<int>();
   } else {
     logger_.error("Cannot load [quadrotor_env] parameters");
     return false;
@@ -305,37 +304,64 @@ bool QuadrotorEnv::loadParam(const YAML::Node &cfg) {
 
 bool QuadrotorEnv::configCamera(const YAML::Node &cfg,
                                 const std::shared_ptr<RGBCamera> camera) {
-  if (!cfg["rgb_camera"] || !use_camera_) {
+  if (!cfg["rgb_camera"]) {
     logger_.error("Cannot config RGB Camera");
     return false;
-  } else {
-    std::vector<Scalar> t_BC_vec =
-      cfg["rgb_camera"]["t_BC"].as<std::vector<Scalar>>();
-    std::vector<Scalar> r_BC_vec =
-      cfg["rgb_camera"]["r_BC"].as<std::vector<Scalar>>();
-    //
-    Vector<3> t_BC(t_BC_vec.data());
-    Matrix<3, 3> r_BC =
-      (AngleAxis(r_BC_vec[2] * M_PI / 180.0, Vector<3>::UnitZ()) *
-       AngleAxis(r_BC_vec[1] * M_PI / 180.0, Vector<3>::UnitY()) *
-       AngleAxis(r_BC_vec[0] * M_PI / 180.0, Vector<3>::UnitX()))
-        .toRotationMatrix();
-    std::vector<bool> post_processing = {false, false, false};
-    post_processing[0] = cfg["rgb_camera"]["enable_depth"].as<bool>();
-    post_processing[1] = cfg["rgb_camera"]["enable_segmentation"].as<bool>();
-    post_processing[2] = cfg["rgb_camera"]["enable_opticalflow"].as<bool>();
-    //
-    camera->setFOV(cfg["rgb_camera"]["fov"].as<Scalar>());
-    camera->setWidth(cfg["rgb_camera"]["width"].as<int>());
-    camera->setHeight(cfg["rgb_camera"]["height"].as<int>());
-    camera->setChannels(cfg["rgb_camera"]["channels"].as<int>());
-    camera->setRelPose(t_BC, r_BC);
-    camera->setPostProcessing(post_processing);
   }
+
+  if (!cfg["rgb_camera"]["on"].as<bool>()) {
+    logger_.warn("Camera is off. Please turn it on.");
+    return false;
+  }
+
+  if (quad_ptr_->getNumCamera() >= 1) {
+    logger_.warn("Camera has been added. Skipping the camera configuration.");
+    return false;
+  }
+
+  // create camera
+  rgb_camera_ = std::make_shared<RGBCamera>();
+
+  // load camera settings
+  std::vector<Scalar> t_BC_vec =
+    cfg["rgb_camera"]["t_BC"].as<std::vector<Scalar>>();
+  std::vector<Scalar> r_BC_vec =
+    cfg["rgb_camera"]["r_BC"].as<std::vector<Scalar>>();
+
+  //
+  Vector<3> t_BC(t_BC_vec.data());
+  Matrix<3, 3> r_BC =
+    (AngleAxis(r_BC_vec[2] * M_PI / 180.0, Vector<3>::UnitZ()) *
+     AngleAxis(r_BC_vec[1] * M_PI / 180.0, Vector<3>::UnitY()) *
+     AngleAxis(r_BC_vec[0] * M_PI / 180.0, Vector<3>::UnitX()))
+      .toRotationMatrix();
+  std::vector<bool> post_processing = {false, false, false};
+  post_processing[0] = cfg["rgb_camera"]["enable_depth"].as<bool>();
+  post_processing[1] = cfg["rgb_camera"]["enable_segmentation"].as<bool>();
+  post_processing[2] = cfg["rgb_camera"]["enable_opticalflow"].as<bool>();
+
+  //
+  rgb_camera_->setFOV(cfg["rgb_camera"]["fov"].as<Scalar>());
+  rgb_camera_->setWidth(cfg["rgb_camera"]["width"].as<int>());
+  rgb_camera_->setChannels(cfg["rgb_camera"]["channels"].as<int>());
+  rgb_camera_->setHeight(cfg["rgb_camera"]["height"].as<int>());
+  rgb_camera_->setRelPose(t_BC, r_BC);
+  rgb_camera_->setPostProcessing(post_processing);
+
+
+  // add camera to the quadrotor
+  quad_ptr_->addRGBCamera(rgb_camera_);
+
+  // adapt parameters
+  img_width_ = rgb_camera_->getWidth();
+  img_height_ = rgb_camera_->getHeight();
+  rgb_img_ = cv::Mat::zeros(img_height_, img_width_,
+                            CV_MAKETYPE(CV_8U, rgb_camera_->getChannels()));
+  depth_img_ = cv::Mat::zeros(img_height_, img_width_, CV_32FC1);
   return true;
 }
 
-bool QuadrotorEnv::addObjectsToUnity(
+bool QuadrotorEnv::addQuadrotorToUnity(
   const std::shared_ptr<UnityBridge> bridge) {
   if (!quad_ptr_) return false;
   bridge->addQuadrotor(quad_ptr_);

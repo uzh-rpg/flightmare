@@ -47,6 +47,7 @@ class Quadrotor : ObjectBase {
   Quaternion getQuaternion(void) const;
   std::vector<std::shared_ptr<RGBCamera>> getCameras(void) const;
   bool getCamera(const size_t cam_id, std::shared_ptr<RGBCamera> camera) const;
+  int getNumCamera() const;
   bool getCollision() const;
 
   // public set functions

@@ -66,7 +66,7 @@ class QuadrotorEnv final : public EnvBase {
 
   // - auxiliar functions
   bool isTerminalState(Scalar &reward) override;
-  bool addObjectsToUnity(const std::shared_ptr<UnityBridge> bridge) override;
+  bool addQuadrotorToUnity(const std::shared_ptr<UnityBridge> bridge) override;
 
   friend std::ostream &operator<<(std::ostream &os,
                                   const QuadrotorEnv &quad_env);

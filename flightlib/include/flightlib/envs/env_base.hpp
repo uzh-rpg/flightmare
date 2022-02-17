@@ -41,7 +41,7 @@ class EnvBase {
   virtual void render();
   virtual void updateExtraInfo();
   virtual bool isTerminalState(Scalar &reward);
-  virtual bool addObjectsToUnity(const std::shared_ptr<UnityBridge> bridge);
+  virtual bool addQuadrotorToUnity(const std::shared_ptr<UnityBridge> bridge);
 
   // auxilirary functions
   inline void setSeed(const int seed) { std::srand(seed); };

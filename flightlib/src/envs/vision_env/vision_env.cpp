@@ -5,7 +5,7 @@ namespace flightlib {
 
 VisionEnv::VisionEnv()
   : VisionEnv(getenv("FLIGHTMARE_PATH") +
-                std::string("/flightpy/configs/control/config.yaml"),
+                std::string("/flightpy/configs/vision/config.yaml"),
               0) {}
 
 VisionEnv::VisionEnv(const std::string &cfg_path, const int env_id)
@@ -53,21 +53,12 @@ void VisionEnv::init() {
   loadParam(cfg_);
 
   // add camera
-  if (use_camera_) {
-    rgb_camera_ = std::make_shared<RGBCamera>();
-    if (!configCamera(cfg_, rgb_camera_)) {
-      logger_.error(
-        "Cannot config RGB Camera. Something wrong with the config file");
-    };
-
-    quad_ptr_->addRGBCamera(rgb_camera_);
-    //
-    img_width_ = rgb_camera_->getWidth();
-    img_height_ = rgb_camera_->getHeight();
-    rgb_img_ = cv::Mat::zeros(img_height_, img_width_,
-                              CV_MAKETYPE(CV_8U, rgb_camera_->getChannels()));
-    depth_img_ = cv::Mat::zeros(img_height_, img_width_, CV_32FC1);
-  }
+  if (!configCamera(cfg_)) {
+    logger_.error(
+      "Cannot config RGB Camera. Something wrong with the config file");
+  } else {
+    logger_.info("RGB Camera is created successfully!");
+  };
 
   // use single rotor control or bodyrate control
   if (rotor_ctrl_ == Command::SINGLEROTOR) {
@@ -137,19 +128,6 @@ bool VisionEnv::getObs(Ref<Vector<>> obs) {
     return false;
   }
 
-  quad_ptr_->getState(&quad_state_);
-
-  // convert quaternion to euler angle
-  Vector<9> ori = Map<Vector<>>(quad_state_.R().data(), quad_state_.R().size());
-
-  // observation dim : 3 + 9 + 3 = 15
-  obs.segment<visionenv::kNObs>(visionenv::kObs) << quad_state_.p, ori,
-    quad_state_.v;
-
-  // use the following observations if use single rotor thrusts as input
-  // observation dim : 3 + 9 + 3 + 3= 18
-  // obs.segment<visionenv::kNObs>(visionenv::kObs) << quad_state_.p, ori,
-  //   quad_state_.v, quad_state_.w;
   return true;
 }
 
@@ -176,35 +154,12 @@ bool VisionEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs,
   // update observations
   getObs(obs);
 
-  // ---------------------- reward function design
-  // - position tracking
-  const Scalar pos_reward = pos_coeff_ * (quad_state_.p - goal_pos_).norm();
-
-  // - orientation tracking
-  const Scalar ori_reward =
-    ori_coeff_ *
-    (quad_state_.q().toRotationMatrix().eulerAngles(2, 1, 0)).norm();
-
-  // - linear velocity tracking
-  const Scalar lin_vel_reward = lin_vel_coeff_ * quad_state_.v.norm();
-
-  // - angular velocity tracking
-  const Scalar ang_vel_reward = ang_vel_coeff_ * quad_state_.w.norm();
-
-  const Scalar total_reward =
-    pos_reward + ori_reward + lin_vel_reward + ang_vel_reward;
-
-  reward << pos_reward, ori_reward, lin_vel_reward, ang_vel_reward,
-    total_reward;
+  Scalar total_reward = 0.0;
+  reward << total_reward;
   return true;
 }
 
 bool VisionEnv::isTerminalState(Scalar &reward) {
-  if (quad_state_.x(QS::POSZ) <= 0.02) {
-    reward = -1.0;
-    return true;
-  }
-
   if (cmd_.t >= max_t_ - sim_dt_) {
     reward = 0.0;
     return true;
@@ -277,11 +232,10 @@ bool VisionEnv::getImage(Ref<ImgVector<>> img, const bool rgb) {
 
 
 bool VisionEnv::loadParam(const YAML::Node &cfg) {
-  if (cfg["environment"]) {
-    sim_dt_ = cfg["environment"]["sim_dt"].as<Scalar>();
-    max_t_ = cfg["environment"]["max_t"].as<Scalar>();
-    rotor_ctrl_ = cfg["environment"]["rotor_ctrl"].as<int>();
-    use_camera_ = cfg["environment"]["use_camera"].as<bool>();
+  if (cfg["simulation"]) {
+    sim_dt_ = cfg["simulation"]["sim_dt"].as<Scalar>();
+    max_t_ = cfg["simulation"]["max_t"].as<Scalar>();
+    rotor_ctrl_ = cfg["simulation"]["rotor_ctrl"].as<int>();
   } else {
     logger_.error("Cannot load [quadrotor_env] parameters");
     return false;
@@ -289,10 +243,7 @@ bool VisionEnv::loadParam(const YAML::Node &cfg) {
 
   if (cfg["rewards"]) {
     // load reinforcement learning related parameters
-    pos_coeff_ = cfg["rewards"]["pos_coeff"].as<Scalar>();
-    ori_coeff_ = cfg["rewards"]["ori_coeff"].as<Scalar>();
-    lin_vel_coeff_ = cfg["rewards"]["lin_vel_coeff"].as<Scalar>();
-    ang_vel_coeff_ = cfg["rewards"]["ang_vel_coeff"].as<Scalar>();
+    dummy_coeff_ = cfg["rewards"]["dummy_coeff"].as<Scalar>();
     // load reward settings
     reward_names_ = cfg["rewards"]["names"].as<std::vector<std::string>>();
 
@@ -304,58 +255,129 @@ bool VisionEnv::loadParam(const YAML::Node &cfg) {
   return true;
 }
 
-bool VisionEnv::configCamera(const YAML::Node &cfg,
-                             const std::shared_ptr<RGBCamera> camera) {
-  if (!cfg["rgb_camera"] || !use_camera_) {
+bool VisionEnv::configCamera(const YAML::Node &cfg) {
+  if (!cfg["rgb_camera"]) {
     logger_.error("Cannot config RGB Camera");
     return false;
-  } else {
-    std::vector<Scalar> t_BC_vec =
-      cfg["rgb_camera"]["t_BC"].as<std::vector<Scalar>>();
-    std::vector<Scalar> r_BC_vec =
-      cfg["rgb_camera"]["r_BC"].as<std::vector<Scalar>>();
-    //
-    Vector<3> t_BC(t_BC_vec.data());
-    Matrix<3, 3> r_BC =
-      (AngleAxis(r_BC_vec[2] * M_PI / 180.0, Vector<3>::UnitZ()) *
-       AngleAxis(r_BC_vec[1] * M_PI / 180.0, Vector<3>::UnitY()) *
-       AngleAxis(r_BC_vec[0] * M_PI / 180.0, Vector<3>::UnitX()))
-        .toRotationMatrix();
-    std::vector<bool> post_processing = {false, false, false};
-    post_processing[0] = cfg["rgb_camera"]["enable_depth"].as<bool>();
-    post_processing[1] = cfg["rgb_camera"]["enable_segmentation"].as<bool>();
-    post_processing[2] = cfg["rgb_camera"]["enable_opticalflow"].as<bool>();
-    //
-    camera->setFOV(cfg["rgb_camera"]["fov"].as<Scalar>());
-    camera->setWidth(cfg["rgb_camera"]["width"].as<int>());
-    camera->setHeight(cfg["rgb_camera"]["height"].as<int>());
-    camera->setChannels(cfg["rgb_camera"]["channels"].as<int>());
-    camera->setRelPose(t_BC, r_BC);
-    camera->setPostProcessing(post_processing);
   }
+
+  if (!cfg["rgb_camera"]["on"].as<bool>()) {
+    logger_.warn("Camera is off. Please turn it on.");
+    return false;
+  }
+
+  if (quad_ptr_->getNumCamera() >= 1) {
+    logger_.warn("Camera has been added. Skipping the camera configuration.");
+    return false;
+  }
+
+  // create camera
+  rgb_camera_ = std::make_shared<RGBCamera>();
+
+  // load camera settings
+  std::vector<Scalar> t_BC_vec =
+    cfg["rgb_camera"]["t_BC"].as<std::vector<Scalar>>();
+  std::vector<Scalar> r_BC_vec =
+    cfg["rgb_camera"]["r_BC"].as<std::vector<Scalar>>();
+
+  //
+  Vector<3> t_BC(t_BC_vec.data());
+  Matrix<3, 3> r_BC =
+    (AngleAxis(r_BC_vec[2] * M_PI / 180.0, Vector<3>::UnitZ()) *
+     AngleAxis(r_BC_vec[1] * M_PI / 180.0, Vector<3>::UnitY()) *
+     AngleAxis(r_BC_vec[0] * M_PI / 180.0, Vector<3>::UnitX()))
+      .toRotationMatrix();
+  std::vector<bool> post_processing = {false, false, false};
+  post_processing[0] = cfg["rgb_camera"]["enable_depth"].as<bool>();
+  post_processing[1] = cfg["rgb_camera"]["enable_segmentation"].as<bool>();
+  post_processing[2] = cfg["rgb_camera"]["enable_opticalflow"].as<bool>();
+
+  //
+  rgb_camera_->setFOV(cfg["rgb_camera"]["fov"].as<Scalar>());
+  rgb_camera_->setWidth(cfg["rgb_camera"]["width"].as<int>());
+  rgb_camera_->setChannels(cfg["rgb_camera"]["channels"].as<int>());
+  rgb_camera_->setHeight(cfg["rgb_camera"]["height"].as<int>());
+  rgb_camera_->setRelPose(t_BC, r_BC);
+  rgb_camera_->setPostProcessing(post_processing);
+
+
+  // add camera to the quadrotor
+  quad_ptr_->addRGBCamera(rgb_camera_);
+
+  // adapt parameters
+  img_width_ = rgb_camera_->getWidth();
+  img_height_ = rgb_camera_->getHeight();
+  rgb_img_ = cv::Mat::zeros(img_height_, img_width_,
+                            CV_MAKETYPE(CV_8U, rgb_camera_->getChannels()));
+  depth_img_ = cv::Mat::zeros(img_height_, img_width_, CV_32FC1);
   return true;
 }
 
-bool VisionEnv::addObjectsToUnity(const std::shared_ptr<UnityBridge> bridge) {
+bool VisionEnv::addQuadrotorToUnity(const std::shared_ptr<UnityBridge> bridge) {
   if (!quad_ptr_) return false;
   bridge->addQuadrotor(quad_ptr_);
   return true;
 }
 
-// std::ostream &operator<<(std::ostream &os, const VisionEnv &vision_env) {
-//   os.precision(3);
-//   os << "Vision Environment:\n"
-//      << "obs dim =            [" << vision_env.obs_dim_ << "]\n"
-//      << "act dim =            [" << vision_env.act_dim_ << "]\n"
-//      << "sim dt =             [" << vision_env.sim_dt_ << "]\n"
-//      << "max_t =              [" << vision_env.max_t_ << "]\n"
-//      << "act_mean =           [" << vision_env.act_mean_.transpose() << "]\n"
-//      << "act_std =            [" << vision_env.act_std_.transpose() << "]\n"
-//      << "obs_mean =           [" << vision_env.obs_mean_.transpose() << "]\n"
-//      << "obs_std =            [" << vision_env.obs_std_.transpose() << "]"
-//      << std::endl;
-//   os.precision();
-//   return os;
-// }
+bool VisionEnv::setUnity(bool render) {
+  unity_render_ = render;
+  if (!unity_render_ || unity_bridge_ptr_ != nullptr) {
+    logger_.warn(
+      "Unity render is False or Flightmare Bridge has been already created. "
+      "Cannot set Unity.");
+    return false;
+  }
+  // create unity bridge
+  unity_bridge_ptr_ = UnityBridge::getInstance();
+  // add objects to Unity
+
+  addQuadrotorToUnity(unity_bridge_ptr_);
+
+  logger_.info("Flightmare Bridge created.");
+  return true;
+}
+
+
+bool VisionEnv::connectUnity(void) {
+  if (unity_bridge_ptr_ == nullptr) return false;
+  unity_ready_ = unity_bridge_ptr_->connectUnity(scene_id_);
+  return unity_ready_;
+}
+
+
+FrameID VisionEnv::updateUnity(const FrameID frame_id) {
+  if (unity_render_ && unity_ready_) {
+    unity_bridge_ptr_->getRender(frame_id);
+    return unity_bridge_ptr_->handleOutput(frame_id);
+  } else {
+    return 0;
+  }
+}
+
+
+void VisionEnv::disconnectUnity(void) {
+  if (unity_bridge_ptr_ != nullptr) {
+    unity_bridge_ptr_->disconnectUnity();
+    unity_ready_ = false;
+  } else {
+    logger_.warn("Flightmare Unity Bridge is not initialized.");
+  }
+}
+
+std::ostream &operator<<(std::ostream &os, const VisionEnv &vision_env) {
+  os.precision(3);
+  os << "Vision Environment:\n"
+     << "obs dim =            [" << vision_env.obs_dim_ << "]\n"
+     << "act dim =            [" << vision_env.act_dim_ << "]\n"
+     << "sim dt =             [" << vision_env.sim_dt_ << "]\n"
+     << "max_t =              [" << vision_env.max_t_ << "]\n"
+     << "act_mean =           [" << vision_env.act_mean_.transpose() << "]\n"
+     << "act_std =            [" << vision_env.act_std_.transpose() << "]\n"
+     << "obs_mean =           [" << vision_env.obs_mean_.transpose() << "]\n"
+     << "obs_std =            [" << vision_env.obs_std_.transpose() << "]"
+     << std::endl;
+  os.precision();
+  return os;
+}
 
 }  // namespace flightlib

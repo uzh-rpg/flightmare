@@ -37,7 +37,7 @@ enum Vision : int {
   kAct = 0,
   kNAct = 4,
 };
-};  // namespace visionenv
+}  // namespace visionenv
 
 class VisionEnv final : public EnvBase {
  public:
@@ -67,17 +67,28 @@ class VisionEnv final : public EnvBase {
 
   // - auxiliar functions
   bool isTerminalState(Scalar &reward) override;
-  bool addObjectsToUnity(const std::shared_ptr<UnityBridge> bridge) override;
+  bool addQuadrotorToUnity(const std::shared_ptr<UnityBridge> bridge) override;
 
-  // friend std::ostream &operator<<(std::ostream &os,
-  //                                 const VisionEnv &vision_env);
+  friend std::ostream &operator<<(std::ostream &os,
+                                  const VisionEnv &vision_env);
 
+
+  bool configCamera(const YAML::Node &cfg);
+
+  // flightmare (visualization)
+  bool setUnity(const bool render);
+  bool connectUnity();
+  void disconnectUnity();
+  FrameID updateUnity(const FrameID frame_id);
+
+  //
   inline std::vector<std::string> getRewardNames() { return reward_names_; }
+  inline void setSceneID(const SceneID id) { scene_id_ = id; }
+  inline std::shared_ptr<Quadrotor> getQuadrotor() { return quad_ptr_; }
 
  private:
   void init();
   int env_id_;
-  bool configCamera(const YAML::Node &cfg, const std::shared_ptr<RGBCamera>);
   // quadrotor
   std::shared_ptr<Quadrotor> quad_ptr_;
   QuadState quad_state_;
@@ -86,7 +97,7 @@ class VisionEnv final : public EnvBase {
 
 
   // Define reward for training
-  Scalar pos_coeff_, ori_coeff_, lin_vel_coeff_, ang_vel_coeff_;
+  Scalar dummy_coeff_;
 
   // observations and actions (for RL)
   Vector<visionenv::kNObs> pi_obs_;
@@ -112,6 +123,14 @@ class VisionEnv final : public EnvBase {
   YAML::Node cfg_;
   std::vector<std::string> reward_names_;
   Matrix<3, 2> world_box_;
+
+  // Flightmare(Unity3D)
+  std::shared_ptr<UnityBridge> unity_bridge_ptr_;
+  SceneID scene_id_{UnityScene::WAREHOUSE};
+  bool unity_ready_{false};
+  bool unity_render_{false};
+  RenderMessage_t unity_output_;
+  uint16_t receive_id_{0};
 };
 
 }  // namespace flightlib

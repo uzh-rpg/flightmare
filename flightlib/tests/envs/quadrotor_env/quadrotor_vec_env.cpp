@@ -1,3 +1,5 @@
+#include "flightlib/envs/quadrotor_env/quadrotor_vec_env.hpp"
+
 #include <gtest/gtest.h>
 #include <yaml-cpp/yaml.h>
 
@@ -6,7 +8,6 @@
 #include <vector>
 
 #include "flightlib/envs/quadrotor_env/quadrotor_env.hpp"
-#include "flightlib/envs/quadrotor_env/quadrotor_vec_env.hpp"
 
 using namespace flightlib;
 
@@ -33,10 +34,10 @@ TEST(QuadrotorVecEnv, Constructor) {
   EXPECT_EQ(vec_obs_dim, obs_dim);
   EXPECT_EQ(vec_act_dim, act_dim);
 
-  const int seed = cfg["main"]["seed"].as<int>();
-  const size_t scene_id = cfg["main"]["scene_id"].as<size_t>();
-  const int num_envs = cfg["main"]["num_envs"].as<int>();
-  const bool render = cfg["main"]["render"].as<bool>();
+  const int num_envs = cfg["simulation"]["num_envs"].as<int>();
+  const int seed = cfg["simulation"]["seed"].as<int>();
+  const size_t scene_id = cfg["unity"]["scene_id"].as<size_t>();
+  const bool render = cfg["unity"]["render"].as<bool>();
 
   const int vec_seed_v0 = vec_env_v0.getSeed();
   const size_t vec_scene_id_v0 = vec_env_v0.getSceneID();

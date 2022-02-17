@@ -3,7 +3,7 @@
 
 namespace flightlib {
 
-Command::Command() {}
+Command::Command() : t(0.0), cmd_mode(1) {}
 
 bool Command::setCmdMode(const int mode) {
   if (mode != CMDMODE::SINGLEROTOR && mode != CMDMODE::THRUSTRATE) {
@@ -31,6 +31,7 @@ bool Command::isThrustRates() const {
 
 
 bool Command::setZeros() {
+  t = 0.0;
   if (cmd_mode == CMDMODE::SINGLEROTOR) {
     thrusts = Vector<4>::Zero();
   } else if (cmd_mode == CMDMODE::THRUSTRATE) {
