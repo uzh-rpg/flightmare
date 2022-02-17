@@ -37,7 +37,7 @@ if(EIGEN_FROM_SYSTTEM)
 elseif(EIGEN_ALTERNATIVE STREQUAL "")
   include(cmake/eigen.cmake)
 else()
-  set(EIGEN_INCLUDE_DIR ${EIGEN_ALTERNATIVE})
+  set(EIGEN3_INCLUDE_DIR ${EIGEN_ALTERNATIVE})
 endif()
 
 message(STATUS "Eigen3 include dir: ${EIGEN3_INCLUDE_DIR}")
@@ -87,8 +87,16 @@ endif()
 ################################################################################
 message(STATUS "======> Setup Compilation")
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+add_definitions(-fno-finite-math-only)
+add_definitions(-Werror)
+add_definitions(-Wall)
+
 add_definitions(-DEIGEN_STACK_ALLOCATION_LIMIT=1048576)
-include_directories(${EIGEN_INCLUDE_DIR} "tests")
+include_directories(${EIGEN3_INCLUDE_DIR} "tests")
 include_directories(${OpenCV_INCLUDE_DIRS})
 # include_directories(${Torch_INCLUDE_DIRS})
 

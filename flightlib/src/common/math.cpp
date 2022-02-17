@@ -168,16 +168,9 @@ std::vector<Scalar> transformationRos2Unity(const Matrix<4, 4>& ros_tran_mat) {
 std::vector<Scalar> quaternionRos2Unity(const Quaternion& ros_quat) {
   /// [ Quaternion ] from ROS coordinate system (right hand)
   /// to Unity coordinate system (left hand)
-  Matrix<3, 3> rot_mat;
-  rot_mat(0, 0) = 1.0;
-  rot_mat(1, 2) = 1.0;
-  rot_mat(2, 1) = 1.0;
-  //
-  Matrix<3, 3> unity_rot_mat = rot_mat * ros_quat.toRotationMatrix();
-  Matrix<3, 3> rot_mat_transpose = rot_mat.transpose();
-  unity_rot_mat = unity_rot_mat * rot_mat_transpose;
-
-  Quaternion unity_quat(unity_rot_mat);
+  // https://gamedev.stackexchange.com/questions/157946/converting-a-quaternion-in-a-right-to-left-handed-coordinate-system
+  Quaternion unity_quat(ros_quat.y(), -ros_quat.z(), -ros_quat.x(),
+                        ros_quat.w());
   std::vector<Scalar> unity_quat_vec{unity_quat.x(), unity_quat.y(),
                                      unity_quat.z(), unity_quat.w()};
   return unity_quat_vec;
