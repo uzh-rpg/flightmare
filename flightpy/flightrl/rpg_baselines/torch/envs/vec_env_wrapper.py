@@ -254,6 +254,7 @@ class FlightEnvVec(VecEnv):
         return info
 
     def render(self, frame_id, mode="human"):
+        print(frame_id)
         return self.wrapper.updateUnity(frame_id)
 
     def close(self):

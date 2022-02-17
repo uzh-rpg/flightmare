@@ -56,9 +56,10 @@ void VisionEnv::init() {
   if (!configCamera(cfg_)) {
     logger_.error(
       "Cannot config RGB Camera. Something wrong with the config file");
-  } else {
-    logger_.info("RGB Camera is created successfully!");
-  };
+  }
+  // else {
+  //   logger_.info("RGB Camera is created successfully!");
+  // };
 
   // use single rotor control or bodyrate control
   if (rotor_ctrl_ == Command::SINGLEROTOR) {

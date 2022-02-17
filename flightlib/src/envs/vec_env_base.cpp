@@ -270,5 +270,7 @@ void VecEnvBase<EnvBaseName>::curriculumUpdate(void) {
 // declaration and definition of the template class.
 // Segmentation fault (core dumped)!
 template class VecEnvBase<QuadrotorEnv>;
+//
+template class VecEnvBase<VisionEnv>;
 
 }  // namespace flightlib

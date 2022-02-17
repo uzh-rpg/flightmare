@@ -4,7 +4,7 @@ namespace flightlib {
 
 Quadrotor::Quadrotor(const std::string &cfg_path)
   : ctrl_(dynamics_),
-    size_(1.0, 1.0, 1.0),
+    size_(0.2, 0.2, 0.2),
     collision_(false),
     world_box_(
       (Matrix<3, 2>() << -1000000, 1000000, -1000000, 1000000, 0, 1000000)
@@ -24,7 +24,7 @@ Quadrotor::Quadrotor(const std::string &cfg_path)
 Quadrotor::Quadrotor(const QuadrotorDynamics &dynamics)
   : dynamics_(dynamics),
     ctrl_(dynamics_),
-    size_(1.0, 1.0, 1.0),
+    size_(0.2, 0.2, 0.2),
     collision_(false),
     world_box_(
       (Matrix<3, 2>() << -1000000, 1000000, -1000000, 1000000, 0, 1000000)
