@@ -11,7 +11,7 @@ StaticGate::StaticGate(const std::string& id, const std::string& prefab_id)
   //
   gate_state_.setZero();
   size_ << 1.0, 1.0, 1.0;
-};
+}
 
 StaticGate::~StaticGate() {}
 

@@ -100,4 +100,5 @@ class UnityBridge {
   const Scalar unity_connection_time_out_{60.0};
   bool unity_ready_{false};
 };
+
 }  // namespace flightlib

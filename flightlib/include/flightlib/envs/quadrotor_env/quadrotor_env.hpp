@@ -34,9 +34,9 @@ enum Ctl : int {
 
   // control actions
   kAct = 0,
-  kNAct = 4,
+  kNAct = 4
 };
-};  // namespace quadenv
+}  // namespace quadenv
 
 class QuadrotorEnv final : public EnvBase {
  public:

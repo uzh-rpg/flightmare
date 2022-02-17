@@ -2,18 +2,35 @@
 
 namespace flightlib {
 
-RGBCamera::RGBCamera()
-  : channels_(3),
-    width_(640),
-    height_(480),
-    fov_{90.0},
-    depth_scale_{0.2},
-    T_BC_{(Matrix<4, 4>() << 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)
-            .finished()},
-    K_{(Matrix<3, 3>() << 174.246, 0.0, 320.0, 0.0, 130.684, 240.0, 0.0, 0.0,
-        1.0)
-         .finished()},
-    enabled_layers_({false, false, false}) {}
+// RGBCamera::RGBCamera()
+//   : channels_(3),
+//     width_(640),
+//     height_(480),
+//     fov_{90.0},
+//     depth_scale_{0.2},
+//     T_BC_{(Matrix<4, 4>() << 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)
+//             .finished()},
+//     K_{(Matrix<3, 3>() << 174.246, 0.0, 320.0, 0.0, 130.684, 240.0, 0.0, 0.0,
+//         1.0)
+//          .finished()},
+//     enabled_layers_({false, false, false}) {}
+
+RGBCamera::RGBCamera() {
+  // channels_ = 3;
+  // width_ = 640;
+  // height_ = 480;
+  // fov_ = 90.0;
+  // depth_scale_ = 0.2;
+
+  // B_r_BC_ << 0.0, 0.0, 0.3;
+  // T_BC_ << 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1;
+  // K_ << 174.246, 0.0, 320.0, 0.0, 130.684, 240.0, 0.0, 0.0, 1.0;
+
+  // depth, segmentation, opticalflow
+  // enabled_layers_.push_back(false);
+  // enabled_layers_.push_back(false);
+  // enabled_layers_.push_back(false);
+}
 
 RGBCamera::~RGBCamera() {}
 

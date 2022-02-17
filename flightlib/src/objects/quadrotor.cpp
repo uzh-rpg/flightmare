@@ -266,7 +266,7 @@ Vector<3> Quadrotor::getPosition(void) const { return state_.p; }
 
 std::vector<std::shared_ptr<RGBCamera>> Quadrotor::getCameras(void) const {
   return rgb_cameras_;
-};
+}
 
 bool Quadrotor::getCamera(const size_t cam_id,
                           std::shared_ptr<RGBCamera> camera) const {

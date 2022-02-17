@@ -88,7 +88,7 @@ bool UnityBridge::sendInitialSettings(void) {
   // send message without blocking
   pub_.send(msg, true);
   return true;
-};
+}
 
 bool UnityBridge::handleSettings(void) {
   // create new message object
@@ -105,7 +105,7 @@ bool UnityBridge::handleSettings(void) {
     done = json::parse(metadata_string).at("ready").get<bool>();
   }
   return done;
-};
+}
 
 bool UnityBridge::getRender(const FrameID frame_id) {
   pub_msg_.frame_id = frame_id;
