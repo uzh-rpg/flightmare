@@ -22,4 +22,4 @@ endif()
 
 message(STATUS "Eigen downloaded!")
 
-set(EIGEN_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/externals/eigen/eigen3)
+set(EIGEN3_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/externals/eigen/eigen3)
