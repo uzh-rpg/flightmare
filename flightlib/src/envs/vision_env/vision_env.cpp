@@ -30,6 +30,7 @@ VisionEnv::VisionEnv(const YAML::Node &cfg_node, const int env_id)
 
 void VisionEnv::init() {
   //
+  unity_render_offset_ << 0.0, 0.0, 0.0;
   goal_pos_ << 0.0, 0.0, 5.0;
   //
   quad_ptr_ = std::make_shared<Quadrotor>();
@@ -253,6 +254,27 @@ bool VisionEnv::loadParam(const YAML::Node &cfg) {
     logger_.error("Cannot load [rewards] parameters");
     return false;
   }
+
+  // environment
+  if (cfg["unity"]) {
+    unity_render_ = cfg["unity"]["render"].as<bool>();
+    scene_id_ = cfg["unity"]["scene_id"].as<SceneID>();
+  }
+  std::string scene_file =
+    getenv("FLIGHTMARE_PATH") + std::string("/flightpy/configs/scene.yaml");
+  // check if configuration file exist
+  if (!(file_exists(scene_file))) {
+    logger_.error("Unity scene configuration file %s does not exists.",
+                  scene_file);
+  }
+  // load configuration file
+  YAML::Node scene_cfg_node = YAML::LoadFile(scene_file);
+  std::string scene_idx = "scene_" + std::to_string(scene_id_);
+
+  std::vector<Scalar> render_offset =
+    scene_cfg_node[scene_idx]["render_offset"].as<std::vector<Scalar>>();
+  unity_render_offset_ = Vector<3>(render_offset.data());
+  std::cout << unity_render_offset_ << std::endl;
   return true;
 }
 
@@ -317,6 +339,9 @@ bool VisionEnv::configCamera(const YAML::Node &cfg) {
 bool VisionEnv::addQuadrotorToUnity(const std::shared_ptr<UnityBridge> bridge) {
   if (!quad_ptr_) return false;
   bridge->addQuadrotor(quad_ptr_);
+
+  //
+  bridge->setPositionOffset(unity_render_offset_);
   return true;
 }
 

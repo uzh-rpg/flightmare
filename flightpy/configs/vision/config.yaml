@@ -1,5 +1,5 @@
 unity:
-  scene_id: 0 # 0 warehouse, 1 garage, 3 natureforest
+  scene_id: 2 # 0 warehouse, 1 garage, 3 natureforest
   render: no
 
 simulation:

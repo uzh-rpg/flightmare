@@ -1,0 +1,19 @@
+scene_0:
+  name: "warehouse"
+  render_offset: [0, 0, 0]
+  render_orientation: [0, 0, 0]
+
+scene_1:
+  name: "industrial"
+  render_offset: [0, 0, 0]
+  render_orientation: [0, 0, 0]
+
+scene_2:
+  name: "forest"
+  render_offset: [101.737, 86.504, 31.217]
+  render_orientation: [0.0, 0.0, -40]
+
+scene_3:
+  name: "wasteland"
+  render_offset: [1196, 1129, 106]
+  render_orientation: [0.0, 0.0, 160]

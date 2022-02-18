@@ -131,6 +131,7 @@ class VisionEnv final : public EnvBase {
   bool unity_render_{false};
   RenderMessage_t unity_output_;
   uint16_t receive_id_{0};
+  Vector<3> unity_render_offset_;
 };
 
 }  // namespace flightlib

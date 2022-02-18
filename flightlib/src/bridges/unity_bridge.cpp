@@ -112,13 +112,15 @@ bool UnityBridge::getRender(const FrameID frame_id) {
   QuadState quad_state;
   for (size_t idx = 0; idx < pub_msg_.vehicles.size(); idx++) {
     unity_quadrotors_[idx]->getState(&quad_state);
-    pub_msg_.vehicles[idx].position = positionRos2Unity(quad_state.p);
+    pub_msg_.vehicles[idx].position =
+      positionRos2Unity(quad_state.p + position_offset_);
     pub_msg_.vehicles[idx].rotation = quaternionRos2Unity(quad_state.q());
   }
 
   for (size_t idx = 0; idx < pub_msg_.objects.size(); idx++) {
     std::shared_ptr<StaticObject> gate = static_objects_[idx];
-    pub_msg_.objects[idx].position = positionRos2Unity(gate->getPos());
+    pub_msg_.objects[idx].position =
+      positionRos2Unity(gate->getPos() + position_offset_);
     pub_msg_.objects[idx].rotation = quaternionRos2Unity(gate->getQuat());
   }
 
@@ -154,7 +156,7 @@ bool UnityBridge::addQuadrotor(std::shared_ptr<Quadrotor> quad) {
   }
 
   vehicle_t.ID = "quadrotor" + std::to_string(settings_.vehicles.size());
-  vehicle_t.position = positionRos2Unity(quad_state.p);
+  vehicle_t.position = positionRos2Unity(quad_state.p + position_offset_);
   vehicle_t.rotation = quaternionRos2Unity(quad_state.q());
   vehicle_t.size = scalarRos2Unity(quad->getSize());
 
@@ -190,7 +192,8 @@ bool UnityBridge::addStaticObject(std::shared_ptr<StaticObject> static_object) {
   Object_t object_t;
   object_t.ID = static_object->getID();
   object_t.prefab_ID = static_object->getPrefabID();
-  object_t.position = positionRos2Unity(static_object->getPos());
+  object_t.position =
+    positionRos2Unity(static_object->getPos() + position_offset_);
   object_t.rotation = quaternionRos2Unity(static_object->getQuat());
   object_t.size = scalarRos2Unity(static_object->getScale());
 
