@@ -274,7 +274,6 @@ bool VisionEnv::loadParam(const YAML::Node &cfg) {
   std::vector<Scalar> render_offset =
     scene_cfg_node[scene_idx]["render_offset"].as<std::vector<Scalar>>();
   unity_render_offset_ = Vector<3>(render_offset.data());
-  std::cout << unity_render_offset_ << std::endl;
   return true;
 }
 
