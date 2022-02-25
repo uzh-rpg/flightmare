@@ -41,23 +41,6 @@ void VisionEnv::init() {
   quad_ptr_->updateDynamics(dynamics);
 
 
-  // create static objects
-  for (int i = 0; i < 10; i++) {
-    for (int j = 0; j < 10; j++) {
-      std::string object_id = "Object" + std::to_string(i * j + j);
-      std::string prefab_id = "Transparen_Cube";
-      std::shared_ptr<StaticObject> obj =
-        std::make_shared<StaticObject>(object_id, prefab_id);
-
-      obj->setPosition(Vector<3>(i * 10, j * 10, 1));
-      obj->setRotation(Quaternion(1.0, 0.0, 0.0, 0.0));
-      obj->setSize(Vector<3>(1.0, 1.0, 1.0));
-      obj->setScale(Vector<3>(1.0, 1.0, 1.0));
-
-      static_objects_.push_back(obj);
-    }
-  }
-
   // define a bounding box {xmin, xmax, ymin, ymax, zmin, zmax}
   world_box_ << -20, 20, -20, 20, -0.0, 20;
   if (!quad_ptr_->setWorldBox(world_box_)) {
@@ -74,6 +57,20 @@ void VisionEnv::init() {
 
   // add camera
   if (!configCamera(cfg_)) {
+    logger_.error(
+      "Cannot config RGB Camera. Something wrong with the config file");
+  }
+
+
+  // add object
+  std::string obj_file = getenv("FLIGHTMARE_PATH") +
+                         std::string("/flightpy/configs/vision/objects.yaml");
+  if (!(file_exists(obj_file))) {
+    logger_.error("Configuration file %s does not exists.", obj_file);
+  }
+  YAML::Node obj_cfg = YAML::LoadFile(obj_file);
+
+  if (!configObjects(obj_cfg)) {
     logger_.error(
       "Cannot config RGB Camera. Something wrong with the config file");
   }
@@ -170,8 +167,7 @@ bool VisionEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs,
   quad_ptr_->run(cmd_, sim_dt_);
 
   for (int i = 0; i < int(static_objects_.size()); i++) {
-    Vector<3> obj_position = quad_state_.p + Vector<3>(i, 0, 0);
-    static_objects_[i]->setPosition(obj_position);
+    static_objects_[i]->run(sim_dt_);
   }
 
   // update observations
@@ -295,6 +291,41 @@ bool VisionEnv::loadParam(const YAML::Node &cfg) {
   std::vector<Scalar> render_offset =
     scene_cfg_node[scene_idx]["render_offset"].as<std::vector<Scalar>>();
   unity_render_offset_ = Vector<3>(render_offset.data());
+  return true;
+}
+
+bool VisionEnv::configObjects(const YAML::Node &cfg_node) {
+  logger_.info("Configure objects");
+
+  int num_objects = cfg_node["N"].as<int>();
+  // create static objects
+  for (int i = 0; i < num_objects; i++) {
+    std::string object_id = "Object" + std::to_string(i + 1);
+    std::string prefab_id = cfg_node[object_id]["prefab"].as<std::string>();
+    std::shared_ptr<StaticObject> obj =
+      std::make_shared<StaticObject>(object_id, prefab_id);
+
+    // load location, rotation and size
+    std::vector<Scalar> posvec =
+      (cfg_node[object_id]["position"]).as<std::vector<Scalar>>();
+    std::vector<Scalar> rotvec =
+      (cfg_node[object_id]["rotation"]).as<std::vector<Scalar>>();
+    std::vector<Scalar> scalevec =
+      (cfg_node[object_id]["scale"]).as<std::vector<Scalar>>();
+
+    obj->setPosition(Vector<3>(posvec.data()));
+    obj->setRotation(Quaternion(rotvec.data()));
+    obj->setSize(Vector<3>(1.0, 1.0, 1.0));
+    obj->setScale(Vector<3>(scalevec.data()));
+
+    std::string csv_name = cfg_node[object_id]["csvtraj"].as<std::string>();
+    std::string csv_file = getenv("FLIGHTMARE_PATH") +
+                           std::string("/flightpy/configs/vision/csvtrajs/") +
+                           csv_name + std::string(".csv");
+    obj->loadTrajectory(csv_file);
+
+    static_objects_.push_back(obj);
+  }
   return true;
 }
 

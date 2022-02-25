@@ -1,15 +1,17 @@
 #pragma once
 
+#include <string>
+
+#include "flightlib/common/csv_reader.hpp"
 #include "flightlib/common/rigid_state.hpp"
 #include "flightlib/common/types.hpp"
-
 namespace flightlib {
 class StaticObject {
  public:
-  StaticObject(std::string id, std::string prefab_id)
-    : id_(id), prefab_id_(prefab_id){};
+  StaticObject(std::string id, std::string prefab_id);
   virtual ~StaticObject(){};
 
+  void run(const Scalar dt);
   // publich get functions
   virtual Vector<3> getPos(void) { return state_.p; };
   virtual Quaternion getQuat(void) { return state_.q(); };
@@ -19,6 +21,8 @@ class StaticObject {
   // public get functions
   const std::string getID(void) { return id_; };
   const std::string getPrefabID(void) { return prefab_id_; };
+
+  bool loadTrajectory(const std::string csv_file);
 
   // publich set functions
   inline void setPosition(const Vector<3>& position) { state_.p = position; };
@@ -33,7 +37,12 @@ class StaticObject {
   const std::string id_;
   const std::string prefab_id_;
 
+  Scalar sign_;
+
   RigidState state_;
+
+  std::vector<RigidState> traj_;
+
   Vector<3> size_;
   Vector<3> scale_;
 };

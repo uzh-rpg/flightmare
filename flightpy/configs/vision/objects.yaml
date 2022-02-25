@@ -1,0 +1,57 @@
+Object1:
+  prefab: "rpg_gate"
+  position: [0.0, 0.0, 0.0]
+  rotation: [1.0, 0.0, 0.0, 0.0]
+  scale: [1.0, 1.0, 1.0]
+  csvtraj: "random_20210608-212938"
+  loop: false
+Object2:
+  prefab: "rpg_box01"
+  position: [0.0, 0.0, 0.0]
+  rotation: [1.0, 0.0, 0.0, 0.0]
+  scale: [1.0, 1.0, 1.0]
+  csvtraj: "random_20210608-212956"
+  loop: false
+Object3:
+  prefab: "rpg_box02"
+  position: [0.0, 0.0, 0.0]
+  rotation: [1.0, 0.0, 0.0, 0.0]
+  scale: [1.0, 1.0, 1.0]
+  csvtraj: "random_20210608-213011"
+  loop: false
+Object4:
+  prefab: "rpg_mushroom01"
+  position: [0.0, 0.0, 0.0]
+  rotation: [1.0, 0.0, 0.0, 0.0]
+  scale: [1.0, 1.0, 1.0]
+  csvtraj: "random_20210608-213021"
+  loop: false
+Object5:
+  prefab: "rpg_mushroom02"
+  position: [0.0, 0.0, 0.0]
+  rotation: [1.0, 0.0, 0.0, 0.0]
+  scale: [1.0, 1.0, 1.0]
+  csvtraj: "random_20210608-213029"
+  loop: false
+Object6:
+  prefab: "rpg_rock01"
+  position: [0.0, 0.0, 0.0]
+  rotation: [1.0, 0.0, 0.0, 0.0]
+  scale: [1.0, 1.0, 1.0]
+  csvtraj: "random_20210608-213043"
+  loop: false
+Object7:
+  prefab: "rpg_rock02"
+  position: [0.0, 0.0, 0.0]
+  rotation: [1.0, 0.0, 0.0, 0.0]
+  scale: [1.0, 1.0, 1.0]
+  csvtraj: "random_20210608-213219"
+  loop: false
+Object8:
+  prefab: "rpg_tree01"
+  position: [0.0, 0.0, 0.0]
+  rotation: [1.0, 0.0, 0.0, 0.0]
+  scale: [1.0, 1.0, 1.0]
+  csvtraj: "random_20210608-213219"
+  loop: false
+N: 8

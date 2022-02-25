@@ -74,7 +74,8 @@ class VisionEnv final : public EnvBase {
                                   const VisionEnv &vision_env);
 
 
-  bool configCamera(const YAML::Node &cfg);
+  bool configCamera(const YAML::Node &cfg_node);
+  bool configObjects(const YAML::Node &cfg_node);
 
   // flightmare (visualization)
   bool setUnity(const bool render);
