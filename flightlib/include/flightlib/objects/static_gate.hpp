@@ -28,7 +28,6 @@ class StaticGate : public StaticObject {
   inline void setSize(const Vector<3>& size) { size_ = size; };
   inline void setScale(const Vector<3>& scale) { scale_ = scale; };
 
-
  private:
   std::string id_;
   std::string prefab_id_;

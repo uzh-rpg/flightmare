@@ -32,12 +32,31 @@ void VisionEnv::init() {
   //
   unity_render_offset_ << 0.0, 0.0, 0.0;
   goal_pos_ << 0.0, 0.0, 5.0;
-  //
+
+  // create quadrotors
   quad_ptr_ = std::make_shared<Quadrotor>();
   // update dynamics
   QuadrotorDynamics dynamics;
   dynamics.updateParams(cfg_);
   quad_ptr_->updateDynamics(dynamics);
+
+
+  // create static objects
+  for (int i = 0; i < 10; i++) {
+    for (int j = 0; j < 10; j++) {
+      std::string object_id = "Object" + std::to_string(i * j + j);
+      std::string prefab_id = "Transparen_Cube";
+      std::shared_ptr<StaticObject> obj =
+        std::make_shared<StaticObject>(object_id, prefab_id);
+
+      obj->setPosition(Vector<3>(i * 10, j * 10, 1));
+      obj->setRotation(Quaternion(1.0, 0.0, 0.0, 0.0));
+      obj->setSize(Vector<3>(1.0, 1.0, 1.0));
+      obj->setScale(Vector<3>(1.0, 1.0, 1.0));
+
+      static_objects_.push_back(obj);
+    }
+  }
 
   // define a bounding box {xmin, xmax, ymin, ymax, zmin, zmax}
   world_box_ << -20, 20, -20, 20, -0.0, 20;
@@ -58,9 +77,6 @@ void VisionEnv::init() {
     logger_.error(
       "Cannot config RGB Camera. Something wrong with the config file");
   }
-  // else {
-  //   logger_.info("RGB Camera is created successfully!");
-  // };
 
   // use single rotor control or bodyrate control
   if (rotor_ctrl_ == Command::SINGLEROTOR) {
@@ -338,6 +354,10 @@ bool VisionEnv::configCamera(const YAML::Node &cfg) {
 bool VisionEnv::addQuadrotorToUnity(const std::shared_ptr<UnityBridge> bridge) {
   if (!quad_ptr_) return false;
   bridge->addQuadrotor(quad_ptr_);
+
+  for (int i = 0; i < (int)static_objects_.size(); i++) {
+    bridge->addStaticObject(static_objects_[i]);
+  }
 
   //
   bridge->setPositionOffset(unity_render_offset_);

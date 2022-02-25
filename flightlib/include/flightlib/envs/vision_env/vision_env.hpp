@@ -19,6 +19,7 @@
 #include "flightlib/common/utils.hpp"
 #include "flightlib/envs/env_base.hpp"
 #include "flightlib/objects/quadrotor.hpp"
+#include "flightlib/objects/static_object.hpp"
 #include "flightlib/sensors/rgb_camera.hpp"
 
 namespace flightlib {
@@ -91,6 +92,9 @@ class VisionEnv final : public EnvBase {
   int env_id_;
   // quadrotor
   std::shared_ptr<Quadrotor> quad_ptr_;
+  //
+  std::vector<std::shared_ptr<StaticObject>> static_objects_;
+
   QuadState quad_state_;
   Command cmd_;
   Logger logger_{"VisionEnv"};
