@@ -169,6 +169,11 @@ bool VisionEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs,
   // simulate quadrotor
   quad_ptr_->run(cmd_, sim_dt_);
 
+  for (int i = 0; i < int(static_objects_.size()); i++) {
+    Vector<3> obj_position = quad_state_.p + Vector<3>(i, 0, 0);
+    static_objects_[i]->setPosition(obj_position);
+  }
+
   // update observations
   getObs(obs);
 

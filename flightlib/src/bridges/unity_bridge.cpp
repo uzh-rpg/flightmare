@@ -192,7 +192,6 @@ bool UnityBridge::addStaticObject(std::shared_ptr<StaticObject> static_object) {
   Object_t object_t;
   object_t.ID = static_object->getID();
   object_t.prefab_ID = static_object->getPrefabID();
-  std::cout << "object prefa_id " << object_t.prefab_ID << std::endl;
   object_t.position =
     positionRos2Unity(static_object->getPos() + position_offset_);
   object_t.rotation = quaternionRos2Unity(static_object->getQuat());
