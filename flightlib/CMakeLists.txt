@@ -93,6 +93,7 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 add_definitions(-fno-finite-math-only)
 add_definitions(-Werror)
+add_definitions(-Wno-int-in-bool-context)
 add_definitions(-Wall)
 
 include_directories(include)
