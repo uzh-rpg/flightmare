@@ -30,9 +30,12 @@ enum Vision : int {
   //
   kNQuadState = 25,
 
+  kNObstacles = 10,
+  kNObstaclesState = 3,
+
   // observations
   kObs = 0,
-  kNObs = 15,
+  kNObs = 18 + kNObstacles * kNObstaclesState,
 
   // control actions
   kAct = 0,
@@ -62,6 +65,7 @@ class VisionEnv final : public EnvBase {
   bool getImage(Ref<ImgVector<>> img, const bool rgb = true) override;
   bool getDepthImage(Ref<DepthImgVector<>> img) override;
 
+  bool getObstacleState(Ref<Vector<>> obstacle_obs) const;
   // get quadrotor states
   bool getQuadAct(Ref<Vector<>> act) const;
   bool getQuadState(Ref<Vector<>> state) const;
@@ -82,6 +86,7 @@ class VisionEnv final : public EnvBase {
   bool connectUnity();
   void disconnectUnity();
   FrameID updateUnity(const FrameID frame_id);
+
 
   //
   inline std::vector<std::string> getRewardNames() { return reward_names_; }

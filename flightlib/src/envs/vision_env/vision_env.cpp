@@ -42,7 +42,7 @@ void VisionEnv::init() {
 
 
   // define a bounding box {xmin, xmax, ymin, ymax, zmin, zmax}
-  world_box_ << -20, 20, -20, 20, -0.0, 20;
+  world_box_ << -100, 100, -100, 100, -0.0, 100;
   if (!quad_ptr_->setWorldBox(world_box_)) {
     logger_.error("cannot set wolrd box");
   };
@@ -143,13 +143,44 @@ bool VisionEnv::getObs(Ref<Vector<>> obs) {
     return false;
   }
 
+  Vector<9> ori = Map<Vector<>>(quad_state_.R().data(), quad_state_.R().size());
+
+  Vector<visionenv::kNObstacles * visionenv::kNObstaclesState> obstacle_obs;
+
+  getObstacleState(obstacle_obs);
+
+
+  // 3 + 9 + 3 + 3 + 3*N
+  obs << quad_state_.p - goal_pos_, ori, quad_state_.v, quad_state_.w,
+    obstacle_obs;
+  return true;
+}
+
+bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) const {
+  std::vector<Scalar> relative_pos_norm;
+  std::vector<Vector<3>> relative_pos;
+  for (int i = 0; i < visionenv::kNObstacles; i++) {
+    relative_pos.push_back(quad_state_.p - static_objects_[i]->getPos());
+    relative_pos_norm.push_back(
+      (quad_state_.p - static_objects_[i]->getPos()).norm());
+  }
+
+  int idx = 0;
+  for (size_t sort_idx : sort_indexes(relative_pos_norm)) {
+    obs_state.segment<3>(idx * 3) << relative_pos[sort_idx];
+    idx += 1;
+  }
   return true;
 }
 
 bool VisionEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs,
                      Ref<Vector<>> reward) {
-  if (!act.allFinite() || act.rows() != act_dim_ || rew_dim_ != reward.rows())
+  if (!act.allFinite() || act.rows() != act_dim_ || rew_dim_ != reward.rows()) {
     return false;
+    logger_.error(
+      "Cannot run environment simulation. dimension mismatch or invalid "
+      "actions.");
+  }
   //
   pi_act_ = act.cwiseProduct(act_std_) + act_mean_;
 
@@ -165,6 +196,8 @@ bool VisionEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs,
 
   // simulate quadrotor
   quad_ptr_->run(cmd_, sim_dt_);
+  // update quadrotor state
+  quad_ptr_->getState(&quad_state_);
 
   for (int i = 0; i < int(static_objects_.size()); i++) {
     static_objects_[i]->run(sim_dt_);
@@ -173,12 +206,35 @@ bool VisionEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs,
   // update observations
   getObs(obs);
 
-  Scalar total_reward = 0.0;
-  reward << total_reward;
+  // ---------------------- reward function design
+  // - position tracking
+  const Scalar pos_reward = -0.002 * (quad_state_.p - goal_pos_).norm();
+
+  // - orientation tracking
+  const Scalar ori_reward =
+    -0.002 * (quad_state_.q().toRotationMatrix().eulerAngles(2, 1, 0)).norm();
+
+  // - linear velocity tracking
+  const Scalar lin_vel_reward = -0.0001 * quad_state_.v.norm();
+
+  // - angular velocity tracking
+  const Scalar ang_vel_reward = -0.0001 * quad_state_.w.norm();
+
+  const Scalar total_reward =
+    pos_reward + ori_reward + lin_vel_reward + ang_vel_reward;
+
+  reward << pos_reward, ori_reward, lin_vel_reward, ang_vel_reward,
+    total_reward;
+
   return true;
 }
 
 bool VisionEnv::isTerminalState(Scalar &reward) {
+  if (quad_state_.x(QS::POSZ) <= 0.01) {
+    reward = -1.0;
+    return true;
+  }
+
   if (cmd_.t >= max_t_ - sim_dt_) {
     reward = 0.0;
     return true;
@@ -295,7 +351,7 @@ bool VisionEnv::loadParam(const YAML::Node &cfg) {
 }
 
 bool VisionEnv::configObjects(const YAML::Node &cfg_node) {
-  logger_.info("Configure objects");
+  // logger_.info("Configure objects");
 
   int num_objects = cfg_node["N"].as<int>();
   // create static objects

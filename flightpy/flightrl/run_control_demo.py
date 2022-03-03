@@ -51,15 +51,15 @@ def main():
     configure_random_seed(args.seed, env=train_env)
 
     if args.render:
-        cfg["main"]["render"] = "yes"
+        cfg["unity"]["render"] = "yes"
 
     # create evaluation environment
-    old_num_envs = cfg["main"]["num_envs"]
-    cfg["main"]["num_envs"] = 1
+    old_num_envs = cfg["simulation"]["num_envs"]
+    cfg["simulation"]["num_envs"] = 1
     eval_env = wrapper.FlightEnvVec(
         QuadrotorEnv_v1(dump(cfg, Dumper=RoundTripDumper), False)
     )
-    cfg["main"]["num_envs"] = old_num_envs
+    cfg["simulation"]["num_envs"] = old_num_envs
 
     # save the configuration and other files
     rsg_root = os.path.dirname(os.path.abspath(__file__))

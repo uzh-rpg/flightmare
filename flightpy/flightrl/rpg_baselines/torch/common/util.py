@@ -80,9 +80,9 @@ def plot3d_traj(ax3d, pos, vel):
     )
     ax3d.view_init(elev=40, azim=50)
     #
-    ax3d.set_xticks([])
-    ax3d.set_yticks([])
-    ax3d.set_zticks([])
+    # ax3d.set_xticks([])
+    # ax3d.set_yticks([])
+    # ax3d.set_zticks([])
 
     #
     # ax3d.get_proj = lambda: np.dot(

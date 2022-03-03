@@ -369,9 +369,9 @@ class PPO(OnPolicyAlgorithm):
             axpos[2].plot(pos[:, 2])
             plot3d_traj(ax3d=ax3d, pos=pos, vel=vel)
         #
-        ax3d.set_xlim([-5, 5])
-        ax3d.set_ylim([-5, 5])
-        ax3d.set_zlim([-0, 8])
+        # ax3d.set_xlim([-5, 5])
+        # ax3d.set_ylim([-5, 5])
+        # ax3d.set_zlim([-0, 8])
         save_path = self.logger.get_dir() + "/TestTraj" + "/Plots"
         os.makedirs(save_path, exist_ok=True)
         fig1.savefig(save_path + "/traj_3d_{0:05d}.png".format(iteration))
