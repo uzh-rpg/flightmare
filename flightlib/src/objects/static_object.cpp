@@ -9,11 +9,15 @@ StaticObject::StaticObject(std::string id, std::string prefab_id)
 
 
 void StaticObject::run(const Scalar dt) {
+  if (traj_.size() == 0) return;
+
   int idx = int(state_.t / dt);
 
-  if (idx == 0) {
+  if (idx <= 0) {
+    idx = 0;
     sign_ = 1.0;
-  } else if (idx == int(traj_.size() - 1)) {
+  } else if (idx >= int(traj_.size() - 1)) {
+    idx = int(traj_.size() - 1);
     sign_ = -1.0;
   }
 

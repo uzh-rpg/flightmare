@@ -124,6 +124,7 @@ bool UnityBridge::getRender(const FrameID frame_id) {
     pub_msg_.objects[idx].rotation = quaternionRos2Unity(gate->getQuat());
   }
 
+
   // create new message object
   zmqpp::message msg;
   // add topic header
@@ -132,8 +133,7 @@ bool UnityBridge::getRender(const FrameID frame_id) {
   json json_msg = pub_msg_;
   msg << json_msg.dump();
   // send message without blocking
-  pub_.send(msg, true);
-  return true;
+  return pub_.send(msg, true);
 }
 
 bool UnityBridge::setScene(const SceneID& scene_id) {
@@ -207,17 +207,20 @@ bool UnityBridge::addStaticObject(std::shared_ptr<StaticObject> static_object) {
 FrameID UnityBridge::handleOutput(const FrameID sent_frame_id) {
   zmqpp::message msg;
   SubMessage_t sub_msg;
-  int count = 0;
   for (int i = 0; i < max_output_request_; i++) {
-    // create new message object zmqpp::message msg;
+    //   // create new message object zmqpp::message msg;
+    //   std::cout << "receiving messages" << std::endl;
     sub_.receive(msg);
+
     // unpack message metadata
     std::string json_sub_msg = msg.get(0);
     // parse metadata
     sub_msg = json::parse(json_sub_msg);
-    count += 1;
 
     //
+    // std::cout << "i " << 0 << " - " << received
+    //           << ", sent frame id : " << sent_frame_id
+    //           << ", received frame id : " << sub_msg.frame_id << std::endl;
     if (sub_msg.frame_id == sent_frame_id) break;
 
     if (i >= (max_output_request_ - 1)) {
@@ -244,17 +247,17 @@ FrameID UnityBridge::handleOutput(const FrameID sent_frame_id) {
           // depth
           uint32_t image_len = cam.width * cam.height * 4;
           // Get raw image bytes from ZMQ message.
-          // WARNING: This is a zero-copy operation that also casts the input to
-          // an array of unit8_t. when the message is deleted, this pointer is
-          // also dereferenced.
+          // WARNING: This is a zero-copy operation that also casts the input
+          // to an array of unit8_t. when the message is deleted, this pointer
+          // is also dereferenced.
           const uint8_t* image_data;
           msg.get(image_data, image_i);
           image_i = image_i + 1;
           // Pack image into cv::Mat
           cv::Mat new_image = cv::Mat(cam.height, cam.width, CV_32FC1);
           memcpy(new_image.data, image_data, image_len);
-          // Flip image since OpenCV origin is upper left, but Unity's is lower
-          // left.
+          // Flip image since OpenCV origin is upper left, but Unity's is
+          // lower left.
           new_image = new_image * (1.f);
           cv::flip(new_image, new_image, 0);
 
@@ -264,9 +267,9 @@ FrameID UnityBridge::handleOutput(const FrameID sent_frame_id) {
         } else {
           uint32_t image_len = cam.width * cam.height * cam.channels;
           // Get raw image bytes from ZMQ message.
-          // WARNING: This is a zero-copy operation that also casts the input to
-          // an array of unit8_t. when the message is deleted, this pointer is
-          // also dereferenced.
+          // WARNING: This is a zero-copy operation that also casts the input
+          // to an array of unit8_t. when the message is deleted, this pointer
+          // is also dereferenced.
           const uint8_t* image_data;
           msg.get(image_data, image_i);
           image_i = image_i + 1;
@@ -274,8 +277,8 @@ FrameID UnityBridge::handleOutput(const FrameID sent_frame_id) {
           cv::Mat new_image =
             cv::Mat(cam.height, cam.width, CV_MAKETYPE(CV_8U, cam.channels));
           memcpy(new_image.data, image_data, image_len);
-          // Flip image since OpenCV origin is upper left, but Unity's is lower
-          // left.
+          // Flip image since OpenCV origin is upper left, but Unity's is
+          // lower left.
           cv::flip(new_image, new_image, 0);
 
           // Tell OpenCv that the input is RGB.
