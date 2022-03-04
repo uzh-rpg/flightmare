@@ -110,7 +110,7 @@ class VisionEnv final : public EnvBase {
   std::vector<std::shared_ptr<UnityObject>> static_objects_;
   std::vector<std::shared_ptr<UnityObject>> dynamic_objects_;
 
-  QuadState quad_state_;
+  QuadState quad_state_, quad_old_state_;
   Command cmd_;
   Logger logger_{"VisionEnv"};
 
@@ -124,6 +124,7 @@ class VisionEnv final : public EnvBase {
 
   // reward function design (for model-free reinforcement learning)
   Vector<3> goal_pos_;
+  Vector<3> start_pos_;
 
   // max detection range (meter)
   Scalar max_detection_range_{10.0};
@@ -139,6 +140,7 @@ class VisionEnv final : public EnvBase {
   cv::Mat rgb_img_, gray_img_;
   cv::Mat depth_img_;
 
+  bool obstacle_collision_;
   // auxiliary variables
   int rotor_ctrl_{true};
   bool use_camera_{false};

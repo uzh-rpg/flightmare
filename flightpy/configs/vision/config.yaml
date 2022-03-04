@@ -31,9 +31,9 @@ rewards:
   dummy_coeff: 0.0
   names:
     [
-      "pos_penalty",
+      "progress_reward",
+      "dsitance_reward",
       "ori_penalty",
-      "lin_vel_penalty",
       "ang_vel_penalty",
       "total",
     ]

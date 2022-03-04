@@ -31,7 +31,8 @@ VisionEnv::VisionEnv(const YAML::Node &cfg_node, const int env_id)
 void VisionEnv::init() {
   //
   unity_render_offset_ << 0.0, 0.0, 0.0;
-  goal_pos_ << 0.0, 0.0, 5.0;
+  goal_pos_ << 20.0, 0.0, 1.0;
+  start_pos_ << 0.0, 0.0, 1.0;
 
   // create quadrotors
   quad_ptr_ = std::make_shared<Quadrotor>();
@@ -100,6 +101,7 @@ VisionEnv::~VisionEnv() {}
 bool VisionEnv::reset(Ref<Vector<>> obs) {
   quad_state_.setZero();
   pi_act_.setZero();
+  obstacle_collision_ = false;
 
   // randomly reset the quadrotor state
   // reset position
@@ -113,11 +115,11 @@ bool VisionEnv::reset(Ref<Vector<>> obs) {
   quad_state_.x(QS::VELY) = uniform_dist_(random_gen_);
   quad_state_.x(QS::VELZ) = uniform_dist_(random_gen_);
   // reset orientation
-  quad_state_.x(QS::ATTW) = uniform_dist_(random_gen_);
-  quad_state_.x(QS::ATTX) = uniform_dist_(random_gen_);
-  quad_state_.x(QS::ATTY) = uniform_dist_(random_gen_);
-  quad_state_.x(QS::ATTZ) = uniform_dist_(random_gen_);
-  quad_state_.qx /= quad_state_.qx.norm();
+  // quad_state_.x(QS::ATTW) = uniform_dist_(random_gen_);
+  // quad_state_.x(QS::ATTX) = uniform_dist_(random_gen_);
+  // quad_state_.x(QS::ATTY) = uniform_dist_(random_gen_);
+  // quad_state_.x(QS::ATTZ) = uniform_dist_(random_gen_);
+  // quad_state_.qx /= quad_state_.qx.norm();
 
   // reset quadrotor with random states
   quad_ptr_->reset(quad_state_);
@@ -133,6 +135,7 @@ bool VisionEnv::reset(Ref<Vector<>> obs) {
     cmd_.omega.setZero();
   }
 
+  start_pos_ = quad_state_.p;
   // obtain observations
   getObs(obs);
   return true;
@@ -160,10 +163,9 @@ bool VisionEnv::getObs(Ref<Vector<>> obs) {
 }
 
 bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) const {
+  // compute relative distance to dynamic obstacles
   std::vector<Scalar> relative_pos_norm;
   std::vector<Vector<3>> relative_pos;
-
-  // compute relative distance to dynamic obstacles
   for (int i = 0; i < (int)dynamic_objects_.size(); i++) {
     Vector<3> delta_pos = quad_state_.p - dynamic_objects_[i]->getPos();
     relative_pos.push_back(delta_pos);
@@ -224,7 +226,8 @@ bool VisionEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs,
 
   // simulate quadrotor
   quad_ptr_->run(cmd_, sim_dt_);
-  // update quadrotor state
+  // update quadrotor state and old quad_state
+  quad_old_state_ = quad_state_;
   quad_ptr_->getState(&quad_state_);
 
   for (int i = 0; i < int(dynamic_objects_.size()); i++) {
@@ -238,30 +241,63 @@ bool VisionEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs,
 }
 
 bool VisionEnv::computeReward(Ref<Vector<>> reward) {
+  // Vector<3> goal_lin_vel = Vector<3>(5, 0.0, 0.0);
+  // Scalar lin_vel_reward =
+  //   -0.03 * std::pow((quad_state_.v - goal_lin_vel).norm() / 5.0, 2);
+  Scalar prog_rew = 0.0;
+  const Scalar gate_dist = (goal_pos_ - quad_state_.p).norm();
+  const Scalar gate_dist_prev = (goal_pos_ - quad_old_state_.p).norm();
+  // std::cout << gate_dist << "  " << gate_dist_prev << std::endl;
+  prog_rew = (gate_dist_prev - gate_dist);
+
+
+  // get obstacle observations
+  Vector<visionenv::kNObstaclesState * visionenv::kNObstacles> obstacle_obs;
+  getObstacleState(obstacle_obs);
+
+  Scalar distance_reward = 0.0;
+  for (int idx = 0; idx < visionenv::kNObstacles; idx++) {
+    Vector<3> delta_pos = obstacle_obs.segment<3>(idx * 3);
+    // Scalar dist = std::max(current->getDistance(quad_state_.p),
+    // (Scalar)0.001);
+    const Scalar dist = delta_pos.norm();
+    distance_reward += -0.03 * ((1 / dist) - (1 / max_detection_range_));
+
+    if (dist <= 0.5) {
+      obstacle_collision_ = true;
+    }
+  }
   // ---------------------- reward function design
   // - position tracking
-  const Scalar pos_reward = -0.002 * (quad_state_.p - goal_pos_).norm();
+  // const Scalar pos_reward = -0.002 * (quad_state_.p - goal_pos_).norm();
 
   // - orientation tracking
   const Scalar ori_reward =
     -0.002 * (quad_state_.q().toRotationMatrix().eulerAngles(2, 1, 0)).norm();
 
   // - linear velocity tracking
-  const Scalar lin_vel_reward = -0.0001 * quad_state_.v.norm();
+  // const Scalar lin_vel_reward = -0.0001 * quad_state_.v.norm();
 
   // - angular velocity tracking
   const Scalar ang_vel_reward = -0.0001 * quad_state_.w.norm();
 
-  const Scalar total_reward =
-    pos_reward + ori_reward + lin_vel_reward + ang_vel_reward;
+  const Scalar total_reward = prog_rew + distance_reward + ang_vel_reward;
 
-  reward << pos_reward, ori_reward, lin_vel_reward, ang_vel_reward,
-    total_reward;
+  reward << prog_rew, distance_reward, ori_reward, ang_vel_reward, total_reward;
   return true;
 }
 
 bool VisionEnv::isTerminalState(Scalar &reward) {
-  if (quad_state_.x(QS::POSZ) <= 0.01) {
+  if (obstacle_collision_) {
+    reward = -1.0;
+    return true;
+  }
+  if (quad_state_.x(QS::POSZ) <= world_box_(QS::POSZ, 0) + 0.01) {
+    reward = -1.0;
+    return true;
+  }
+
+  if (quad_state_.x(QS::POSZ) >= world_box_(QS::POSZ, 1) - 0.01) {
     reward = -1.0;
     return true;
   }
@@ -270,6 +306,31 @@ bool VisionEnv::isTerminalState(Scalar &reward) {
     reward = 0.0;
     return true;
   }
+
+  // project current position onto current path segment
+  Vector<3> V = quad_state_.p - start_pos_;
+  Vector<3> P12 = goal_pos_ - start_pos_;
+  Scalar proj = V.cross(P12).norm() / P12.norm();
+  if (proj >= 3) {
+    reward = -1.0;
+    return true;
+  }
+
+  bool x_valid = quad_state_.p(QS::POSX) > world_box_(QS::POSX, 0) &&
+                 quad_state_.p(QS::POSX) < world_box_(QS::POSX, 1);
+  bool y_valid = quad_state_.p(QS::POSY) > world_box_(QS::POSY, 0) &&
+                 quad_state_.p(QS::POSY) < world_box_(QS::POSY, 1);
+
+  if (!x_valid || !y_valid) {
+    reward = -1.0;
+    return true;
+  }
+
+  if (quad_state_.p(QS::POSX) > goal_pos_.x()) {
+    reward = 10.0;
+    return true;
+  }
+
   return false;
 }
 
@@ -424,7 +485,6 @@ bool VisionEnv::configDynamicObjects(const std::string &yaml_file) {
 
     dynamic_objects_.push_back(obj);
   }
-  // logger_.info("Configure objects. Done.");
   return true;
 }
 
