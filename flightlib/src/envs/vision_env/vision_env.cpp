@@ -163,15 +163,35 @@ bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) const {
   std::vector<Scalar> relative_pos_norm;
   std::vector<Vector<3>> relative_pos;
 
-  for (int i = 0; i < visionenv::kNObstacles; i++) {
-    relative_pos.push_back(quad_state_.p - dynamic_objects_[i]->getPos());
-    relative_pos_norm.push_back(
-      (quad_state_.p - dynamic_objects_[i]->getPos()).norm());
+  // compute relative distance to dynamic obstacles
+  for (int i = 0; i < (int)dynamic_objects_.size(); i++) {
+    Vector<3> delta_pos = quad_state_.p - dynamic_objects_[i]->getPos();
+    relative_pos.push_back(delta_pos);
+    relative_pos_norm.push_back(delta_pos.norm());
   }
 
-  int idx = 0;
+  // compute relatiev distance to static obstacles
+  for (int i = 0; i < (int)static_objects_.size(); i++) {
+    Vector<3> delta_pos = quad_state_.p - static_objects_[i]->getPos();
+    relative_pos.push_back(delta_pos);
+    relative_pos_norm.push_back(delta_pos.norm());
+  }
+
+  size_t idx = 0;
   for (size_t sort_idx : sort_indexes(relative_pos_norm)) {
-    obs_state.segment<3>(idx * 3) << relative_pos[sort_idx];
+    if (idx >= visionenv::kNObstacles) break;
+    //
+    if (idx < relative_pos.size()) {
+      if (relative_pos_norm[sort_idx] <= max_detection_range_) {
+        obs_state.segment<3>(idx * 3) << relative_pos[sort_idx];
+      } else {
+        obs_state.segment<3>(idx * 3) = Vector<3>(
+          max_detection_range_, max_detection_range_, max_detection_range_);
+      }
+    } else {
+      obs_state.segment<3>(idx * 3) = Vector<3>(
+        max_detection_range_, max_detection_range_, max_detection_range_);
+    }
     idx += 1;
   }
   return true;

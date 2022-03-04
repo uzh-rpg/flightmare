@@ -125,6 +125,9 @@ class VisionEnv final : public EnvBase {
   // reward function design (for model-free reinforcement learning)
   Vector<3> goal_pos_;
 
+  // max detection range (meter)
+  Scalar max_detection_range_{10.0};
+
   // action and observation normalization (for learning)
   Vector<visionenv::kNAct> act_mean_;
   Vector<visionenv::kNAct> act_std_;
