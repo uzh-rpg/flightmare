@@ -180,15 +180,19 @@ bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) const {
   size_t idx = 0;
   for (size_t sort_idx : sort_indexes(relative_pos_norm)) {
     if (idx >= visionenv::kNObstacles) break;
-    //
+
     if (idx < relative_pos.size()) {
+      // if enough obstacles in the environment
       if (relative_pos_norm[sort_idx] <= max_detection_range_) {
+        // if obstacles are within detection range
         obs_state.segment<3>(idx * 3) << relative_pos[sort_idx];
       } else {
+        // if obstacles are beyong detection range
         obs_state.segment<3>(idx * 3) = Vector<3>(
           max_detection_range_, max_detection_range_, max_detection_range_);
       }
     } else {
+      // if not enough obstacles in the environment
       obs_state.segment<3>(idx * 3) = Vector<3>(
         max_detection_range_, max_detection_range_, max_detection_range_);
     }
