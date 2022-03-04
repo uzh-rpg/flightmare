@@ -1,10 +1,10 @@
 #pragma once
 
 #include "flightlib/common/rigid_state.hpp"
-#include "flightlib/objects/static_object.hpp"
+#include "flightlib/objects/unity_object.hpp"
 
 namespace flightlib {
-class StaticGate : public StaticObject {
+class StaticGate : public UnityObject {
  public:
   StaticGate(const std::string& id, const std::string& prefab_id = "rpg_gate");
   ~StaticGate();

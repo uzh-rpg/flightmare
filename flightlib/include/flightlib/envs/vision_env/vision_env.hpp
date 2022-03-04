@@ -19,7 +19,7 @@
 #include "flightlib/common/utils.hpp"
 #include "flightlib/envs/env_base.hpp"
 #include "flightlib/objects/quadrotor.hpp"
-#include "flightlib/objects/static_object.hpp"
+#include "flightlib/objects/unity_object.hpp"
 #include "flightlib/sensors/rgb_camera.hpp"
 
 namespace flightlib {
@@ -79,7 +79,8 @@ class VisionEnv final : public EnvBase {
 
 
   bool configCamera(const YAML::Node &cfg_node);
-  bool configObjects(const YAML::Node &cfg_node);
+  bool configDynamicObjects(const std::string &yaml_file);
+  bool configStaticObjects(const std::string &csv_file);
 
   // flightmare (visualization)
   bool setUnity(const bool render);
@@ -92,17 +93,22 @@ class VisionEnv final : public EnvBase {
   inline std::vector<std::string> getRewardNames() { return reward_names_; }
   inline void setSceneID(const SceneID id) { scene_id_ = id; }
   inline std::shared_ptr<Quadrotor> getQuadrotor() { return quad_ptr_; }
-  inline std::vector<std::shared_ptr<StaticObject>> getObjects() {
+  inline std::vector<std::shared_ptr<UnityObject>> getDynamicObjects() {
+    return dynamic_objects_;
+  }
+  inline std::vector<std::shared_ptr<UnityObject>> getStaticObjects() {
     return static_objects_;
   }
 
  private:
+  bool computeReward(Ref<Vector<>> reward);
   void init();
   int env_id_;
   // quadrotor
   std::shared_ptr<Quadrotor> quad_ptr_;
   //
-  std::vector<std::shared_ptr<StaticObject>> static_objects_;
+  std::vector<std::shared_ptr<UnityObject>> static_objects_;
+  std::vector<std::shared_ptr<UnityObject>> dynamic_objects_;
 
   QuadState quad_state_;
   Command cmd_;
@@ -145,6 +151,7 @@ class VisionEnv final : public EnvBase {
   RenderMessage_t unity_output_;
   uint16_t receive_id_{0};
   Vector<3> unity_render_offset_;
+  std::string static_object_csv_;
 };
 
 }  // namespace flightlib

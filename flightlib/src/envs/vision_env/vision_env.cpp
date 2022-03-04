@@ -61,16 +61,20 @@ void VisionEnv::init() {
       "Cannot config RGB Camera. Something wrong with the config file");
   }
 
-
-  // add object
-  std::string obj_file = getenv("FLIGHTMARE_PATH") +
-                         std::string("/flightpy/configs/vision/objects.yaml");
-  if (!(file_exists(obj_file))) {
-    logger_.error("Configuration file %s does not exists.", obj_file);
+  // add dynamic objects
+  std::string dynamic_object_yaml =
+    getenv("FLIGHTMARE_PATH") +
+    std::string("/flightpy/configs/vision/dynamic_obstacles.yaml");
+  if (!configDynamicObjects(dynamic_object_yaml)) {
+    logger_.error(
+      "Cannot config RGB Camera. Something wrong with the config file");
   }
-  YAML::Node obj_cfg = YAML::LoadFile(obj_file);
 
-  if (!configObjects(obj_cfg)) {
+  // add static objects
+  static_object_csv_ =
+    getenv("FLIGHTMARE_PATH") +
+    std::string("/flightpy/configs/vision/static_obstacles.csv");
+  if (!configStaticObjects(static_object_csv_)) {
     logger_.error(
       "Cannot config RGB Camera. Something wrong with the config file");
   }
@@ -149,7 +153,6 @@ bool VisionEnv::getObs(Ref<Vector<>> obs) {
 
   getObstacleState(obstacle_obs);
 
-
   // 3 + 9 + 3 + 3 + 3*N
   obs << quad_state_.p - goal_pos_, ori, quad_state_.v, quad_state_.w,
     obstacle_obs;
@@ -159,10 +162,11 @@ bool VisionEnv::getObs(Ref<Vector<>> obs) {
 bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) const {
   std::vector<Scalar> relative_pos_norm;
   std::vector<Vector<3>> relative_pos;
+
   for (int i = 0; i < visionenv::kNObstacles; i++) {
-    relative_pos.push_back(quad_state_.p - static_objects_[i]->getPos());
+    relative_pos.push_back(quad_state_.p - dynamic_objects_[i]->getPos());
     relative_pos_norm.push_back(
-      (quad_state_.p - static_objects_[i]->getPos()).norm());
+      (quad_state_.p - dynamic_objects_[i]->getPos()).norm());
   }
 
   int idx = 0;
@@ -199,13 +203,17 @@ bool VisionEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs,
   // update quadrotor state
   quad_ptr_->getState(&quad_state_);
 
-  for (int i = 0; i < int(static_objects_.size()); i++) {
-    static_objects_[i]->run(sim_dt_);
+  for (int i = 0; i < int(dynamic_objects_.size()); i++) {
+    dynamic_objects_[i]->run(sim_dt_);
   }
 
   // update observations
   getObs(obs);
 
+  return computeReward(reward);
+}
+
+bool VisionEnv::computeReward(Ref<Vector<>> reward) {
   // ---------------------- reward function design
   // - position tracking
   const Scalar pos_reward = -0.002 * (quad_state_.p - goal_pos_).norm();
@@ -225,7 +233,6 @@ bool VisionEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs,
 
   reward << pos_reward, ori_reward, lin_vel_reward, ang_vel_reward,
     total_reward;
-
   return true;
 }
 
@@ -350,16 +357,23 @@ bool VisionEnv::loadParam(const YAML::Node &cfg) {
   return true;
 }
 
-bool VisionEnv::configObjects(const YAML::Node &cfg_node) {
-  // logger_.info("Configure objects");
+bool VisionEnv::configDynamicObjects(const std::string &yaml_file) {
+  //
+  if (!(file_exists(yaml_file))) {
+    logger_.error("Configuration file %s does not exists.", yaml_file);
+    return false;
+  }
+  YAML::Node cfg_node = YAML::LoadFile(yaml_file);
+
+  // logger_.info("Configuring dynamic objects");
 
   int num_objects = cfg_node["N"].as<int>();
   // create static objects
   for (int i = 0; i < num_objects; i++) {
     std::string object_id = "Object" + std::to_string(i + 1);
     std::string prefab_id = cfg_node[object_id]["prefab"].as<std::string>();
-    std::shared_ptr<StaticObject> obj =
-      std::make_shared<StaticObject>(object_id, prefab_id);
+    std::shared_ptr<UnityObject> obj =
+      std::make_shared<UnityObject>(object_id, prefab_id);
 
     // load location, rotation and size
     std::vector<Scalar> posvec =
@@ -378,10 +392,53 @@ bool VisionEnv::configObjects(const YAML::Node &cfg_node) {
     std::string csv_file = getenv("FLIGHTMARE_PATH") +
                            std::string("/flightpy/configs/vision/csvtrajs/") +
                            csv_name + std::string(".csv");
+    if (!(file_exists(csv_file))) {
+      logger_.error("Configuration file %s does not exists.", csv_file);
+      return false;
+    }
     obj->loadTrajectory(csv_file);
 
+    dynamic_objects_.push_back(obj);
+  }
+  // logger_.info("Configure objects. Done.");
+  return true;
+}
+
+bool VisionEnv::configStaticObjects(const std::string &csv_file) {
+  //
+  if (!(file_exists(csv_file))) {
+    logger_.error("Configuration file %s does not exists.", csv_file);
+    return false;
+  }
+  std::ifstream infile(csv_file);
+  int i = 0;
+  for (auto &row : CSVRange(infile)) {
+    // Read column 0 for time
+    std::string object_id = "StaticObject" + std::to_string(i + 1);
+    std::string prefab_id = (std::string)row[0];
+
+    //
+    std::shared_ptr<UnityObject> obj =
+      std::make_shared<UnityObject>(object_id, prefab_id);
+    // RigidState state_i;
+
+    //
+    Vector<3> pos;
+    pos << std::stod((std::string)row[1]), std::stod((std::string)row[2]),
+      std::stod((std::string)row[3]);
+
+    Quaternion quat;
+    quat.w() = std::stod((std::string)row[3]);
+    quat.x() = std::stod((std::string)row[4]);
+    quat.y() = std::stod((std::string)row[5]);
+    quat.z() = std::stod((std::string)row[6]);
+
+    //
+    obj->setPosition(pos);
+    obj->setRotation(quat);
     static_objects_.push_back(obj);
   }
+
   return true;
 }
 
@@ -447,12 +504,13 @@ bool VisionEnv::addQuadrotorToUnity(const std::shared_ptr<UnityBridge> bridge) {
   if (!quad_ptr_) return false;
   bridge->addQuadrotor(quad_ptr_);
 
-  for (int i = 0; i < (int)static_objects_.size(); i++) {
-    bridge->addStaticObject(static_objects_[i]);
+  for (int i = 0; i < (int)dynamic_objects_.size(); i++) {
+    bridge->addDynamicObject(dynamic_objects_[i]);
   }
 
   //
   bridge->setPositionOffset(unity_render_offset_);
+  bridge->setObjectCSV(static_object_csv_);
   return true;
 }
 

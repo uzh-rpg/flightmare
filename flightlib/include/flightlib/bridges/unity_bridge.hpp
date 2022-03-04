@@ -13,6 +13,7 @@
 #include <string>
 #include <unordered_map>
 
+
 // opencv
 #include <opencv2/imgproc/types_c.h>
 
@@ -26,8 +27,8 @@
 #include "flightlib/common/quad_state.hpp"
 #include "flightlib/common/types.hpp"
 #include "flightlib/objects/quadrotor.hpp"
-#include "flightlib/objects/static_object.hpp"
 #include "flightlib/objects/unity_camera.hpp"
+#include "flightlib/objects/unity_object.hpp"
 #include "flightlib/sensors/rgb_camera.hpp"
 
 using json = nlohmann::json;
@@ -52,11 +53,13 @@ class UnityBridge {
 
   // public set functions
   bool setScene(const SceneID &scene_id);
+  bool setObjectCSV(const std::string &csv_file);
 
   // add object
   bool addQuadrotor(std::shared_ptr<Quadrotor> quad);
   bool addCamera(std::shared_ptr<UnityCamera> unity_camera);
-  bool addStaticObject(std::shared_ptr<StaticObject> static_object);
+  bool addStaticObject(std::shared_ptr<UnityObject> unity_object);
+  bool addDynamicObject(std::shared_ptr<UnityObject> unity_object);
 
   // public auxiliary functions
   inline void setPubPort(const std::string &pub_port) { pub_port_ = pub_port; };
@@ -82,7 +85,8 @@ class UnityBridge {
 
   std::vector<std::shared_ptr<Quadrotor>> unity_quadrotors_;
   std::vector<std::shared_ptr<RGBCamera>> rgb_cameras_;
-  std::vector<std::shared_ptr<StaticObject>> static_objects_;
+  std::vector<std::shared_ptr<UnityObject>> static_objects_;
+  std::vector<std::shared_ptr<UnityObject>> dynamic_objects_;
 
   // ZMQ variables and functions
   std::string client_address_;

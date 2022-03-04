@@ -95,16 +95,19 @@ struct Object_t {
 struct SettingsMessage_t {
   // scene/render settings
   size_t scene_id = UnityScene::WAREHOUSE;
+  std::string object_csv = "";
 
   //
   std::vector<Vehicle_t> vehicles;
-  std::vector<Object_t> objects;
+  std::vector<Object_t> dynamic_objects;
+  std::vector<Object_t> static_objects;
 };
 
 struct PubMessage_t {
   FrameID frame_id{0};
   std::vector<Vehicle_t> vehicles;
-  std::vector<Object_t> objects;
+  std::vector<Object_t> dynamic_objects;
+  std::vector<Object_t> static_objects;
 };
 
 //
@@ -179,14 +182,19 @@ inline void to_json(json &j, const Object_t &o) {
 
 // Setting messages, pub to unity
 inline void to_json(json &j, const SettingsMessage_t &o) {
-  j = json{
-    {"scene_id", o.scene_id}, {"vehicles", o.vehicles}, {"objects", o.objects}};
+  j = json{{"scene_id", o.scene_id},
+           {"vehicles", o.vehicles},
+           {"object_csv", o.object_csv},
+           {"dynamic_objects", o.dynamic_objects},
+           {"static_objects", o.static_objects}};
 }
 
 // Publish messages to unity
 inline void to_json(json &j, const PubMessage_t &o) {
-  j = json{
-    {"frame_id", o.frame_id}, {"vehicles", o.vehicles}, {"objects", o.objects}};
+  j = json{{"frame_id", o.frame_id},
+           {"vehicles", o.vehicles},
+           {"dynamic_objects", o.dynamic_objects},
+           {"static_objects", o.static_objects}};
 }
 
 // Publish messages to unity

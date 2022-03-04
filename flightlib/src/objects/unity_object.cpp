@@ -1,15 +1,22 @@
-#include "flightlib/objects/static_object.hpp"
+#include "flightlib/objects/unity_object.hpp"
 
 namespace flightlib {
 
-StaticObject::StaticObject(std::string id, std::string prefab_id)
+UnityObject::UnityObject(std::string id, std::string prefab_id)
   : id_(id), prefab_id_(prefab_id), sign_(1.0) {
   state_.setZero();
 }
 
 
-void StaticObject::run(const Scalar dt) {
-  if (traj_.size() == 0) return;
+const bool UnityObject::isStatic(void) {
+  if (traj_.size() > 1) {
+    return false;
+  }
+  return true;
+}
+
+void UnityObject::run(const Scalar dt) {
+  if (traj_.size() <= 1) return;
 
   int idx = int(state_.t / dt);
 
@@ -25,7 +32,7 @@ void StaticObject::run(const Scalar dt) {
   state_.x = traj_[idx].x;
 }
 
-bool StaticObject::loadTrajectory(const std::string traj_csv) {
+bool UnityObject::loadTrajectory(const std::string traj_csv) {
   std::ifstream infile(traj_csv);
   // iterate through all rows
   bool skip_header = true;
@@ -51,6 +58,11 @@ bool StaticObject::loadTrajectory(const std::string traj_csv) {
     state_i.x[RS::ATTZ] = std::stod((std::string)row[6]);
 
     traj_.push_back(state_i);
+  }
+
+  // static object
+  if (traj_.size() == 1) {
+    state_ = traj_[0];
   }
 
   return true;

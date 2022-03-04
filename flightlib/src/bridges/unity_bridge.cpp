@@ -39,7 +39,7 @@ bool UnityBridge::initializeConnections() {
 
 bool UnityBridge::connectUnity(const SceneID scene_id) {
   Scalar time_out_count = 0;
-  Scalar sleep_useconds = 0.2 * 1e5;
+  Scalar sleep_useconds = 0.5 * 1e5;
   setScene(scene_id);
   // try to connect unity
   logger_.info("Trying to Connect Unity.");
@@ -117,11 +117,12 @@ bool UnityBridge::getRender(const FrameID frame_id) {
     pub_msg_.vehicles[idx].rotation = quaternionRos2Unity(quad_state.q());
   }
 
-  for (size_t idx = 0; idx < pub_msg_.objects.size(); idx++) {
-    std::shared_ptr<StaticObject> gate = static_objects_[idx];
-    pub_msg_.objects[idx].position =
-      positionRos2Unity(gate->getPos() + position_offset_);
-    pub_msg_.objects[idx].rotation = quaternionRos2Unity(gate->getQuat());
+  for (size_t idx = 0; idx < pub_msg_.dynamic_objects.size(); idx++) {
+    std::shared_ptr<UnityObject> object = dynamic_objects_[idx];
+    pub_msg_.dynamic_objects[idx].position =
+      positionRos2Unity(object->getPos() + position_offset_);
+    pub_msg_.dynamic_objects[idx].rotation =
+      quaternionRos2Unity(object->getQuat());
   }
 
 
@@ -143,6 +144,16 @@ bool UnityBridge::setScene(const SceneID& scene_id) {
   }
   // logger_.info("Scene ID is set to %d.", scene_id);
   settings_.scene_id = scene_id;
+  return true;
+}
+
+bool UnityBridge::setObjectCSV(const std::string& csv_file) {
+  if (!(file_exists(csv_file))) {
+    logger_.error("Configuration file %s does not exists.", csv_file);
+    return false;
+  }
+  // logger_.info("Scene ID is set to %d.", scene_id);
+  settings_.object_csv = csv_file;
   return true;
 }
 
@@ -188,21 +199,40 @@ bool UnityBridge::addQuadrotor(std::shared_ptr<Quadrotor> quad) {
   return true;
 }
 
-bool UnityBridge::addStaticObject(std::shared_ptr<StaticObject> static_object) {
+bool UnityBridge::addStaticObject(std::shared_ptr<UnityObject> unity_object) {
   Object_t object_t;
-  object_t.ID = static_object->getID();
-  object_t.prefab_ID = static_object->getPrefabID();
+  object_t.ID = unity_object->getID();
+  object_t.prefab_ID = unity_object->getPrefabID();
   object_t.position =
-    positionRos2Unity(static_object->getPos() + position_offset_);
-  object_t.rotation = quaternionRos2Unity(static_object->getQuat());
-  object_t.size = scalarRos2Unity(static_object->getScale());
+    positionRos2Unity(unity_object->getPos() + position_offset_);
+  object_t.rotation = quaternionRos2Unity(unity_object->getQuat());
+  object_t.size = scalarRos2Unity(unity_object->getScale());
 
-  static_objects_.push_back(static_object);
-  settings_.objects.push_back(object_t);
-  pub_msg_.objects.push_back(object_t);
+  // add static objectc
+  static_objects_.push_back(unity_object);
+  settings_.static_objects.push_back(object_t);
+  pub_msg_.static_objects.push_back(object_t);
   //
   return true;
 }
+
+bool UnityBridge::addDynamicObject(std::shared_ptr<UnityObject> unity_object) {
+  Object_t object_t;
+  object_t.ID = unity_object->getID();
+  object_t.prefab_ID = unity_object->getPrefabID();
+  object_t.position =
+    positionRos2Unity(unity_object->getPos() + position_offset_);
+  object_t.rotation = quaternionRos2Unity(unity_object->getQuat());
+  object_t.size = scalarRos2Unity(unity_object->getScale());
+
+  // add dynamic objectc
+  dynamic_objects_.push_back(unity_object);
+  settings_.dynamic_objects.push_back(object_t);
+  pub_msg_.dynamic_objects.push_back(object_t);
+  //
+  return true;
+}
+
 
 FrameID UnityBridge::handleOutput(const FrameID sent_frame_id) {
   zmqpp::message msg;

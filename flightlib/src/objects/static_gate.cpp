@@ -4,7 +4,7 @@
 namespace flightlib {
 
 StaticGate::StaticGate(const std::string& id, const std::string& prefab_id)
-  : StaticObject(id, prefab_id) {
+  : UnityObject(id, prefab_id) {
   id_ = id;
   prefab_id_ = prefab_id;
 

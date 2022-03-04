@@ -6,10 +6,10 @@
 #include "flightlib/common/rigid_state.hpp"
 #include "flightlib/common/types.hpp"
 namespace flightlib {
-class StaticObject {
+class UnityObject {
  public:
-  StaticObject(std::string id, std::string prefab_id);
-  virtual ~StaticObject(){};
+  UnityObject(std::string id, std::string prefab_id);
+  virtual ~UnityObject(){};
 
   void run(const Scalar dt);
   // publich get functions
@@ -21,6 +21,7 @@ class StaticObject {
   // public get functions
   const std::string getID(void) { return id_; };
   const std::string getPrefabID(void) { return prefab_id_; };
+  const bool isStatic(void);
 
   bool loadTrajectory(const std::string csv_file);
 
