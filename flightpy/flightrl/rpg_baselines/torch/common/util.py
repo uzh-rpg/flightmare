@@ -116,17 +116,17 @@ def test_policy(env, model, render=False):
             # cv2.waitKey(100)
 
             # ======RGB Image=========
-            img =env.getImage(rgb=True) 
-            rgb_img = np.reshape(
-               img[0], (env.img_height, env.img_width, 3))
-            cv2.imshow("rgb_img", rgb_img)
-            cv2.waitKey(100)
+            # img =env.getImage(rgb=True) 
+            # rgb_img = np.reshape(
+            #    img[0], (env.img_height, env.img_width, 3))
+            # cv2.imshow("rgb_img", rgb_img)
+            # cv2.waitKey(100)
 
-            # ======Depth Image=========
-            depth_img = np.reshape(env.getDepthImage()[
-                                   0], (env.img_height, env.img_width))
-            cv2.imshow("depth", depth_img)
-            cv2.waitKey(100)
+            # # ======Depth Image=========
+            # depth_img = np.reshape(env.getDepthImage()[
+            #                        0], (env.img_height, env.img_width))
+            # cv2.imshow("depth", depth_img)
+            # cv2.waitKey(100)
 
             #
             ep_len += 1

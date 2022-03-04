@@ -31,7 +31,7 @@ VisionEnv::VisionEnv(const YAML::Node &cfg_node, const int env_id)
 void VisionEnv::init() {
   //
   unity_render_offset_ << 0.0, 0.0, 0.0;
-  goal_pos_ << 20.0, 0.0, 1.0;
+  goal_pos_ << 80.0, 0.0, 1.0;
   start_pos_ << 0.0, 0.0, 1.0;
 
   // create quadrotors

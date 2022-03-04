@@ -39,7 +39,7 @@ rewards:
     ]
 
 rgb_camera:
-  on: yes
+  on: no 
   t_BC: [0.0, 0.0, 0.3] # translational vector of the camera with repect to the body frame
   r_BC: [0.0, 0.0, -90] # rotational angle (roll, pitch, yaw) of the camera in degree.
   channels: 3
