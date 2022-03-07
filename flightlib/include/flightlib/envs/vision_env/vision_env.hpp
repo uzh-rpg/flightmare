@@ -65,7 +65,7 @@ class VisionEnv final : public EnvBase {
   bool getImage(Ref<ImgVector<>> img, const bool rgb = true) override;
   bool getDepthImage(Ref<DepthImgVector<>> img) override;
 
-  bool getObstacleState(Ref<Vector<>> obstacle_obs) const;
+  bool getObstacleState(Ref<Vector<>> obstacle_obs);
   // get quadrotor states
   bool getQuadAct(Ref<Vector<>> act) const;
   bool getQuadState(Ref<Vector<>> state) const;
@@ -82,6 +82,8 @@ class VisionEnv final : public EnvBase {
   bool configDynamicObjects(const std::string &yaml_file);
   bool configStaticObjects(const std::string &csv_file);
 
+  bool simDynamicObstacles(const Scalar dt);
+
   // flightmare (visualization)
   bool setUnity(const bool render);
   bool connectUnity();
@@ -90,6 +92,9 @@ class VisionEnv final : public EnvBase {
 
 
   //
+  inline size_t getNumDetectedObstacles(void) {
+    return num_detected_obstacles_;
+  };
   inline std::vector<std::string> getRewardNames() { return reward_names_; }
   inline void setSceneID(const SceneID id) { scene_id_ = id; }
   inline std::shared_ptr<Quadrotor> getQuadrotor() { return quad_ptr_; }
@@ -141,6 +146,8 @@ class VisionEnv final : public EnvBase {
   cv::Mat depth_img_;
 
   bool obstacle_collision_;
+  size_t num_detected_obstacles_;
+
   // auxiliary variables
   int rotor_ctrl_{true};
   bool use_camera_{false};

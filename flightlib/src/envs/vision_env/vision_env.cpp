@@ -52,6 +52,7 @@ void VisionEnv::init() {
   obs_dim_ = visionenv::kNObs;
   act_dim_ = visionenv::kNAct;
   rew_dim_ = 0;
+  num_detected_obstacles_ = visionenv::kNObstacles;
 
   // load parameters
   loadParam(cfg_);
@@ -162,7 +163,8 @@ bool VisionEnv::getObs(Ref<Vector<>> obs) {
   return true;
 }
 
-bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) const {
+bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) {
+  quad_ptr_->getState(&quad_state_);
   // compute relative distance to dynamic obstacles
   std::vector<Scalar> relative_pos_norm;
   std::vector<Vector<3>> relative_pos;
@@ -230,14 +232,25 @@ bool VisionEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs,
   quad_old_state_ = quad_state_;
   quad_ptr_->getState(&quad_state_);
 
-  for (int i = 0; i < int(dynamic_objects_.size()); i++) {
-    dynamic_objects_[i]->run(sim_dt_);
-  }
+  // simulate dynamic obstacles
+  simDynamicObstacles(sim_dt_);
 
   // update observations
   getObs(obs);
 
   return computeReward(reward);
+}
+
+bool VisionEnv::simDynamicObstacles(const Scalar dt) {
+  if (dynamic_objects_.size() <= 0) {
+    logger_.warn(
+      "No Dynamic Obstacles defined. Skipping dynamic obstacles simulation.");
+    return false;
+  }
+  for (int i = 0; i < int(dynamic_objects_.size()); i++) {
+    dynamic_objects_[i]->run(sim_dt_);
+  }
+  return true;
 }
 
 bool VisionEnv::computeReward(Ref<Vector<>> reward) {
@@ -504,7 +517,6 @@ bool VisionEnv::configStaticObjects(const std::string &csv_file) {
     //
     std::shared_ptr<UnityObject> obj =
       std::make_shared<UnityObject>(object_id, prefab_id);
-    // RigidState state_i;
 
     //
     Vector<3> pos;
