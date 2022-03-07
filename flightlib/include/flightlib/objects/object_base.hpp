@@ -6,6 +6,7 @@ namespace flightlib {
 
 class ObjectBase {
  public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   ObjectBase();
   virtual ~ObjectBase();
 

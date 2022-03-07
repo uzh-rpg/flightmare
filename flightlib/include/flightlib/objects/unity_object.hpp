@@ -8,6 +8,7 @@
 namespace flightlib {
 class UnityObject {
  public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   UnityObject(std::string id, std::string prefab_id);
   virtual ~UnityObject(){};
 

@@ -24,6 +24,7 @@ namespace flightlib {
 
 class EnvBase {
  public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   EnvBase();
   virtual ~EnvBase() = 0;
 
@@ -51,11 +52,12 @@ class EnvBase {
   inline int getImgWidth() { return img_width_; };
   inline int getImgHeight() { return img_height_; };
   inline Scalar getSimTimeStep() { return sim_dt_; };
-  inline int getExtraInfoDim() { return extra_info_.size(); };
+  // inline int getExtraInfoDim() { return extra_info_.size(); };
+  inline int getExtraInfoDim() { return 0; };
   inline Scalar getMaxT() { return max_t_; };
 
   // public variables
-  std::unordered_map<std::string, float> extra_info_;
+  // std::unordered_map<std::string, float> extra_info_;
 
  protected:
   // observation and action dimenstions (for Reinforcement learning)

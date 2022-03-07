@@ -73,6 +73,8 @@ class QuadrotorEnv final : public EnvBase {
 
   inline std::vector<std::string> getRewardNames() { return reward_names_; }
 
+  std::unordered_map<std::string, float> extra_info_;
+
  private:
   void init();
   int env_id_;

@@ -163,7 +163,7 @@ Vector<4> QuadrotorDynamics::motorThrustToOmega(
      4.0 * thrust_map_[0] * (thrust_map_[2] - thrusts.array()))
       .sqrt();
 
-  return offset + scale * root;
+  return (offset + scale * root).matrix();
 }
 
 Matrix<4, 4> QuadrotorDynamics::getAllocationMatrix(void) const {

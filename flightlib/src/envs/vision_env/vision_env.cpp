@@ -12,7 +12,7 @@ VisionEnv::VisionEnv()
 
 VisionEnv::VisionEnv(const std::string &cfg_path, const int env_id)
   : EnvBase() {
-  std::cout << "hello" << std::endl;
+  std::cout << "hello1" << std::endl;
   // check if configuration file exist
   if (!(file_exists(cfg_path))) {
     logger_.error("Configuration file %s does not exists.", cfg_path);
@@ -25,21 +25,16 @@ VisionEnv::VisionEnv(const std::string &cfg_path, const int env_id)
 }
 
 VisionEnv::VisionEnv(const YAML::Node &cfg_node, const int env_id) : EnvBase() {
-  std::cout << "hello" << std::endl;
-  std::cout << cfg_node << std::endl;
+  std::cout << "hello2" << std::endl;
   cfg_ = cfg_node;
-  std::cout << cfg_ << std::endl;
   sleep(5);
 
   //
-  std::cout << "init1" << std::endl;
   init();
-  std::cout << "init2" << std::endl;
   env_id_ = env_id;
 }
 
 void VisionEnv::init() {
-  std::cout << "init" << std::endl;
   //
   unity_render_offset_ << 0.0, 0.0, 0.0;
   goal_pos_ << 80.0, 0.0, 1.0;

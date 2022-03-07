@@ -6,6 +6,7 @@
 namespace flightlib {
 class StaticGate : public UnityObject {
  public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   StaticGate(const std::string& id, const std::string& prefab_id = "rpg_gate");
   ~StaticGate();
 

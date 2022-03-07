@@ -105,6 +105,8 @@ class VisionEnv final : public EnvBase {
     return static_objects_;
   }
 
+  std::unordered_map<std::string, float> extra_info_;
+
  private:
   bool computeReward(Ref<Vector<>> reward);
   void init();

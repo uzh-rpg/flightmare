@@ -37,6 +37,7 @@ namespace flightlib {
 
 class UnityBridge {
  public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   // constructor & destructor
   UnityBridge();
   ~UnityBridge(){};
