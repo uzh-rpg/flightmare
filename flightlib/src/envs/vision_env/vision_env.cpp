@@ -6,10 +6,13 @@ namespace flightlib {
 VisionEnv::VisionEnv()
   : VisionEnv(getenv("FLIGHTMARE_PATH") +
                 std::string("/flightpy/configs/vision/config.yaml"),
-              0) {}
+              0) {
+  std::cout << "Oh shit" << std::endl;
+}
 
 VisionEnv::VisionEnv(const std::string &cfg_path, const int env_id)
   : EnvBase() {
+  std::cout << "hello" << std::endl;
   // check if configuration file exist
   if (!(file_exists(cfg_path))) {
     logger_.error("Configuration file %s does not exists.", cfg_path);
@@ -21,18 +24,28 @@ VisionEnv::VisionEnv(const std::string &cfg_path, const int env_id)
   env_id_ = env_id;
 }
 
-VisionEnv::VisionEnv(const YAML::Node &cfg_node, const int env_id)
-  : EnvBase(), cfg_(cfg_node) {
+VisionEnv::VisionEnv(const YAML::Node &cfg_node, const int env_id) : EnvBase() {
+  std::cout << "hello" << std::endl;
+  std::cout << cfg_node << std::endl;
+  cfg_ = cfg_node;
+  std::cout << cfg_ << std::endl;
+  sleep(5);
+
   //
+  std::cout << "init1" << std::endl;
   init();
+  std::cout << "init2" << std::endl;
   env_id_ = env_id;
 }
 
 void VisionEnv::init() {
+  std::cout << "init" << std::endl;
   //
   unity_render_offset_ << 0.0, 0.0, 0.0;
   goal_pos_ << 80.0, 0.0, 1.0;
   start_pos_ << 0.0, 0.0, 1.0;
+
+  cmd_.setZeros();
 
   // create quadrotors
   quad_ptr_ = std::make_shared<Quadrotor>();
@@ -54,8 +67,10 @@ void VisionEnv::init() {
   rew_dim_ = 0;
   num_detected_obstacles_ = visionenv::kNObstacles;
 
+  std::cout << "init" << std::endl;
   // load parameters
   loadParam(cfg_);
+  std::cout << "load params" << std::endl;
 
   // add camera
   if (!configCamera(cfg_)) {
@@ -69,7 +84,8 @@ void VisionEnv::init() {
     std::string("/flightpy/configs/vision/dynamic_obstacles.yaml");
   if (!configDynamicObjects(dynamic_object_yaml)) {
     logger_.error(
-      "Cannot config RGB Camera. Something wrong with the config file");
+      "Cannot config Dynamic Object Yaml. Something wrong with the config "
+      "file");
   }
 
   // add static objects
@@ -78,16 +94,16 @@ void VisionEnv::init() {
     std::string("/flightpy/configs/vision/static_obstacles.csv");
   if (!configStaticObjects(static_object_csv_)) {
     logger_.error(
-      "Cannot config RGB Camera. Something wrong with the config file");
+      "Cannot config Static Object. Something wrong with the config file");
   }
 
   // use single rotor control or bodyrate control
-  if (rotor_ctrl_ == Command::SINGLEROTOR) {
+  if (rotor_ctrl_ == 0) {
     act_mean_ = Vector<visionenv::kNAct>::Ones() *
                 quad_ptr_->getDynamics().getSingleThrustMax() / 2;
     act_std_ = Vector<visionenv::kNAct>::Ones() *
                quad_ptr_->getDynamics().getSingleThrustMax() / 2;
-  } else if (rotor_ctrl_ == Command::THRUSTRATE) {
+  } else if (rotor_ctrl_ == 1) {
     Scalar max_force = quad_ptr_->getDynamics().getForceMax();
     Vector<3> max_omega = quad_ptr_->getDynamics().getOmegaMax();
     //
@@ -127,11 +143,10 @@ bool VisionEnv::reset(Ref<Vector<>> obs) {
 
   // reset control command
   cmd_.t = 0.0;
-  cmd_.setCmdMode(Command::SINGLEROTOR);
-  if (rotor_ctrl_ == Command::SINGLEROTOR) {
+  cmd_.setCmdMode(rotor_ctrl_);
+  if (rotor_ctrl_ == 0) {
     cmd_.thrusts.setZero();
-  } else if (rotor_ctrl_ == Command::THRUSTRATE) {
-    cmd_.setCmdMode(Command::THRUSTRATE);
+  } else if (rotor_ctrl_ == 1) {
     cmd_.collective_thrust = 0;
     cmd_.omega.setZero();
   }
@@ -219,9 +234,9 @@ bool VisionEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs,
   cmd_.t += sim_dt_;
   quad_state_.t += sim_dt_;
 
-  if (rotor_ctrl_ == Command::SINGLEROTOR) {
+  if (rotor_ctrl_ == 0) {
     cmd_.thrusts = pi_act_;
-  } else if (rotor_ctrl_ == Command::THRUSTRATE) {
+  } else if (rotor_ctrl_ == 1) {
     cmd_.collective_thrust = pi_act_(0);
     cmd_.omega = pi_act_.segment<3>(1);
   }
@@ -412,6 +427,7 @@ bool VisionEnv::getImage(Ref<ImgVector<>> img, const bool rgb) {
 
 
 bool VisionEnv::loadParam(const YAML::Node &cfg) {
+  std::cout << "init 1" << std::endl;
   if (cfg["simulation"]) {
     sim_dt_ = cfg["simulation"]["sim_dt"].as<Scalar>();
     max_t_ = cfg["simulation"]["max_t"].as<Scalar>();
@@ -421,6 +437,7 @@ bool VisionEnv::loadParam(const YAML::Node &cfg) {
     return false;
   }
 
+  std::cout << "init 2" << std::endl;
   if (cfg["rewards"]) {
     // load reinforcement learning related parameters
     dummy_coeff_ = cfg["rewards"]["dummy_coeff"].as<Scalar>();
@@ -433,25 +450,27 @@ bool VisionEnv::loadParam(const YAML::Node &cfg) {
     return false;
   }
 
+  std::cout << "init 3" << std::endl;
   // environment
   if (cfg["unity"]) {
     unity_render_ = cfg["unity"]["render"].as<bool>();
     scene_id_ = cfg["unity"]["scene_id"].as<SceneID>();
   }
-  std::string scene_file =
-    getenv("FLIGHTMARE_PATH") + std::string("/flightpy/configs/scene.yaml");
-  // check if configuration file exist
-  if (!(file_exists(scene_file))) {
-    logger_.error("Unity scene configuration file %s does not exists.",
-                  scene_file);
-  }
-  // load configuration file
-  YAML::Node scene_cfg_node = YAML::LoadFile(scene_file);
-  std::string scene_idx = "scene_" + std::to_string(scene_id_);
+  // std::string scene_file =
+  //   getenv("FLIGHTMARE_PATH") + std::string("/flightpy/configs/scene.yaml");
+  // // check if configuration file exist
+  // if (!(file_exists(scene_file))) {
+  //   logger_.error("Unity scene configuration file %s does not exists.",
+  //                 scene_file);
+  // }
+  // // load configuration file
+  // YAML::Node scene_cfg_node = YAML::LoadFile(scene_file);
+  // std::string scene_idx = "scene_" + std::to_string(scene_id_);
 
-  std::vector<Scalar> render_offset =
-    scene_cfg_node[scene_idx]["render_offset"].as<std::vector<Scalar>>();
-  unity_render_offset_ = Vector<3>(render_offset.data());
+  // std::vector<Scalar> render_offset =
+  //   scene_cfg_node[scene_idx]["render_offset"].as<std::vector<Scalar>>();
+  // unity_render_offset_ = Vector<3>(render_offset.data());
+  std::cout << "init 4" << std::endl;
   return true;
 }
 

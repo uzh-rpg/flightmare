@@ -69,12 +69,12 @@ void QuadrotorEnv::init() {
   }
 
   // use single rotor control or bodyrate control
-  if (rotor_ctrl_ == Command::SINGLEROTOR) {
+  if (rotor_ctrl_ == 0) {
     act_mean_ = Vector<quadenv::kNAct>::Ones() *
                 quad_ptr_->getDynamics().getSingleThrustMax() / 2;
     act_std_ = Vector<quadenv::kNAct>::Ones() *
                quad_ptr_->getDynamics().getSingleThrustMax() / 2;
-  } else if (rotor_ctrl_ == Command::THRUSTRATE) {
+  } else if (rotor_ctrl_ == 1) {
     Scalar max_force = quad_ptr_->getDynamics().getForceMax();
     Vector<3> max_omega = quad_ptr_->getDynamics().getOmegaMax();
     //
@@ -113,11 +113,11 @@ bool QuadrotorEnv::reset(Ref<Vector<>> obs) {
 
   // reset control command
   cmd_.t = 0.0;
-  cmd_.setCmdMode(Command::SINGLEROTOR);
-  if (rotor_ctrl_ == Command::SINGLEROTOR) {
+  if (rotor_ctrl_ == 0) {
+    cmd_.setCmdMode(0);
     cmd_.thrusts.setZero();
-  } else if (rotor_ctrl_ == Command::THRUSTRATE) {
-    cmd_.setCmdMode(Command::THRUSTRATE);
+  } else if (rotor_ctrl_ == 1) {
+    cmd_.setCmdMode(1);
     cmd_.collective_thrust = 0;
     cmd_.omega.setZero();
   }
@@ -162,9 +162,9 @@ bool QuadrotorEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs,
   cmd_.t += sim_dt_;
   quad_state_.t += sim_dt_;
 
-  if (rotor_ctrl_ == Command::SINGLEROTOR) {
+  if (rotor_ctrl_ == 0) {
     cmd_.thrusts = pi_act_;
-  } else if (rotor_ctrl_ == Command::THRUSTRATE) {
+  } else if (rotor_ctrl_ == 1) {
     cmd_.collective_thrust = pi_act_(0);
     cmd_.omega = pi_act_.segment<3>(1);
   }

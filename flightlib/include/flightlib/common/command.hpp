@@ -1,22 +1,16 @@
-
 #pragma once
 
 #include <cmath>
+#include <iostream>
 
 #include "flightlib/common/types.hpp"
 
 namespace flightlib {
-
 struct Command {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  enum CMDMODE : int {
-    SINGLEROTOR = 0,
-    THRUSTRATE = 1,
-  };
-
   Command();
-
+  ~Command() {}
 
   //
   bool valid() const;

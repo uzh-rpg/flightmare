@@ -94,7 +94,7 @@ TEST(Quadrotor, RunQuadCmdFeedThrough) {
   const Scalar mass = dynamics.getMass();
 
   Command cmd;
-  cmd.setCmdMode(Command::SINGLEROTOR);
+  cmd.setCmdMode(0);
   cmd.t = 0.0;
   cmd.thrusts = Vector<4>::Constant(-Gz * mass) / 4.0;
   for (int i = 0; i < SIM_STEPS_N; i++) {
@@ -187,7 +187,7 @@ TEST(Quadrotor, RunSimulatorBodyRate) {
   quad.reset(quad_state);
 
   Command cmd;
-  cmd.setCmdMode(Command::THRUSTRATE);
+  cmd.setCmdMode(1);
   cmd.t = 0.0;
   cmd.collective_thrust = -Gz;
   cmd.omega << 0.0, 0.0, 0.0;

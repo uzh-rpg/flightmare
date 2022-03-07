@@ -21,7 +21,7 @@ class UnityObject {
   // public get functions
   const std::string getID(void) { return id_; };
   const std::string getPrefabID(void) { return prefab_id_; };
-  const bool isStatic(void);
+  bool isStatic(void);
 
   bool loadTrajectory(const std::string csv_file);
 

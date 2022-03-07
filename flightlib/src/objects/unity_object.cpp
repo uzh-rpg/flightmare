@@ -8,7 +8,7 @@ UnityObject::UnityObject(std::string id, std::string prefab_id)
 }
 
 
-const bool UnityObject::isStatic(void) {
+bool UnityObject::isStatic(void) {
   if (traj_.size() > 1) {
     return false;
   }

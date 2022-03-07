@@ -119,7 +119,6 @@ class VisionEnv final : public EnvBase {
   Command cmd_;
   Logger logger_{"VisionEnv"};
 
-
   // Define reward for training
   Scalar dummy_coeff_;
 
