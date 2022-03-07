@@ -1,16 +1,21 @@
 #pragma once
 
-#include <cmath>
-#include <iostream>
-
 #include "flightlib/common/types.hpp"
 
 namespace flightlib {
+
+namespace quadcmd {
+
+enum CMDMODE : int {
+  SINGLEROTOR = 0,
+  THRUSTRATE = 1,
+};
+
+}  // namespace quadcmd
 struct Command {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   Command();
-  ~Command() {}
 
   //
   bool valid() const;
@@ -19,21 +24,20 @@ struct Command {
 
   //
   bool setZeros(void);
-  bool setCmdVector(const Ref<Vector<4>> cmd);
+  bool setCmdVector(const Vector<4>& cmd);
   bool setCmdMode(const int cmd_mode);
-  bool setCmdConstraints(const Ref<Vector<4>> cmd);
 
   /// time in [s]
-  Scalar t{NAN};
+  Scalar t;
 
   /// Single rotor thrusts in [N]
-  Vector<4> thrusts{NAN, NAN, NAN, NAN};
+  Vector<4> thrusts;
 
   /// Collective mass-normalized thrust in [m/s^2]
-  Scalar collective_thrust{NAN};
+  Scalar collective_thrust;
 
   /// Bodyrates in [rad/s]
-  Vector<3> omega{NAN, NAN, NAN};
+  Vector<3> omega;
 
   ///
   int cmd_mode;

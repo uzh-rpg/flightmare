@@ -6,13 +6,10 @@ namespace flightlib {
 VisionEnv::VisionEnv()
   : VisionEnv(getenv("FLIGHTMARE_PATH") +
                 std::string("/flightpy/configs/vision/config.yaml"),
-              0) {
-  std::cout << "Oh shit" << std::endl;
-}
+              0) {}
 
 VisionEnv::VisionEnv(const std::string &cfg_path, const int env_id)
   : EnvBase() {
-  std::cout << "hello1" << std::endl;
   // check if configuration file exist
   if (!(file_exists(cfg_path))) {
     logger_.error("Configuration file %s does not exists.", cfg_path);
@@ -25,9 +22,7 @@ VisionEnv::VisionEnv(const std::string &cfg_path, const int env_id)
 }
 
 VisionEnv::VisionEnv(const YAML::Node &cfg_node, const int env_id) : EnvBase() {
-  std::cout << "hello2" << std::endl;
   cfg_ = cfg_node;
-  sleep(5);
 
   //
   init();
@@ -62,10 +57,9 @@ void VisionEnv::init() {
   rew_dim_ = 0;
   num_detected_obstacles_ = visionenv::kNObstacles;
 
-  std::cout << "init" << std::endl;
+
   // load parameters
   loadParam(cfg_);
-  std::cout << "load params" << std::endl;
 
   // add camera
   if (!configCamera(cfg_)) {
@@ -93,12 +87,12 @@ void VisionEnv::init() {
   }
 
   // use single rotor control or bodyrate control
-  if (rotor_ctrl_ == 0) {
+  if (rotor_ctrl_ == quadcmd::SINGLEROTOR) {
     act_mean_ = Vector<visionenv::kNAct>::Ones() *
                 quad_ptr_->getDynamics().getSingleThrustMax() / 2;
     act_std_ = Vector<visionenv::kNAct>::Ones() *
                quad_ptr_->getDynamics().getSingleThrustMax() / 2;
-  } else if (rotor_ctrl_ == 1) {
+  } else if (rotor_ctrl_ == quadcmd::THRUSTRATE) {
     Scalar max_force = quad_ptr_->getDynamics().getForceMax();
     Vector<3> max_omega = quad_ptr_->getDynamics().getOmegaMax();
     //
@@ -139,9 +133,9 @@ bool VisionEnv::reset(Ref<Vector<>> obs) {
   // reset control command
   cmd_.t = 0.0;
   cmd_.setCmdMode(rotor_ctrl_);
-  if (rotor_ctrl_ == 0) {
+  if (rotor_ctrl_ == quadcmd::SINGLEROTOR) {
     cmd_.thrusts.setZero();
-  } else if (rotor_ctrl_ == 1) {
+  } else if (rotor_ctrl_ == quadcmd::THRUSTRATE) {
     cmd_.collective_thrust = 0;
     cmd_.omega.setZero();
   }
@@ -177,7 +171,7 @@ bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) {
   quad_ptr_->getState(&quad_state_);
   // compute relative distance to dynamic obstacles
   std::vector<Scalar> relative_pos_norm;
-  std::vector<Vector<3>> relative_pos;
+  std::vector<Vector<3>, Eigen::aligned_allocator<Vector<3>>> relative_pos;
   for (int i = 0; i < (int)dynamic_objects_.size(); i++) {
     Vector<3> delta_pos = quad_state_.p - dynamic_objects_[i]->getPos();
     relative_pos.push_back(delta_pos);
@@ -229,9 +223,9 @@ bool VisionEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs,
   cmd_.t += sim_dt_;
   quad_state_.t += sim_dt_;
 
-  if (rotor_ctrl_ == 0) {
+  if (rotor_ctrl_ == quadcmd::SINGLEROTOR) {
     cmd_.thrusts = pi_act_;
-  } else if (rotor_ctrl_ == 1) {
+  } else if (rotor_ctrl_ == quadcmd::THRUSTRATE) {
     cmd_.collective_thrust = pi_act_(0);
     cmd_.omega = pi_act_.segment<3>(1);
   }
@@ -669,11 +663,14 @@ void VisionEnv::disconnectUnity(void) {
   }
 }
 
+int VisionEnv::getNumDetectedObstacles(void) { return num_detected_obstacles_; }
+
 std::ostream &operator<<(std::ostream &os, const VisionEnv &vision_env) {
   os.precision(3);
   os << "Vision Environment:\n"
      << "obs dim =            [" << vision_env.obs_dim_ << "]\n"
      << "act dim =            [" << vision_env.act_dim_ << "]\n"
+     << "obstacle dim =       [" << vision_env.num_detected_obstacles_ << "]\n"
      << "sim dt =             [" << vision_env.sim_dt_ << "]\n"
      << "max_t =              [" << vision_env.max_t_ << "]\n"
      << "act_mean =           [" << vision_env.act_mean_.transpose() << "]\n"

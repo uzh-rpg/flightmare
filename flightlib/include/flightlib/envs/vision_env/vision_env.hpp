@@ -92,9 +92,7 @@ class VisionEnv final : public EnvBase {
 
 
   //
-  inline size_t getNumDetectedObstacles(void) {
-    return num_detected_obstacles_;
-  };
+  int getNumDetectedObstacles(void);
   inline std::vector<std::string> getRewardNames() { return reward_names_; }
   inline void setSceneID(const SceneID id) { scene_id_ = id; }
   inline std::shared_ptr<Quadrotor> getQuadrotor() { return quad_ptr_; }
@@ -147,7 +145,7 @@ class VisionEnv final : public EnvBase {
   cv::Mat depth_img_;
 
   bool obstacle_collision_;
-  size_t num_detected_obstacles_;
+  int num_detected_obstacles_;
 
   // auxiliary variables
   int rotor_ctrl_{true};

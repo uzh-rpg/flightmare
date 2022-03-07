@@ -3,10 +3,18 @@
 
 namespace flightlib {
 
-Command::Command() : t(0.0), cmd_mode(1) {}
+// Command::Command()
+//   : t(0.0),
+//     thrusts(0.0, 0.0, 0.0, 0.0),
+//     collective_thrust(0.0),
+//     omega(0.0, 0.0, 0.0),
+//     cmd_mode(1) {}
+
+
+Command::Command() {}
 
 bool Command::setCmdMode(const int mode) {
-  if (mode != 0 && mode != 1) {
+  if (mode != quadcmd::SINGLEROTOR && mode != quadcmd::THRUSTRATE) {
     return false;
   }
   cmd_mode = mode;
@@ -14,26 +22,27 @@ bool Command::setCmdMode(const int mode) {
 }
 
 bool Command::valid() const {
-  return std::isfinite(t) && ((std::isfinite(collective_thrust) &&
-                               omega.allFinite() && (cmd_mode == 1)) ||
-                              (thrusts.allFinite() && (cmd_mode == 0)));
+  return std::isfinite(t) &&
+         ((std::isfinite(collective_thrust) && omega.allFinite() &&
+           (cmd_mode == quadcmd::THRUSTRATE)) ||
+          (thrusts.allFinite() && (cmd_mode == quadcmd::SINGLEROTOR)));
 }
 
 bool Command::isSingleRotorThrusts() const {
-  return (cmd_mode == 0) && thrusts.allFinite();
+  return (cmd_mode == quadcmd::SINGLEROTOR) && thrusts.allFinite();
 }
 
 bool Command::isThrustRates() const {
-  return (cmd_mode == 1) &&
+  return (cmd_mode == quadcmd::THRUSTRATE) &&
          (std::isfinite(collective_thrust) && omega.allFinite());
 }
 
 
 bool Command::setZeros() {
   t = 0.0;
-  if (cmd_mode == 0) {
+  if (cmd_mode == quadcmd::SINGLEROTOR) {
     thrusts = Vector<4>::Zero();
-  } else if (cmd_mode == 1) {
+  } else if (cmd_mode == quadcmd::THRUSTRATE) {
     collective_thrust = 0;
     omega = Vector<3>::Zero();
   } else {
@@ -42,10 +51,10 @@ bool Command::setZeros() {
   return true;
 }
 
-bool Command::setCmdVector(const Ref<Vector<4>> cmd) {
-  if (cmd_mode == 0) {
+bool Command::setCmdVector(const Vector<4>& cmd) {
+  if (cmd_mode == quadcmd::SINGLEROTOR) {
     thrusts = cmd;
-  } else if (cmd_mode == 1) {
+  } else if (cmd_mode == quadcmd::THRUSTRATE) {
     collective_thrust = cmd(0);
     omega = cmd.segment<3>(1);
   } else {
