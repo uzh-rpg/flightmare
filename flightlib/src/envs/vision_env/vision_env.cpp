@@ -416,7 +416,6 @@ bool VisionEnv::getImage(Ref<ImgVector<>> img, const bool rgb) {
 
 
 bool VisionEnv::loadParam(const YAML::Node &cfg) {
-  std::cout << "init 1" << std::endl;
   if (cfg["simulation"]) {
     sim_dt_ = cfg["simulation"]["sim_dt"].as<Scalar>();
     max_t_ = cfg["simulation"]["max_t"].as<Scalar>();
@@ -426,7 +425,6 @@ bool VisionEnv::loadParam(const YAML::Node &cfg) {
     return false;
   }
 
-  std::cout << "init 2" << std::endl;
   if (cfg["rewards"]) {
     // load reinforcement learning related parameters
     dummy_coeff_ = cfg["rewards"]["dummy_coeff"].as<Scalar>();
@@ -439,27 +437,26 @@ bool VisionEnv::loadParam(const YAML::Node &cfg) {
     return false;
   }
 
-  std::cout << "init 3" << std::endl;
   // environment
   if (cfg["unity"]) {
     unity_render_ = cfg["unity"]["render"].as<bool>();
     scene_id_ = cfg["unity"]["scene_id"].as<SceneID>();
   }
-  // std::string scene_file =
-  //   getenv("FLIGHTMARE_PATH") + std::string("/flightpy/configs/scene.yaml");
-  // // check if configuration file exist
-  // if (!(file_exists(scene_file))) {
-  //   logger_.error("Unity scene configuration file %s does not exists.",
-  //                 scene_file);
-  // }
-  // // load configuration file
-  // YAML::Node scene_cfg_node = YAML::LoadFile(scene_file);
-  // std::string scene_idx = "scene_" + std::to_string(scene_id_);
+  //
+  std::string scene_file =
+    getenv("FLIGHTMARE_PATH") + std::string("/flightpy/configs/scene.yaml");
+  // check if configuration file exist
+  if (!(file_exists(scene_file))) {
+    logger_.error("Unity scene configuration file %s does not exists.",
+                  scene_file);
+  }
+  // load configuration file
+  YAML::Node scene_cfg_node = YAML::LoadFile(scene_file);
+  std::string scene_idx = "scene_" + std::to_string(scene_id_);
 
-  // std::vector<Scalar> render_offset =
-  //   scene_cfg_node[scene_idx]["render_offset"].as<std::vector<Scalar>>();
-  // unity_render_offset_ = Vector<3>(render_offset.data());
-  std::cout << "init 4" << std::endl;
+  std::vector<Scalar> render_offset =
+    scene_cfg_node[scene_idx]["render_offset"].as<std::vector<Scalar>>();
+  unity_render_offset_ = Vector<3>(render_offset.data());
   return true;
 }
 

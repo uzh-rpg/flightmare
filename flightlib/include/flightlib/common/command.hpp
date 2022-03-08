@@ -12,10 +12,12 @@ enum CMDMODE : int {
 };
 
 }  // namespace quadcmd
-struct Command {
+class Command {
+ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   Command();
+  ~Command();
 
   //
   bool valid() const;
@@ -23,8 +25,8 @@ struct Command {
   bool isThrustRates() const;
 
   //
-  bool setZeros(void);
-  bool setCmdVector(const Vector<4>& cmd);
+  void setZeros(void);
+  void setCmdVector(const Vector<4>& cmd);
   bool setCmdMode(const int cmd_mode);
 
   /// time in [s]

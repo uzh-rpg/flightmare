@@ -9,9 +9,7 @@ EnvBase::EnvBase()
     img_width_(0),
     img_height_(0),
     sim_dt_(0.0),
-    max_t_(0.0) {
-  std::cout << "base envisonment" << std::endl;
-}
+    max_t_(0.0) {}
 
 EnvBase::~EnvBase() {}
 

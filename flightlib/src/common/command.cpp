@@ -3,18 +3,17 @@
 
 namespace flightlib {
 
-// Command::Command()
-//   : t(0.0),
-//     thrusts(0.0, 0.0, 0.0, 0.0),
-//     collective_thrust(0.0),
-//     omega(0.0, 0.0, 0.0),
-//     cmd_mode(1) {}
+Command::Command()
+  : t(0.0),
+    thrusts(0.0, 0.0, 0.0, 0.0),
+    collective_thrust(0.0),
+    omega(0.0, 0.0, 0.0),
+    cmd_mode(1) {}
 
-
-Command::Command() {}
+Command::~Command() {}
 
 bool Command::setCmdMode(const int mode) {
-  if (mode != quadcmd::SINGLEROTOR && mode != quadcmd::THRUSTRATE) {
+  if (mode != 0 && mode != 1) {
     return false;
   }
   cmd_mode = mode;
@@ -38,29 +37,23 @@ bool Command::isThrustRates() const {
 }
 
 
-bool Command::setZeros() {
+void Command::setZeros() {
   t = 0.0;
   if (cmd_mode == quadcmd::SINGLEROTOR) {
     thrusts = Vector<4>::Zero();
   } else if (cmd_mode == quadcmd::THRUSTRATE) {
     collective_thrust = 0;
     omega = Vector<3>::Zero();
-  } else {
-    return false;
   }
-  return true;
 }
 
-bool Command::setCmdVector(const Vector<4>& cmd) {
+void Command::setCmdVector(const Vector<4>& cmd) {
   if (cmd_mode == quadcmd::SINGLEROTOR) {
     thrusts = cmd;
   } else if (cmd_mode == quadcmd::THRUSTRATE) {
     collective_thrust = cmd(0);
     omega = cmd.segment<3>(1);
-  } else {
-    return false;
   }
-  return true;
 }
 
 }  // namespace flightlib
