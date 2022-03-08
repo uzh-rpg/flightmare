@@ -116,16 +116,6 @@ bool VisionEnv::reset(Ref<Vector<>> obs) {
   quad_state_.x(QS::POSZ) = uniform_dist_(random_gen_) + 5;
   if (quad_state_.x(QS::POSZ) < -0.0)
     quad_state_.x(QS::POSZ) = -quad_state_.x(QS::POSZ);
-  // reset linear velocity
-  quad_state_.x(QS::VELX) = uniform_dist_(random_gen_);
-  quad_state_.x(QS::VELY) = uniform_dist_(random_gen_);
-  quad_state_.x(QS::VELZ) = uniform_dist_(random_gen_);
-  // reset orientation
-  // quad_state_.x(QS::ATTW) = uniform_dist_(random_gen_);
-  // quad_state_.x(QS::ATTX) = uniform_dist_(random_gen_);
-  // quad_state_.x(QS::ATTY) = uniform_dist_(random_gen_);
-  // quad_state_.x(QS::ATTZ) = uniform_dist_(random_gen_);
-  // quad_state_.qx /= quad_state_.qx.norm();
 
   // reset quadrotor with random states
   quad_ptr_->reset(quad_state_);
