@@ -171,11 +171,13 @@ bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) {
   quad_ptr_->getState(&quad_state_);
   // compute relative distance to dynamic obstacles
   std::vector<Scalar> relative_pos_norm;
+  std::vector<Scalar> obstacle_scale;
   std::vector<Vector<3>, Eigen::aligned_allocator<Vector<3>>> relative_pos;
   for (int i = 0; i < (int)dynamic_objects_.size(); i++) {
     Vector<3> delta_pos = quad_state_.p - dynamic_objects_[i]->getPos();
     relative_pos.push_back(delta_pos);
     relative_pos_norm.push_back(delta_pos.norm());
+    obstacle_scale.push_back(dynamic_objects_[i]->getScale()[0]);
   }
 
   // compute relatiev distance to static obstacles
@@ -183,6 +185,7 @@ bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) {
     Vector<3> delta_pos = quad_state_.p - static_objects_[i]->getPos();
     relative_pos.push_back(delta_pos);
     relative_pos_norm.push_back(delta_pos.norm());
+    obstacle_scale.push_back(static_objects_[i]->getScale()[0]);
   }
 
   size_t idx = 0;
@@ -193,16 +196,24 @@ bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) {
       // if enough obstacles in the environment
       if (relative_pos_norm[sort_idx] <= max_detection_range_) {
         // if obstacles are within detection range
-        obs_state.segment<3>(idx * 3) << relative_pos[sort_idx];
+        obs_state.segment<visionenv::kNObstaclesState>(
+          idx * visionenv::kNObstaclesState)
+          << relative_pos[sort_idx],
+          obstacle_scale[sort_idx];
       } else {
         // if obstacles are beyong detection range
-        obs_state.segment<3>(idx * 3) = Vector<3>(
-          max_detection_range_, max_detection_range_, max_detection_range_);
+        obs_state.segment<visionenv::kNObstaclesState>(
+          idx * visionenv::kNObstaclesState) =
+          Vector<4>(max_detection_range_, max_detection_range_,
+                    max_detection_range_, obstacle_scale[sort_idx]);
       }
     } else {
       // if not enough obstacles in the environment
-      obs_state.segment<3>(idx * 3) = Vector<3>(
-        max_detection_range_, max_detection_range_, max_detection_range_);
+      obs_state.segment<visionenv::kNObstaclesState>(
+        idx * visionenv::kNObstaclesState) =
+        Vector<visionenv::kNObstaclesState>(max_detection_range_,
+                                            max_detection_range_,
+                                            max_detection_range_, 0.0);
     }
     idx += 1;
   }
@@ -488,7 +499,9 @@ bool VisionEnv::configDynamicObjects(const std::string &yaml_file) {
 
     obj->setPosition(Vector<3>(posvec.data()));
     obj->setRotation(Quaternion(rotvec.data()));
+    // actual size in meters
     obj->setSize(Vector<3>(1.0, 1.0, 1.0));
+    // scale of the original size
     obj->setScale(Vector<3>(scalevec.data()));
 
     std::string csv_name = cfg_node[object_id]["csvtraj"].as<std::string>();
@@ -529,14 +542,22 @@ bool VisionEnv::configStaticObjects(const std::string &csv_file) {
       std::stod((std::string)row[3]);
 
     Quaternion quat;
-    quat.w() = std::stod((std::string)row[3]);
-    quat.x() = std::stod((std::string)row[4]);
-    quat.y() = std::stod((std::string)row[5]);
-    quat.z() = std::stod((std::string)row[6]);
+    quat.w() = std::stod((std::string)row[4]);
+    quat.x() = std::stod((std::string)row[5]);
+    quat.y() = std::stod((std::string)row[6]);
+    quat.z() = std::stod((std::string)row[7]);
+
+    Vector<3> scale;
+    scale << std::stod((std::string)row[8]), std::stod((std::string)row[9]),
+      std::stod((std::string)row[10]);
 
     //
     obj->setPosition(pos);
     obj->setRotation(quat);
+    // actual size in meters
+    obj->setSize(Vector<3>(1.0, 1.0, 1.0));
+    // scale of the original size
+    obj->setScale(scale);
     static_objects_.push_back(obj);
   }
 
