@@ -13,6 +13,7 @@ class IntegratorBase {
   using DynamicsFunction =
     std::function<bool(const Ref<const Vector<>>, Ref<Vector<>>)>;
   IntegratorBase(DynamicsFunction function, const Scalar dt_max = 1e-3);
+  virtual ~IntegratorBase() = default;
 
   bool integrate(const QuadState& initial, QuadState* const final) const;
 
