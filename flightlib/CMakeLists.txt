@@ -114,7 +114,6 @@ add_definitions(-Wall)
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -fPIC -Wall -DNDEBUG  -fopenmp")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS} -fPIC -Wall -DNDEBUG  -fopenmp")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -fPIC -Wall -g -fopenmp")
-add_definitions(-DEIGEN_DONT_PARALLELIZE -DEIGEN_DONT_VECTORIZE -DEIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT)
 
 # Architectural flags
 if("${CMAKE_HOST_SYSTEM_PROCESSOR}" STREQUAL "armv7l")
@@ -197,11 +196,15 @@ file(GLOB_RECURSE FLIGHTLIB_UNITY_BRIDGE_TEST_SOURCES
 
 if(DEFINED CATKIN_DEVEL_PREFIX)
   message(STATUS "======>  Building with -- catkin -- ")
+  add_definitions(-DEIGEN_DONT_PARALLELIZE -DEIGEN_DONT_VECTORIZE -DEIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT)
   include(cmake/catkin.cmake)
   return()
 else()
   include(cmake/pybind11.cmake)
 endif()
+
+# Library and Executables
+include_directories(include)
 
 ################################################################################
 # Setup Build

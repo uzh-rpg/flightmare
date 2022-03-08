@@ -269,49 +269,42 @@ bool VisionEnv::simDynamicObstacles(const Scalar dt) {
 }
 
 bool VisionEnv::computeReward(Ref<Vector<>> reward) {
-  // Vector<3> goal_lin_vel = Vector<3>(5, 0.0, 0.0);
-  // Scalar lin_vel_reward =
-  //   -0.03 * std::pow((quad_state_.v - goal_lin_vel).norm() / 5.0, 2);
-  Scalar prog_rew = 0.0;
-  const Scalar gate_dist = (goal_pos_ - quad_state_.p).norm();
-  const Scalar gate_dist_prev = (goal_pos_ - quad_old_state_.p).norm();
-  // std::cout << gate_dist << "  " << gate_dist_prev << std::endl;
-  prog_rew = (gate_dist_prev - gate_dist);
+  // progress reward
+  const Scalar dist = (goal_pos_ - quad_state_.p).norm();
+  const Scalar dist_prev = (goal_pos_ - quad_old_state_.p).norm();
+  const Scalar prog_rew = (dist_prev - dist);
 
 
   // get obstacle observations
   Vector<visionenv::kNObstaclesState * visionenv::kNObstacles> obstacle_obs;
   getObstacleState(obstacle_obs);
 
-  Scalar distance_reward = 0.0;
+  Scalar distance_penalty = 0.0;
   for (int idx = 0; idx < visionenv::kNObstacles; idx++) {
-    Vector<3> delta_pos = obstacle_obs.segment<3>(idx * 3);
-    // Scalar dist = std::max(current->getDistance(quad_state_.p),
-    // (Scalar)0.001);
-    const Scalar dist = delta_pos.norm();
-    distance_reward += -0.03 * ((1 / dist) - (1 / max_detection_range_));
+    const Vector<3> delta_pos =
+      obstacle_obs.segment<3>(idx * visionenv::kNObstaclesState);
+    const Scalar obstacle_scale =
+      obstacle_obs(idx * visionenv::kNObstaclesState);
+    const Scalar obstacle_dist = delta_pos.norm();
+    distance_penalty +=
+      -0.03 * ((1 / obstacle_dist) - (1 / max_detection_range_));
 
-    if (dist <= 0.5) {
+    if (obstacle_dist <= obstacle_scale) {
       obstacle_collision_ = true;
     }
   }
   // ---------------------- reward function design
-  // - position tracking
-  // const Scalar pos_reward = -0.002 * (quad_state_.p - goal_pos_).norm();
-
   // - orientation tracking
   const Scalar ori_reward =
     -0.002 * (quad_state_.q().toRotationMatrix().eulerAngles(2, 1, 0)).norm();
 
-  // - linear velocity tracking
-  // const Scalar lin_vel_reward = -0.0001 * quad_state_.v.norm();
-
   // - angular velocity tracking
-  const Scalar ang_vel_reward = -0.0001 * quad_state_.w.norm();
+  const Scalar ang_vel_reward = -0.001 * quad_state_.w.norm();
 
-  const Scalar total_reward = prog_rew + distance_reward + ang_vel_reward;
+  const Scalar total_reward = prog_rew + distance_penalty + ang_vel_reward;
 
-  reward << prog_rew, distance_reward, ori_reward, ang_vel_reward, total_reward;
+  reward << prog_rew, distance_penalty, ori_reward, ang_vel_reward,
+    total_reward;
   return true;
 }
 
