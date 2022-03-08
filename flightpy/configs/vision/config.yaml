@@ -29,11 +29,20 @@ quadrotor_dynamics:
 
 rewards:
   dummy_coeff: 0.0
+  # names:
+  #   [
+  #     "progress_reward",
+  #     "dsitance_reward",
+  #     "ori_penalty",
+  #     "ang_vel_penalty",
+  #     "total",
+  #   ]
   names:
     [
-      "progress_reward",
-      "dsitance_reward",
+      "pos_reward",
+      "dsitance_penalty",
       "ori_penalty",
+      "lin_vel_penalty",
       "ang_vel_penalty",
       "total",
     ]

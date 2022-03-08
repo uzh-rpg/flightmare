@@ -35,7 +35,7 @@ enum Vision : int {
 
   // observations
   kObs = 0,
-  kNObs = 18 + kNObstacles * kNObstaclesState,
+  kNObs = 15 + kNObstacles * kNObstaclesState,
 
   // control actions
   kAct = 0,
