@@ -13,7 +13,7 @@ option(BUILD_BENCH "Building the benchmark." OFF)
 option(ENABLE_FAST "Build with optimizations for speed" ON)
 option(ENABLE_BLAS "Build using BLAS and LAPACK libraries" OFF)
 option(ENABLE_PARALLEL "Build using openmp parallelization" ON)
-option(EIGEN_FROM_SYSTTEM "Use the system-provided Eigen" OFF)
+option(EIGEN_FROM_SYSTEM "Use the system-provided Eigen" OFF)
 set(
   EIGEN_ALTERNATIVE "" CACHE STRING
   "Path to alternative Eigen, autodownload if blank"
@@ -24,7 +24,7 @@ set(
 ################################################################################
 
 message(STATUS "======> Setup Dependencies")
-if(EIGEN_FROM_SYSTTEM)
+if(EIGEN_FROM_SYSTEM)
   find_package(Eigen3 3.3.4 QUIET)
   if(EIGEN3_FOUND)
     message(STATUS "Using system provided Eigen.")
@@ -114,6 +114,7 @@ add_definitions(-Wall)
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -fPIC -Wall -DNDEBUG  -fopenmp")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS} -fPIC -Wall -DNDEBUG  -fopenmp")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -fPIC -Wall -g -fopenmp")
+add_definitions(-DEIGEN_DONT_PARALLELIZE -DEIGEN_DONT_VECTORIZE -DEIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT)
 
 # Architectural flags
 if("${CMAKE_HOST_SYSTEM_PROCESSOR}" STREQUAL "armv7l")
@@ -129,7 +130,7 @@ endif()
 # Optimized flags
 if(ENABLE_FAST)
   message(STATUS "Enabling fast optimization flags!")
-  set(CMAKE_CXX_FAST_FLAGS " -Ofast")
+  set(CMAKE_CXX_FAST_FLAGS " -O2")
 else()
   set(CMAKE_CXX_FAST_FLAGS " -O0")
 endif()
