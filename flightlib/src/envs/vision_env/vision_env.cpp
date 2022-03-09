@@ -157,34 +157,54 @@ bool VisionEnv::getObs(Ref<Vector<>> obs) {
 }
 
 bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) {
+  distance_penalty_ = 0.0;
+  relative_pos_norm_.clear();
   // TODO: Make this part of code faster
   quad_ptr_->getState(&quad_state_);
   // compute relative distance to dynamic obstacles
-  std::vector<Scalar> relative_pos_norm;
   std::vector<Scalar> obstacle_scale;
   std::vector<Vector<3>, Eigen::aligned_allocator<Vector<3>>> relative_pos;
   for (int i = 0; i < (int)dynamic_objects_.size(); i++) {
     Vector<3> delta_pos = dynamic_objects_[i]->getPos() - quad_state_.p;
     relative_pos.push_back(delta_pos);
-    relative_pos_norm.push_back(delta_pos.norm());
     obstacle_scale.push_back(dynamic_objects_[i]->getScale()[0]);
+
+    Scalar obstacle_dist = delta_pos.norm();
+    if (obstacle_dist > max_detection_range_) {
+      obstacle_dist = max_detection_range_;
+    }
+    // compute distance penlaty
+    distance_penalty_ += -0.001 * ((max_detection_range_ - obstacle_dist) /
+                                     (obstacle_dist * max_detection_range_) +
+                                   1e-8);
   }
 
   // compute relatiev distance to static obstacles
   for (int i = 0; i < (int)static_objects_.size(); i++) {
     Vector<3> delta_pos = static_objects_[i]->getPos() - quad_state_.p;
     relative_pos.push_back(delta_pos);
-    relative_pos_norm.push_back(delta_pos.norm());
     obstacle_scale.push_back(static_objects_[i]->getScale()[0]);
+
+    Scalar obstacle_dist = delta_pos.norm();
+    if (obstacle_dist > max_detection_range_) {
+      obstacle_dist = max_detection_range_;
+    }
+
+    relative_pos_norm_.push_back(obstacle_dist);
+
+    // compute distance penlaty
+    distance_penalty_ += -0.001 * ((max_detection_range_ - obstacle_dist) /
+                                     (obstacle_dist * max_detection_range_) +
+                                   1e-8);
   }
 
   size_t idx = 0;
-  for (size_t sort_idx : sort_indexes(relative_pos_norm)) {
+  for (size_t sort_idx : sort_indexes(relative_pos_norm_)) {
     if (idx >= visionenv::kNObstacles) break;
 
     if (idx < relative_pos.size()) {
       // if enough obstacles in the environment
-      if (relative_pos_norm[sort_idx] <= max_detection_range_) {
+      if (relative_pos_norm_[sort_idx] <= max_detection_range_) {
         // if obstacles are within detection range
         obs_state.segment<visionenv::kNObstaclesState>(
           idx * visionenv::kNObstaclesState)
@@ -260,29 +280,11 @@ bool VisionEnv::simDynamicObstacles(const Scalar dt) {
 
 bool VisionEnv::computeReward(Ref<Vector<>> reward) {
   // progress reward
-  // const Scalar dist = (goal_pos_ - quad_state_.p).norm();
-  // const Scalar dist_prev = (goal_pos_ - quad_old_state_.p).norm();
-  // const Scalar prog_rew = (dist_prev - dist);
+  const Scalar dist = (goal_pos_ - quad_state_.p).norm();
+  const Scalar dist_prev = (goal_pos_ - quad_old_state_.p).norm();
+  Scalar prog_reward = (dist_prev - dist);
 
-
-  // get obstacle observations
-  Vector<visionenv::kNObstaclesState * visionenv::kNObstacles> obstacle_obs;
-  getObstacleState(obstacle_obs);
-
-  Scalar distance_penalty = 0.0;
-  for (int idx = 0; idx < visionenv::kNObstacles; idx++) {
-    const Vector<3> delta_pos =
-      obstacle_obs.segment<3>(idx * visionenv::kNObstaclesState);
-    const Scalar obstacle_scale =
-      obstacle_obs(idx * visionenv::kNObstaclesState);
-    const Scalar obstacle_dist = delta_pos.norm();
-    distance_penalty +=
-      -0.001 * ((1 / obstacle_dist) - (1 / max_detection_range_));
-
-    if (obstacle_dist <= obstacle_scale / 2) {
-      obstacle_collision_ = true;
-    }
-  }
+  // std::cout << distance_penalty_ << std::endl;
   // ---------------------- reward function design
   // - position tracking
   // - orientation penalty
@@ -293,18 +295,17 @@ bool VisionEnv::computeReward(Ref<Vector<>> reward) {
   // - angular angular velocity penalty
   const Scalar ang_vel_penalty = -0.001 * quad_state_.w.norm();
 
-  Scalar pos_reward = 0.0;
   if (quad_state_.p(0) > 60) {
-    distance_penalty = 0.0;
-    pos_reward = std::exp(-0.1 * (quad_state_.p - goal_pos_).norm());
-  } else {
-    pos_reward = std::exp(-1.0 * (quad_state_.p - goal_pos_).norm());
+    // disable the distance penalty after passing throug the obstacle dense
+    // region
+    distance_penalty_ = 0.0;
+    prog_reward = std::exp(-0.1 * (quad_state_.p - goal_pos_).norm());
   }
 
-  const Scalar total_reward = pos_reward + distance_penalty + ori_penalty +
+  const Scalar total_reward = prog_reward + distance_penalty_ + ori_penalty +
                               lin_vel_penalty + ang_vel_penalty;
 
-  reward << pos_reward, distance_penalty, ori_penalty, lin_vel_penalty,
+  reward << prog_reward, distance_penalty_, ori_penalty, lin_vel_penalty,
     ang_vel_penalty, total_reward;
   return true;
 }

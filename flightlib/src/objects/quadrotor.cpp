@@ -94,11 +94,11 @@ bool Quadrotor::run(const Scalar ctl_dt) {
   }
 
   // update state and sim time
-  state_.qx.normalize();
-
   state_.t += ctl_dt;
+
+  state_.qx.normalize();
   //
-  constrainInWorldBox(old_state);
+  // constrainInWorldBox(old_state);
 
   return true;
 }

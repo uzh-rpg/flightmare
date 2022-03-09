@@ -352,10 +352,11 @@ class PPO(OnPolicyAlgorithm):
         #     left=None, bottom=None, right=None, top=None, wspace=None, hspace=None
         # )
         gs1 = gridspec.GridSpec(4, 3)
-        ax3d = fig1.add_subplot(gs1[1:3, 0:3], projection="3d")
-        axpos = []
+        ax3d = fig1.add_subplot(gs1[2:3, 0:3], projection="3d")
+        axpos, axvel = [], []
         for i in range(3):
             axpos.append(fig1.add_subplot(gs1[0, i]))
+            axvel.append(fig1.add_subplot(gs1[1, i]))
         episode_idx = traj_df.episode_id.unique()
         for ep_i in episode_idx:
             conditions = "episode_id == {0}".format(ep_i)
@@ -367,11 +368,12 @@ class PPO(OnPolicyAlgorithm):
             axpos[0].plot(pos[:, 0])
             axpos[1].plot(pos[:, 1])
             axpos[2].plot(pos[:, 2])
+            #
+            axvel[0].plot(vel[:, 0])
+            axvel[1].plot(vel[:, 1])
+            axvel[2].plot(vel[:, 2])
             plot3d_traj(ax3d=ax3d, pos=pos, vel=vel)
         #
-        # ax3d.set_xlim([-5, 5])
-        # ax3d.set_ylim([-5, 5])
-        # ax3d.set_zlim([-0, 8])
         save_path = self.logger.get_dir() + "/TestTraj" + "/Plots"
         os.makedirs(save_path, exist_ok=True)
         fig1.savefig(save_path + "/traj_3d_{0:05d}.png".format(iteration))

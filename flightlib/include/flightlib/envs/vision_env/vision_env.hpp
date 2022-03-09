@@ -133,6 +133,9 @@ class VisionEnv final : public EnvBase {
   // max detection range (meter)
   Scalar max_detection_range_{10.0};
 
+  std::vector<Scalar> relative_pos_norm_;
+  Scalar distance_penalty_;
+
   // action and observation normalization (for learning)
   Vector<visionenv::kNAct> act_mean_;
   Vector<visionenv::kNAct> act_std_;
