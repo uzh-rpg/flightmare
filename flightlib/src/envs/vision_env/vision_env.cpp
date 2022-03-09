@@ -32,7 +32,7 @@ VisionEnv::VisionEnv(const YAML::Node &cfg_node, const int env_id) : EnvBase() {
 void VisionEnv::init() {
   //
   unity_render_offset_ << 0.0, 0.0, 0.0;
-  goal_pos_ << 80.0, 0.0, 5.0;
+  goal_pos_ << 0.0, 0.0, 5.0;
   start_pos_ << 0.0, 0.0, 1.0;
 
   cmd_.setZeros();
@@ -116,6 +116,16 @@ bool VisionEnv::reset(Ref<Vector<>> obs) {
   quad_state_.x(QS::POSZ) = uniform_dist_(random_gen_) + 5;
   if (quad_state_.x(QS::POSZ) < -0.0)
     quad_state_.x(QS::POSZ) = -quad_state_.x(QS::POSZ);
+  // reset linear velocity
+  quad_state_.x(QS::VELX) = uniform_dist_(random_gen_);
+  quad_state_.x(QS::VELY) = uniform_dist_(random_gen_);
+  quad_state_.x(QS::VELZ) = uniform_dist_(random_gen_);
+  // reset orientation
+  quad_state_.x(QS::ATTW) = uniform_dist_(random_gen_);
+  quad_state_.x(QS::ATTX) = uniform_dist_(random_gen_);
+  quad_state_.x(QS::ATTY) = uniform_dist_(random_gen_);
+  quad_state_.x(QS::ATTZ) = uniform_dist_(random_gen_);
+  quad_state_.qx /= quad_state_.qx.norm();
 
   // reset quadrotor with random states
   quad_ptr_->reset(quad_state_);
@@ -152,7 +162,9 @@ bool VisionEnv::getObs(Ref<Vector<>> obs) {
   getObstacleState(obstacle_obs);
 
   // 3 + 9 + 3 + 3 + 3*N
-  obs << quad_state_.p - goal_pos_, ori, quad_state_.v, obstacle_obs;
+  // obs << quad_state_.p - goal_pos_, ori, quad_state_.v, obstacle_obs;
+  obs << quad_state_.p - goal_pos_, ori, quad_state_.v;
+  // std::cout << obs << std::endl;
   return true;
 }
 
@@ -240,6 +252,10 @@ bool VisionEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs,
   }
   //
   pi_act_ = act.cwiseProduct(act_std_) + act_mean_;
+  std::cout << pi_act_ << std::endl;
+  // std::cout << "=== " << std::endl;
+  // std::cout << act_std_ << " " << act_mean_ << std::endl;
+  // std::cout << pi_act_ << " " << quad_state_.p << std::endl;
 
   cmd_.t += sim_dt_;
   quad_state_.t += sim_dt_;
@@ -280,32 +296,50 @@ bool VisionEnv::simDynamicObstacles(const Scalar dt) {
 
 bool VisionEnv::computeReward(Ref<Vector<>> reward) {
   // progress reward
-  const Scalar dist = (goal_pos_ - quad_state_.p).norm();
-  const Scalar dist_prev = (goal_pos_ - quad_old_state_.p).norm();
-  Scalar prog_reward = (dist_prev - dist);
+  // const Scalar dist = (goal_pos_ - quad_state_.p).norm();
+  // const Scalar dist_prev = (goal_pos_ - quad_old_state_.p).norm();
+  // Scalar prog_reward = (dist_prev - dist);
+  // const Vector<3> ref_vel = (goal_pos_ - quad_state_) / max_t_;
 
   // std::cout << distance_penalty_ << std::endl;
   // ---------------------- reward function design
   // - position tracking
+  const Scalar pos_reward = -0.002 * (quad_state_.p - goal_pos_).norm();
   // - orientation penalty
   const Scalar ori_penalty =
-    -0.002 * (quad_state_.q().toRotationMatrix().eulerAngles(2, 1, 0)).norm();
+    -0.000 * (quad_state_.q().toRotationMatrix().eulerAngles(2, 1, 0)).norm();
   // - linear velocity penalty
   const Scalar lin_vel_penalty = -0.0001 * quad_state_.v.norm();
   // - angular angular velocity penalty
-  const Scalar ang_vel_penalty = -0.001 * quad_state_.w.norm();
+  const Scalar ang_vel_penalty = -0.0001 * quad_state_.w.norm();
 
+  // const Scalar act_penalty = -0.0001 * pi_act_.norm();
+
+  // const Scalar pos_reward = std::exp(-1.0 * (quad_state_.p -
+  // goal_pos_).norm()); const Scalar ori_penalty =
+  //   0.1 *
+  //   std::exp(-1.0 *
+  //            (quad_state_.q().toRotationMatrix().eulerAngles(2, 1,
+  //            0)).norm());
+  // // - linear velocity penalty
+  // const Scalar lin_vel_penalty = 0.1 * std::exp(-1.0 * quad_state_.v.norm());
+  // // - angular angular velocity penalty
+  // const Scalar ang_vel_penalty = 0.1 * std::exp(-1.0 * quad_state_.w.norm());
   if (quad_state_.p(0) > 60) {
     // disable the distance penalty after passing throug the obstacle dense
     // region
-    distance_penalty_ = 0.0;
-    prog_reward = std::exp(-0.1 * (quad_state_.p - goal_pos_).norm());
+    // distance_penalty_ = 0.0;
+
+    // //  change progress reward as survive reward
+    // prog_reward = 1.0;
   }
+  distance_penalty_ = 0.0;
 
-  const Scalar total_reward = prog_reward + distance_penalty_ + ori_penalty +
-                              lin_vel_penalty + ang_vel_penalty;
+  //  change progress reward as survive reward
+  const Scalar total_reward =
+    pos_reward + ori_penalty + lin_vel_penalty + ang_vel_penalty;
 
-  reward << prog_reward, distance_penalty_, ori_penalty, lin_vel_penalty,
+  reward << pos_reward, distance_penalty_, ori_penalty, lin_vel_penalty,
     ang_vel_penalty, total_reward;
   return true;
 }
@@ -329,6 +363,15 @@ bool VisionEnv::isTerminalState(Scalar &reward) {
     reward = 0.0;
     return true;
   }
+
+  // project current position onto current path segment
+  // Vector<3> V = quad_state_.p - start_pos_;
+  // Vector<3> P12 = goal_pos_ - start_pos_;
+  // Scalar proj = V.cross(P12).norm() / P12.norm();
+  // if (proj >= 3) {
+  //   reward = -1.0;
+  //   return true;
+  // }
 
   bool x_valid = quad_state_.p(QS::POSX) >= world_box_(QS::POSX, 0) + 0.1 &&
                  quad_state_.p(QS::POSX) <= world_box_(QS::POSX, 1) - 0.1;

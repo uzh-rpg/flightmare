@@ -89,7 +89,7 @@ using Ref = Eigen::Ref<Derived>;
 template<class Derived>
 using Map = Eigen::Map<Derived>;
 
-static constexpr Scalar Gz = -9.81;
+static constexpr Scalar Gz = -9.8066;
 const Vector<3> GVEC{0.0, 0.0, Gz};
 
 }  // namespace flightlib

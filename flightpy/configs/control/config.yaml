@@ -23,9 +23,9 @@ quadrotor_dynamics:
   motor_omega_max: 2333.0
   motor_tau: 0.033
   thrust_map: [1.562522e-6, 0.0, 0.0] # max thrust = 8.50 N
-  body_drag_1: [0.26, 0.28, 0.42]
+  body_drag_1: [0.0, 0.0, 0.0] # [0.26, 0.28, 0.42]
   body_drag_3: [0.00, 0.00, 0.00]
-  body_drag_h: 0.01
+  body_drag_h: 0.00
 
 rewards:
   pos_coeff: -0.002 # reward coefficient for position

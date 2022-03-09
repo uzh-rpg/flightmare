@@ -35,11 +35,11 @@ class LowLevelControllerBetaflight {
   QuadrotorDynamics quad_dynamics_;
 
   // Quadrotor properties
-  const Matrix<4, 4> B_allocation_ =
-    (Matrix<4, 4>() << 1, -1, -1, -1, 1, 1, 1, -1, 1, -1, 1, 1, 1, 1, -1, 1)
-      .finished();
-  // Matrix<4, 4> B_allocation_;
-  Matrix<4, 4> B_allocation_inv_ = B_allocation_.inverse();
+  // const Matrix<4, 4> B_allocation_ =
+  //   (Matrix<4, 4>() << 1, -1, -1, -1, 1, 1, 1, -1, 1, -1, 1, 1, 1, 1, -1, 1)
+  //     .finished();
+  Matrix<4, 4> B_allocation_;
+  Matrix<4, 4> B_allocation_inv_;
 
 
   // 1, -1,  1,  1,

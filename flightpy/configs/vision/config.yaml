@@ -16,16 +16,16 @@ quadrotor_dynamics:
   tbm_bl: [-0.075, 0.10, 0.0] # [m]
   tbm_br: [-0.075, -0.10, 0.0] # [m]
   tbm_fl: [0.075, 0.10, 0.0] # [m
-  omega_max: [6.0, 6.0, 2.0]
+  omega_max: [10.0, 10.0, 4.0]
   inertia: [0.0025, 0.0021, 0.0043]
   kappa: 0.022
   motor_omega_min: 150.0
-  motor_omega_max: 2333.0
+  motor_omega_max: 2800.0
   motor_tau: 0.033
   thrust_map: [1.562522e-6, 0.0, 0.0] # max thrust = 8.50 N
-  body_drag_1: [0.26, 0.28, 0.42]
+  body_drag_1: [0.00, 0.00, 0.00]
   body_drag_3: [0.00, 0.00, 0.00]
-  body_drag_h: 0.01
+  body_drag_h: 0.00
 
 rewards:
   dummy_coeff: 0.0

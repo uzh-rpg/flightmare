@@ -103,6 +103,7 @@ def test_policy(env, model, render=False):
     for n_roll in range(num_rollouts):
         obs, done, ep_len = env.reset(), False, 0
         while not (done or (ep_len >= max_ep_length)):
+            # print(obs)
             act, _ = model.predict(obs, deterministic=True)
             obs, rew, done, info = env.step(act)
 

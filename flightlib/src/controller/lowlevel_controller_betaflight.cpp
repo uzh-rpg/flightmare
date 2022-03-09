@@ -17,7 +17,9 @@ LowLevelControllerBetaflight::LowLevelControllerBetaflight(
 bool LowLevelControllerBetaflight::updateQuadDynamics(
   const QuadrotorDynamics& quad_dynamics) {
   cum_ = 0.0;
-
+  quad_dynamics_ = quad_dynamics;
+  B_allocation_ = quad_dynamics.getAllocationMatrix();
+  B_allocation_inv_ = B_allocation_.inverse();
   return true;
 }
 
