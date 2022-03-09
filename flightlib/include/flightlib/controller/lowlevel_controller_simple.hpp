@@ -22,7 +22,7 @@ class LowLevelControllerSimple {
 
   // P gain for body rate control
   const Matrix<3, 3> Kinv_ang_vel_tau_ =
-    Vector<3>(16.6, 16.6, 5.0).asDiagonal();
+    Vector<3>(20.0, 20.0, 40.0).asDiagonal();
 
   // Quadcopter to which the controller is applied
   QuadrotorDynamics quad_dynamics_;

@@ -252,7 +252,6 @@ bool VisionEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs,
   }
   //
   pi_act_ = act.cwiseProduct(act_std_) + act_mean_;
-  std::cout << pi_act_ << std::endl;
   // std::cout << "=== " << std::endl;
   // std::cout << act_std_ << " " << act_mean_ << std::endl;
   // std::cout << pi_act_ << " " << quad_state_.p << std::endl;
@@ -306,14 +305,15 @@ bool VisionEnv::computeReward(Ref<Vector<>> reward) {
   // - position tracking
   const Scalar pos_reward = -0.002 * (quad_state_.p - goal_pos_).norm();
   // - orientation penalty
-  const Scalar ori_penalty =
-    -0.000 * (quad_state_.q().toRotationMatrix().eulerAngles(2, 1, 0)).norm();
+  const Vector<3> euler_angles =
+    quad_state_.q().toRotationMatrix().eulerAngles(2, 1, 0);
+  const Scalar ori_penalty = -0.001 * (euler_angles.segment<2>(1)).norm();
   // - linear velocity penalty
   const Scalar lin_vel_penalty = -0.0001 * quad_state_.v.norm();
   // - angular angular velocity penalty
   const Scalar ang_vel_penalty = -0.0001 * quad_state_.w.norm();
 
-  // const Scalar act_penalty = -0.0001 * pi_act_.norm();
+  const Scalar act_penalty = -0.0001 * pi_act_.norm();
 
   // const Scalar pos_reward = std::exp(-1.0 * (quad_state_.p -
   // goal_pos_).norm()); const Scalar ori_penalty =
@@ -337,7 +337,7 @@ bool VisionEnv::computeReward(Ref<Vector<>> reward) {
 
   //  change progress reward as survive reward
   const Scalar total_reward =
-    pos_reward + ori_penalty + lin_vel_penalty + ang_vel_penalty;
+    pos_reward + ori_penalty + lin_vel_penalty + ang_vel_penalty + act_penalty;
 
   reward << pos_reward, distance_penalty_, ori_penalty, lin_vel_penalty,
     ang_vel_penalty, total_reward;
