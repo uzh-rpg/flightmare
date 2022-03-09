@@ -307,13 +307,11 @@ bool VisionEnv::computeReward(Ref<Vector<>> reward) {
   // - orientation penalty
   const Vector<3> euler_angles =
     quad_state_.q().toRotationMatrix().eulerAngles(2, 1, 0);
-  const Scalar ori_penalty = -0.001 * (euler_angles.segment<2>(1)).norm();
+  const Scalar ori_penalty = -0.002 * euler_angles.norm();
   // - linear velocity penalty
   const Scalar lin_vel_penalty = -0.0001 * quad_state_.v.norm();
   // - angular angular velocity penalty
   const Scalar ang_vel_penalty = -0.0001 * quad_state_.w.norm();
-
-  const Scalar act_penalty = -0.0001 * pi_act_.norm();
 
   // const Scalar pos_reward = std::exp(-1.0 * (quad_state_.p -
   // goal_pos_).norm()); const Scalar ori_penalty =
@@ -337,7 +335,7 @@ bool VisionEnv::computeReward(Ref<Vector<>> reward) {
 
   //  change progress reward as survive reward
   const Scalar total_reward =
-    pos_reward + ori_penalty + lin_vel_penalty + ang_vel_penalty + act_penalty;
+    pos_reward + ori_penalty + lin_vel_penalty + ang_vel_penalty;
 
   reward << pos_reward, distance_penalty_, ori_penalty, lin_vel_penalty,
     ang_vel_penalty, total_reward;

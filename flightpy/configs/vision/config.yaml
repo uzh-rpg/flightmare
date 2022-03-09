@@ -16,7 +16,7 @@ quadrotor_dynamics:
   tbm_bl: [-0.075, 0.10, 0.0] # [m]
   tbm_br: [-0.075, -0.10, 0.0] # [m]
   tbm_fl: [0.075, 0.10, 0.0] # [m
-  omega_max: [10.0, 10.0, 4.0]
+  omega_max: [6.0, 6.0, 2.0]
   inertia: [0.0025, 0.0021, 0.0043]
   kappa: 0.022
   motor_omega_min: 150.0
