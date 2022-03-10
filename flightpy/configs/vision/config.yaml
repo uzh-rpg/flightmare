@@ -31,7 +31,7 @@ rewards:
   dummy_coeff: 0.0
   names:
     [
-      "prog_reward",
+      "velocity_tracking",
       "pos_reward",
       "dsitance_penalty",
       "ori_penalty",

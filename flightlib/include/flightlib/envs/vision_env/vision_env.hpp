@@ -35,8 +35,8 @@ enum Vision : int {
 
   // observations
   kObs = 0,
-  // kNObs = 3 + 15 + kNObstacles * kNObstaclesState,
-  kNObs = 15,
+  kNObs = 15 + kNObstacles * kNObstaclesState,
+  // kNObs = 15,
 
   // control actions
   kAct = 0,
@@ -147,7 +147,7 @@ class VisionEnv final : public EnvBase {
 
   Scalar goal_speed_{2.0};
 
-  Vector<3> goal_linear_vel_{2.0, 0.0, 0.0};
+  Vector<3> goal_linear_vel_{3.0, 0.0, 0.0};
 
   // robot vision
   std::shared_ptr<RGBCamera> rgb_camera_;

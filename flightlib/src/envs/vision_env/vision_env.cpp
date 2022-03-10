@@ -179,7 +179,7 @@ bool VisionEnv::getObs(Ref<Vector<>> obs) {
   // 3 + 9 + 3 + 3 + 3*N
   // obs << goal_linear_vel_, quad_state_.p - goal_pos_, ori, quad_state_.v,
   //   obstacle_obs;
-  obs << goal_linear_vel_, ori, quad_state_.v;
+  obs << goal_linear_vel_, ori, quad_state_.v, obstacle_obs;
   return true;
 }
 
@@ -201,13 +201,15 @@ bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) {
       obstacle_dist = max_detection_range_;
     }
 
-    if (obstacle_dist < dynamic_objects_[i]->getScale()[0]) {
+    if (obstacle_dist < dynamic_objects_[i]->getScale()[0] / 2) {
       num_collisions_ += 1;
+      obstacle_collision_ = true;
     }
-    // compute distance penlaty
-    distance_penalty_ += -0.001 * ((max_detection_range_ - obstacle_dist) /
-                                     (obstacle_dist * max_detection_range_) +
-                                   1e-8);
+
+    // // compute distance penlaty
+    // distance_penalty_ += -0.001 * ((max_detection_range_ - obstacle_dist) /
+    //                                  (obstacle_dist * max_detection_range_) +
+    //                                1e-8);
   }
 
   // compute relatiev distance to static obstacles
@@ -220,16 +222,17 @@ bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) {
     if (obstacle_dist > max_detection_range_) {
       obstacle_dist = max_detection_range_;
     }
-    if (obstacle_dist < static_objects_[i]->getScale()[0]) {
+    if (obstacle_dist < static_objects_[i]->getScale()[0] / 2) {
       num_collisions_ += 1;
+      obstacle_collision_ = true;
     }
 
     relative_pos_norm_.push_back(obstacle_dist);
 
-    // compute distance penlaty
-    distance_penalty_ += -0.001 * ((max_detection_range_ - obstacle_dist) /
-                                     (obstacle_dist * max_detection_range_) +
-                                   1e-8);
+    // // compute distance penlaty
+    // distance_penalty_ += -0.001 * ((max_detection_range_ - obstacle_dist) /
+    //                                  (obstacle_dist * max_detection_range_) +
+    //  1e-8);
   }
 
   size_t idx = 0;
@@ -251,6 +254,10 @@ bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) {
           Vector<4>(max_detection_range_, max_detection_range_,
                     max_detection_range_, obstacle_scale[sort_idx]);
       }
+      distance_penalty_ +=
+        -0.1 * ((max_detection_range_ - relative_pos_norm_[sort_idx]) /
+                  (relative_pos_norm_[sort_idx] * max_detection_range_) +
+                1e-8);
     } else {
       // if not enough obstacles in the environment
       obs_state.segment<visionenv::kNObstaclesState>(
@@ -323,7 +330,8 @@ bool VisionEnv::computeReward(Ref<Vector<>> reward) {
   Scalar prog_reward = (dist_prev - dist);
 
 
-  Scalar lin_vel_reward = -0.02 * (quad_state_.v - goal_linear_vel_).norm();
+  Scalar lin_vel_reward =
+    0.01 * std::exp(-1.0 * (quad_state_.v - goal_linear_vel_).norm());
 
   // ---------------------- reward function design
   // - position tracking
@@ -331,6 +339,7 @@ bool VisionEnv::computeReward(Ref<Vector<>> reward) {
   // - orientation penalty
   const Vector<3> euler_angles =
     quad_state_.q().toRotationMatrix().eulerAngles(2, 1, 0);
+
   const Scalar ori_penalty = -0.002 * euler_angles.norm();
   // - linear velocity penalty
   const Scalar lin_vel_penalty = -0.0001 * quad_state_.v.norm();
@@ -356,9 +365,10 @@ bool VisionEnv::computeReward(Ref<Vector<>> reward) {
   }
 
   //  change progress reward as survive reward
-  const Scalar total_reward = lin_vel_reward + 0.03 + ang_vel_penalty;
+  const Scalar total_reward =
+    lin_vel_reward + ang_vel_penalty + distance_penalty_;
 
-  reward << prog_reward, pos_reward, distance_penalty_, ori_penalty,
+  reward << lin_vel_reward, pos_reward, distance_penalty_, ori_penalty,
     lin_vel_penalty, ang_vel_penalty, num_collisions_, total_reward;
   return true;
 }
@@ -384,13 +394,13 @@ bool VisionEnv::isTerminalState(Scalar &reward) {
   }
 
   // project current position onto current path segment
-  // Vector<3> V = quad_state_.p - start_pos_;
-  // Vector<3> P12 = goal_pos_ - start_pos_;
-  // Scalar proj = V.cross(P12).norm() / P12.norm();
-  // if (proj >= 3) {
-  //   reward = -1.0;
-  //   return true;
-  // }
+  Vector<3> V = quad_state_.p - start_pos_;
+  Vector<3> P12 = goal_pos_ - start_pos_;
+  Scalar proj = V.cross(P12).norm() / P12.norm();
+  if (proj >= 3) {
+    reward = -1.0;
+    return true;
+  }
 
   bool x_valid = quad_state_.p(QS::POSX) >= world_box_(QS::POSX, 0) + 0.1 &&
                  quad_state_.p(QS::POSX) <= world_box_(QS::POSX, 1) - 0.1;
