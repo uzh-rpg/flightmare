@@ -35,7 +35,7 @@ enum Vision : int {
 
   // observations
   kObs = 0,
-  // kNObs = 15 + kNObstacles * kNObstaclesState,
+  // kNObs = 3 + 15 + kNObstacles * kNObstaclesState,
   kNObs = 15,
 
   // control actions
@@ -144,6 +144,11 @@ class VisionEnv final : public EnvBase {
   Vector<visionenv::kNObs> obs_mean_ = Vector<visionenv::kNObs>::Zero();
   Vector<visionenv::kNObs> obs_std_ = Vector<visionenv::kNObs>::Ones();
 
+
+  Scalar goal_speed_{2.0};
+
+  Vector<3> goal_linear_vel_{2.0, 0.0, 0.0};
+
   // robot vision
   std::shared_ptr<RGBCamera> rgb_camera_;
   cv::Mat rgb_img_, gray_img_;
@@ -151,6 +156,7 @@ class VisionEnv final : public EnvBase {
 
   bool obstacle_collision_;
   int num_detected_obstacles_;
+  int num_collisions_;
 
   // auxiliary variables
   int rotor_ctrl_{true};
