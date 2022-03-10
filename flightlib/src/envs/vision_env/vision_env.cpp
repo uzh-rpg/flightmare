@@ -107,6 +107,7 @@ VisionEnv::~VisionEnv() {}
 bool VisionEnv::reset(Ref<Vector<>> obs) {
   quad_state_.setZero();
   pi_act_.setZero();
+  old_pi_act_.setZero();
   obstacle_collision_ = false;
 
   // randomly reset the quadrotor state
@@ -158,7 +159,6 @@ bool VisionEnv::getObs(Ref<Vector<>> obs) {
   Vector<9> ori = Map<Vector<>>(quad_state_.R().data(), quad_state_.R().size());
 
   Vector<visionenv::kNObstacles * visionenv::kNObstaclesState> obstacle_obs;
-
   getObstacleState(obstacle_obs);
 
   // 3 + 9 + 3 + 3 + 3*N
@@ -251,6 +251,7 @@ bool VisionEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs,
       "actions.");
   }
   //
+  old_pi_act_ = pi_act_;
   pi_act_ = act.cwiseProduct(act_std_) + act_mean_;
   // std::cout << "=== " << std::endl;
   // std::cout << act_std_ << " " << act_mean_ << std::endl;
@@ -260,10 +261,13 @@ bool VisionEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs,
   quad_state_.t += sim_dt_;
 
   if (rotor_ctrl_ == quadcmd::SINGLEROTOR) {
-    cmd_.thrusts = pi_act_;
+    // cmd_.thrusts = pi_act_;
+    cmd_.thrusts = old_pi_act_;
   } else if (rotor_ctrl_ == quadcmd::THRUSTRATE) {
-    cmd_.collective_thrust = pi_act_(0);
-    cmd_.omega = pi_act_.segment<3>(1);
+    // cmd_.collective_thrust = pi_act_(0);
+    // cmd_.omega = pi_act_.segment<3>(1);
+    cmd_.collective_thrust = old_pi_act_(0);
+    cmd_.omega = old_pi_act_.segment<3>(1);
   }
 
   // simulate quadrotor

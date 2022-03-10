@@ -126,6 +126,7 @@ class VisionEnv final : public EnvBase {
   // observations and actions (for RL)
   Vector<visionenv::kNObs> pi_obs_;
   Vector<visionenv::kNAct> pi_act_;
+  Vector<visionenv::kNAct> old_pi_act_;
 
   // reward function design (for model-free reinforcement learning)
   Vector<3> goal_pos_;
