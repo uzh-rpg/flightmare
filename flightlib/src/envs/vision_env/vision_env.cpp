@@ -39,6 +39,7 @@ void VisionEnv::init() {
 
   // create quadrotors
   quad_ptr_ = std::make_shared<Quadrotor>();
+
   // update dynamics
   QuadrotorDynamics dynamics;
   dynamics.updateParams(cfg_);
@@ -141,10 +142,17 @@ bool VisionEnv::getObs(Ref<Vector<>> obs) {
 }
 
 bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) {
+  if (dynamic_objects_.size() <= 0 || static_objects_.size() <= 0) {
+    logger_.error("No dynamic or static obstacles.");
+    return false;
+  }
+  // make sure to reset the collision penalty
+  collision_penalty_ = 0.0;
   relative_pos_norm_.clear();
 
   // TODO: Make this part of code faster
   quad_ptr_->getState(&quad_state_);
+
   // compute relative distance to dynamic obstacles
   std::vector<Scalar> obstacle_scale;
   std::vector<Vector<3>, Eigen::aligned_allocator<Vector<3>>> relative_pos;
@@ -161,6 +169,7 @@ bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) {
     if (obstacle_dist < dynamic_objects_[i]->getScale()[0] / 2) {
       is_collision_ = true;
     }
+    relative_pos_norm_.push_back(obstacle_dist);
   }
 
   // compute relatiev distance to static obstacles
@@ -176,7 +185,6 @@ bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) {
     if (obstacle_dist < static_objects_[i]->getScale()[0] / 2) {
       is_collision_ = true;
     }
-
     relative_pos_norm_.push_back(obstacle_dist);
   }
 
@@ -216,6 +224,7 @@ bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) {
     }
     idx += 1;
   }
+
   return true;
 }
 
@@ -281,7 +290,7 @@ bool VisionEnv::computeReward(Ref<Vector<>> reward) {
 
   //  change progress reward as survive reward
   const Scalar total_reward =
-    lin_vel_reward + ang_vel_penalty + collision_penalty_ + survive_rew_;
+    lin_vel_reward + collision_penalty_ + ang_vel_penalty + survive_rew_;
 
   // return all reward components for debug purposes
   // only the total reward is used by the RL algorithm
@@ -291,6 +300,11 @@ bool VisionEnv::computeReward(Ref<Vector<>> reward) {
 }
 
 bool VisionEnv::isTerminalState(Scalar &reward) {
+  // if (is_collision_) {
+  //   reward = -1.0;
+  //   return true;
+  // }
+
   // simulation time out
   if (cmd_.t >= max_t_ - sim_dt_) {
     reward = 0.0;
@@ -479,6 +493,7 @@ bool VisionEnv::configDynamicObjects(const std::string &yaml_file) {
 
     dynamic_objects_.push_back(obj);
   }
+  num_dynamic_objects_ = dynamic_objects_.size();
   return true;
 }
 
@@ -523,6 +538,7 @@ bool VisionEnv::configStaticObjects(const std::string &csv_file) {
     obj->setScale(scale);
     static_objects_.push_back(obj);
   }
+  num_static_objects_ = static_objects_.size();
 
   return true;
 }
@@ -651,6 +667,8 @@ std::ostream &operator<<(std::ostream &os, const VisionEnv &vision_env) {
   os << "Vision Environment:\n"
      << "obs dim =            [" << vision_env.obs_dim_ << "]\n"
      << "act dim =            [" << vision_env.act_dim_ << "]\n"
+     << "#dynamic objects=    [" << vision_env.num_dynamic_objects_ << "]\n"
+     << "#static objects=     [" << vision_env.num_static_objects_ << "]\n"
      << "obstacle dim =       [" << vision_env.num_detected_obstacles_ << "]\n"
      << "sim dt =             [" << vision_env.sim_dt_ << "]\n"
      << "max_t =              [" << vision_env.max_t_ << "]\n"
