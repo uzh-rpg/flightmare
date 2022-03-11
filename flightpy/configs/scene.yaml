@@ -15,5 +15,5 @@ scene_2:
 
 scene_3:
   name: "wasteland"
-  render_offset: [1196, 1129, 106]
+  render_offset: [963, 1044, 112]
   render_orientation: [0.0, 0.0, 160]

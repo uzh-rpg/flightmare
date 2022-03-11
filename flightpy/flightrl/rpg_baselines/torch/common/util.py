@@ -1,6 +1,8 @@
+from tkinter.tix import Tree
 import numpy as np
 import pandas as pd
 import cv2
+import os
 from mpl_toolkits.mplot3d import Axes3D
 
 columns = [
@@ -98,6 +100,7 @@ def plot3d_traj(ax3d, pos, vel):
 def test_policy(env, model, render=False):
     max_ep_length = env.max_episode_steps
     num_rollouts = 5
+    frame_id = 0
     if render:
         env.connectUnity()
     for n_roll in range(num_rollouts):
@@ -121,16 +124,21 @@ def test_policy(env, model, render=False):
             # rgb_img = np.reshape(
             #    img[0], (env.img_height, env.img_width, 3))
             # cv2.imshow("rgb_img", rgb_img)
+            # os.makedirs("./images", exist_ok=True)
+            # cv2.imwrite("./images/img_{0:05d}.png".format(frame_id), rgb_img)
             # cv2.waitKey(100)
 
-            # # ======Depth Image=========
+            # # # ======Depth Image=========
             # depth_img = np.reshape(env.getDepthImage()[
             #                        0], (env.img_height, env.img_width))
+            # os.makedirs("./depth", exist_ok=True)
+            # cv2.imwrite("./depth/img_{0:05d}.png".format(frame_id), depth_img.astype(np.uint16))
             # cv2.imshow("depth", depth_img)
             # cv2.waitKey(100)
 
             #
             ep_len += 1
+            frame_id += 1
 
     #
     if render:
