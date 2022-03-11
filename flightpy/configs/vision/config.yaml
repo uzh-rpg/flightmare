@@ -1,3 +1,35 @@
+environment:
+  level: "hard" # three difficulty level [easy, median, hard]
+  world_box: [-10, 80, -10, 10, 0.0, 10] # xmin, xmax, ymin, ymax, zmin, zmax
+  goal_vel: [3.0, 0.0, 0.0] # goal velicty for tracking vx, vy, vz
+  max_detection_range: 10.0 # max obstacle detection range, in meters
+
+rewards:
+  vel_coeff: -0.01
+  collision_coeff: -0.01
+  angular_vel_coeff: -0.0001
+  survive_rew: 0.03
+  names:
+    [
+      "lin_vel_reward",
+      "collision_penalty",
+      "ang_vel_penalty",
+      "survive_rew",
+      "total",
+    ]
+
+rgb_camera:
+  on: yes 
+  t_BC: [0.0, 0.0, 0.3] # translational vector of the camera with repect to the body frame
+  r_BC: [0.0, 0.0, -90] # rotational angle (roll, pitch, yaw) of the camera in degree.
+  channels: 3
+  width: 320 
+  height: 240
+  fov: 70.0
+  enable_depth: yes 
+  enable_segmentation: no
+  enable_opticalflow: no
+
 unity:
   scene_id: 0 # 0 warehouse, 1 garage, 3 natureforest
   render: no
@@ -8,7 +40,6 @@ simulation:
   max_t: 10.0
   num_envs: 100 
   num_threads: 10
-  rotor_ctrl: 1 # 0 single rotor, 1 body rate
 
 quadrotor_dynamics:
   mass: 0.752
@@ -26,29 +57,3 @@ quadrotor_dynamics:
   body_drag_1: [0.00, 0.00, 0.00]
   body_drag_3: [0.00, 0.00, 0.00]
   body_drag_h: 0.00
-
-rewards:
-  dummy_coeff: 0.0
-  names:
-    [
-      "velocity_tracking",
-      "pos_reward",
-      "dsitance_penalty",
-      "ori_penalty",
-      "lin_vel_penalty",
-      "ang_vel_penalty",
-      "num_collisions",
-      "total",
-    ]
-
-rgb_camera:
-  on: yes 
-  t_BC: [0.0, 0.0, 0.3] # translational vector of the camera with repect to the body frame
-  r_BC: [0.0, 0.0, -90] # rotational angle (roll, pitch, yaw) of the camera in degree.
-  channels: 3
-  width: 320 
-  height: 240
-  fov: 70.0
-  enable_depth: yes 
-  enable_segmentation: no
-  enable_opticalflow: no

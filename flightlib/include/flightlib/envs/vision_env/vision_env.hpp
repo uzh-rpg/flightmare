@@ -36,7 +36,6 @@ enum Vision : int {
   // observations
   kObs = 0,
   kNObs = 15 + kNObstacles * kNObstaclesState,
-  // kNObs = 15,
 
   // control actions
   kAct = 0,
@@ -94,6 +93,7 @@ class VisionEnv final : public EnvBase {
 
   //
   int getNumDetectedObstacles(void);
+  bool isCollision(void) { return is_collision_; };
   inline std::vector<std::string> getRewardNames() { return reward_names_; }
   inline void setSceneID(const SceneID id) { scene_id_ = id; }
   inline std::shared_ptr<Quadrotor> getQuadrotor() { return quad_ptr_; }
@@ -121,22 +121,22 @@ class VisionEnv final : public EnvBase {
   Logger logger_{"VisionEnv"};
 
   // Define reward for training
-  Scalar dummy_coeff_;
+  Scalar vel_coeff_, collision_coeff_, angular_vel_coeff_, survive_rew_;
+  Scalar collision_penalty_;
+  Vector<3> goal_linear_vel_;
+  bool is_collision_;
+
+  // max detection range (meter)
+  Scalar max_detection_range_;
+  std::vector<Scalar> relative_pos_norm_;
+  int num_detected_obstacles_;
+  std::string difficulty_level_;
+  std::vector<Scalar> world_box_;
 
   // observations and actions (for RL)
   Vector<visionenv::kNObs> pi_obs_;
   Vector<visionenv::kNAct> pi_act_;
   Vector<visionenv::kNAct> old_pi_act_;
-
-  // reward function design (for model-free reinforcement learning)
-  Vector<3> goal_pos_;
-  Vector<3> start_pos_;
-
-  // max detection range (meter)
-  Scalar max_detection_range_{10.0};
-
-  std::vector<Scalar> relative_pos_norm_;
-  Scalar distance_penalty_;
 
   // action and observation normalization (for learning)
   Vector<visionenv::kNAct> act_mean_;
@@ -144,28 +144,17 @@ class VisionEnv final : public EnvBase {
   Vector<visionenv::kNObs> obs_mean_ = Vector<visionenv::kNObs>::Zero();
   Vector<visionenv::kNObs> obs_std_ = Vector<visionenv::kNObs>::Ones();
 
-
-  Scalar goal_speed_{2.0};
-
-  Vector<3> goal_linear_vel_{3.0, 0.0, 0.0};
-
   // robot vision
   std::shared_ptr<RGBCamera> rgb_camera_;
   cv::Mat rgb_img_, gray_img_;
   cv::Mat depth_img_;
 
-  bool obstacle_collision_;
-  int num_detected_obstacles_;
-  int num_collisions_;
-
   // auxiliary variables
-  int rotor_ctrl_{true};
   bool use_camera_{false};
   YAML::Node cfg_;
   std::vector<std::string> reward_names_;
-  Matrix<3, 2> world_box_;
 
-  // Flightmare(Unity3D)
+  // Unity Rendering
   std::shared_ptr<UnityBridge> unity_bridge_ptr_;
   SceneID scene_id_{UnityScene::WAREHOUSE};
   bool unity_ready_{false};
@@ -173,7 +162,10 @@ class VisionEnv final : public EnvBase {
   RenderMessage_t unity_output_;
   uint16_t receive_id_{0};
   Vector<3> unity_render_offset_;
+
+  //
   std::string static_object_csv_;
+  std::string obstacle_cfg_path_;
 };
 
 }  // namespace flightlib

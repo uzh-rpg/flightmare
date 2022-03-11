@@ -31,12 +31,10 @@ VisionEnv::VisionEnv(const YAML::Node &cfg_node, const int env_id) : EnvBase() {
 
 void VisionEnv::init() {
   //
+  is_collision_ = false;
+  collision_penalty_ = 0.0;
   unity_render_offset_ << 0.0, 0.0, 0.0;
-  goal_pos_ << 80.0, 0.0, 5.0;
-  start_pos_ << 0.0, 0.0, 1.0;
-  num_collisions_ = 0;
-  goal_linear_vel_ << 3.0, 0.0, 0.0;
-
+  goal_linear_vel_ << 0.0, 0.0, 0.0;
   cmd_.setZeros();
 
   // create quadrotors
@@ -47,18 +45,11 @@ void VisionEnv::init() {
   quad_ptr_->updateDynamics(dynamics);
 
 
-  // define a bounding box {xmin, xmax, ymin, ymax, zmin, zmax}
-  world_box_ << -100, 100, -100, 100, -0.0, 100;
-  if (!quad_ptr_->setWorldBox(world_box_)) {
-    logger_.error("cannot set wolrd box");
-  };
-
   // define input and output dimension for the environment
   obs_dim_ = visionenv::kNObs;
   act_dim_ = visionenv::kNAct;
   rew_dim_ = 0;
   num_detected_obstacles_ = visionenv::kNObstacles;
-
 
   // load parameters
   loadParam(cfg_);
@@ -69,10 +60,13 @@ void VisionEnv::init() {
       "Cannot config RGB Camera. Something wrong with the config file");
   }
 
+  obstacle_cfg_path_ = getenv("FLIGHTMARE_PATH") +
+                       std::string("/flightpy/configs/vision/") +
+                       difficulty_level_;
+
   // add dynamic objects
   std::string dynamic_object_yaml =
-    getenv("FLIGHTMARE_PATH") +
-    std::string("/flightpy/configs/vision/dynamic_obstacles.yaml");
+    obstacle_cfg_path_ + std::string("/dynamic_obstacles.yaml");
   if (!configDynamicObjects(dynamic_object_yaml)) {
     logger_.error(
       "Cannot config Dynamic Object Yaml. Something wrong with the config "
@@ -81,27 +75,19 @@ void VisionEnv::init() {
 
   // add static objects
   static_object_csv_ =
-    getenv("FLIGHTMARE_PATH") +
-    std::string("/flightpy/configs/vision/static_obstacles.csv");
+    obstacle_cfg_path_ + std::string("/static_obstacles.csv");
   if (!configStaticObjects(static_object_csv_)) {
     logger_.error(
       "Cannot config Static Object. Something wrong with the config file");
   }
 
   // use single rotor control or bodyrate control
-  if (rotor_ctrl_ == quadcmd::SINGLEROTOR) {
-    act_mean_ = Vector<visionenv::kNAct>::Ones() *
-                quad_ptr_->getDynamics().getSingleThrustMax() / 2;
-    act_std_ = Vector<visionenv::kNAct>::Ones() *
-               quad_ptr_->getDynamics().getSingleThrustMax() / 2;
-  } else if (rotor_ctrl_ == quadcmd::THRUSTRATE) {
-    Scalar max_force = quad_ptr_->getDynamics().getForceMax();
-    Vector<3> max_omega = quad_ptr_->getDynamics().getOmegaMax();
-    //
-    act_mean_ << (max_force / quad_ptr_->getMass()) / 2, 0.0, 0.0, 0.0;
-    act_std_ << (max_force / quad_ptr_->getMass()) / 2, max_omega.x(),
-      max_omega.y(), max_omega.z();
-  }
+  Scalar max_force = quad_ptr_->getDynamics().getForceMax();
+  Vector<3> max_omega = quad_ptr_->getDynamics().getOmegaMax();
+  //
+  act_mean_ << (max_force / quad_ptr_->getMass()) / 2, 0.0, 0.0, 0.0;
+  act_std_ << (max_force / quad_ptr_->getMass()) / 2, max_omega.x(),
+    max_omega.y(), max_omega.z();
 }
 
 VisionEnv::~VisionEnv() {}
@@ -110,7 +96,6 @@ bool VisionEnv::reset(Ref<Vector<>> obs) {
   quad_state_.setZero();
   pi_act_.setZero();
   old_pi_act_.setZero();
-  obstacle_collision_ = false;
 
   // randomly reset the quadrotor state
   // reset position
@@ -125,15 +110,11 @@ bool VisionEnv::reset(Ref<Vector<>> obs) {
 
   // reset control command
   cmd_.t = 0.0;
-  cmd_.setCmdMode(rotor_ctrl_);
-  if (rotor_ctrl_ == quadcmd::SINGLEROTOR) {
-    cmd_.thrusts.setZero();
-  } else if (rotor_ctrl_ == quadcmd::THRUSTRATE) {
-    cmd_.collective_thrust = 0;
-    cmd_.omega.setZero();
-  }
+  // use collective thrust and bodyrate control mode
+  cmd_.setCmdMode(quadcmd::THRUSTRATE);
+  cmd_.collective_thrust = 0;
+  cmd_.omega.setZero();
 
-  start_pos_ = quad_state_.p;
   // obtain observations
   getObs(obs);
   return true;
@@ -147,10 +128,10 @@ bool VisionEnv::getObs(Ref<Vector<>> obs) {
                   obs_dim_);
     return false;
   }
-
-
+  // compute rotation matrix
   Vector<9> ori = Map<Vector<>>(quad_state_.R().data(), quad_state_.R().size());
 
+  // get N most closest obstacles as the observation
   Vector<visionenv::kNObstacles * visionenv::kNObstaclesState> obstacle_obs;
   getObstacleState(obstacle_obs);
 
@@ -160,7 +141,6 @@ bool VisionEnv::getObs(Ref<Vector<>> obs) {
 }
 
 bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) {
-  distance_penalty_ = 0.0;
   relative_pos_norm_.clear();
 
   // TODO: Make this part of code faster
@@ -179,8 +159,7 @@ bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) {
     }
 
     if (obstacle_dist < dynamic_objects_[i]->getScale()[0] / 2) {
-      num_collisions_ += 1;
-      // obstacle_collision_ = true;
+      is_collision_ = true;
     }
   }
 
@@ -195,8 +174,7 @@ bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) {
       obstacle_dist = max_detection_range_;
     }
     if (obstacle_dist < static_objects_[i]->getScale()[0] / 2) {
-      num_collisions_ += 1;
-      // obstacle_collision_ = true;
+      is_collision_ = true;
     }
 
     relative_pos_norm_.push_back(obstacle_dist);
@@ -223,10 +201,11 @@ bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) {
       }
 
       // compute distance penalty
-      distance_penalty_ +=
-        -0.01 * ((max_detection_range_ - relative_pos_norm_[sort_idx]) /
-                   (relative_pos_norm_[sort_idx] * max_detection_range_) +
-                 1e-8);
+      collision_penalty_ +=
+        collision_coeff_ *
+        ((max_detection_range_ - relative_pos_norm_[sort_idx]) /
+           (relative_pos_norm_[sort_idx] * max_detection_range_) +
+         1e-8);
     } else {
       // if not enough obstacles in the environment
       obs_state.segment<visionenv::kNObstaclesState>(
@@ -248,23 +227,24 @@ bool VisionEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs,
       "Cannot run environment simulation. dimension mismatch or invalid "
       "actions.");
   }
+
   //
   old_pi_act_ = pi_act_;
+
+  // compute actual control actions
+  // act has range between [-1, 1] due to Tanh layer of the NN policy
   pi_act_ = act.cwiseProduct(act_std_) + act_mean_;
 
   cmd_.t += sim_dt_;
   quad_state_.t += sim_dt_;
 
   // apply old actions to simulate delay
-  if (rotor_ctrl_ == quadcmd::SINGLEROTOR) {
-    cmd_.thrusts = old_pi_act_;
-  } else if (rotor_ctrl_ == quadcmd::THRUSTRATE) {
-    cmd_.collective_thrust = old_pi_act_(0);
-    cmd_.omega = old_pi_act_.segment<3>(1);
-  }
+  cmd_.collective_thrust = old_pi_act_(0);
+  cmd_.omega = old_pi_act_.segment<3>(1);
 
   // simulate quadrotor
   quad_ptr_->run(cmd_, sim_dt_);
+
   // update quadrotor state and old quad_state
   quad_old_state_ = quad_state_;
   quad_ptr_->getState(&quad_state_);
@@ -291,70 +271,45 @@ bool VisionEnv::simDynamicObstacles(const Scalar dt) {
 }
 
 bool VisionEnv::computeReward(Ref<Vector<>> reward) {
-  //
-  Scalar lin_vel_reward = -0.01 * (quad_state_.v - goal_linear_vel_).norm();
-
   // ---------------------- reward function design
-  // - position tracking
-  const Scalar pos_reward = -0.002 * (quad_state_.p - goal_pos_).norm();
-  // - orientation penalty
-  const Vector<3> euler_angles =
-    quad_state_.q().toRotationMatrix().eulerAngles(2, 1, 0);
+  // - tracking a constant linear velocity
+  Scalar lin_vel_reward =
+    vel_coeff_ * (quad_state_.v - goal_linear_vel_).norm();
 
-  const Scalar ori_penalty = -0.002 * euler_angles.norm();
-  // - linear velocity penalty
-  const Scalar lin_vel_penalty = -0.0001 * quad_state_.v.norm();
-  // - angular angular velocity penalty
-  const Scalar ang_vel_penalty = -0.0001 * quad_state_.w.norm();
+  // - angular velocity penalty, to avoid oscillations
+  const Scalar ang_vel_penalty = angular_vel_coeff_ * quad_state_.w.norm();
 
   //  change progress reward as survive reward
   const Scalar total_reward =
-    lin_vel_reward + ang_vel_penalty + distance_penalty_ + 0.03;
+    lin_vel_reward + ang_vel_penalty + collision_penalty_ + survive_rew_;
 
-  reward << lin_vel_reward, pos_reward, distance_penalty_, ori_penalty,
-    lin_vel_penalty, ang_vel_penalty, num_collisions_, total_reward;
+  // return all reward components for debug purposes
+  // only the total reward is used by the RL algorithm
+  reward << lin_vel_reward, collision_penalty_, ang_vel_penalty, survive_rew_,
+    total_reward;
   return true;
 }
 
 bool VisionEnv::isTerminalState(Scalar &reward) {
-  if (obstacle_collision_) {
-    reward = -1.0;
-    return true;
-  }
-  if (quad_state_.x(QS::POSZ) <= world_box_(QS::POSZ, 0) + 0.1) {
-    reward = -1.0;
-    return true;
-  }
-
-  if (quad_state_.x(QS::POSZ) >= world_box_(QS::POSZ, 1) - 0.1) {
-    reward = -1.0;
-    return true;
-  }
-
+  // simulation time out
   if (cmd_.t >= max_t_ - sim_dt_) {
     reward = 0.0;
     return true;
   }
 
-  // project current position onto current path segment
-  Vector<3> V = quad_state_.p - start_pos_;
-  Vector<3> P12 = goal_pos_ - start_pos_;
-  Scalar proj = V.cross(P12).norm() / P12.norm();
-  if (proj >= 3) {
+  // world boundling box check
+  // - x, y, and z
+  const Scalar safty_threshold = 0.1;
+  bool x_valid = quad_state_.p(QS::POSX) >= world_box_[0] + safty_threshold &&
+                 quad_state_.p(QS::POSX) <= world_box_[1] - safty_threshold;
+  bool y_valid = quad_state_.p(QS::POSY) >= world_box_[2] + safty_threshold &&
+                 quad_state_.p(QS::POSY) <= world_box_[3] - safty_threshold;
+  bool z_valid = quad_state_.x(QS::POSZ) >= world_box_[4] + safty_threshold &&
+                 quad_state_.x(QS::POSZ) <= world_box_[5] - safty_threshold;
+  if (!x_valid || !y_valid || !z_valid) {
     reward = -1.0;
     return true;
   }
-
-  bool x_valid = quad_state_.p(QS::POSX) >= world_box_(QS::POSX, 0) + 0.1 &&
-                 quad_state_.p(QS::POSX) <= world_box_(QS::POSX, 1) - 0.1;
-  bool y_valid = quad_state_.p(QS::POSY) >= world_box_(QS::POSY, 0) + 0.1 &&
-                 quad_state_.p(QS::POSY) <= world_box_(QS::POSY, 1) - 0.1;
-
-  if (!x_valid || !y_valid) {
-    reward = -1.0;
-    return true;
-  }
-
   return false;
 }
 
@@ -423,22 +378,34 @@ bool VisionEnv::getImage(Ref<ImgVector<>> img, const bool rgb) {
 
 
 bool VisionEnv::loadParam(const YAML::Node &cfg) {
+  if (cfg["environment"]) {
+    difficulty_level_ = cfg["environment"]["level"].as<std::string>();
+    world_box_ = cfg["environment"]["world_box"].as<std::vector<Scalar>>();
+    std::vector<Scalar> goal_vel_vec =
+      cfg["environment"]["goal_vel"].as<std::vector<Scalar>>();
+    goal_linear_vel_ = Vector<3>(goal_vel_vec.data());
+    max_detection_range_ =
+      cfg["environment"]["max_detection_range"].as<Scalar>();
+  }
+
   if (cfg["simulation"]) {
     sim_dt_ = cfg["simulation"]["sim_dt"].as<Scalar>();
     max_t_ = cfg["simulation"]["max_t"].as<Scalar>();
-    rotor_ctrl_ = cfg["simulation"]["rotor_ctrl"].as<int>();
   } else {
     logger_.error("Cannot load [quadrotor_env] parameters");
     return false;
   }
 
   if (cfg["rewards"]) {
-    // load reinforcement learning related parameters
-    dummy_coeff_ = cfg["rewards"]["dummy_coeff"].as<Scalar>();
+    // load reward coefficients for reinforcement learning
+    vel_coeff_ = cfg["rewards"]["vel_coeff"].as<Scalar>();
+    collision_coeff_ = cfg["rewards"]["collision_coeff"].as<Scalar>();
+    angular_vel_coeff_ = cfg["rewards"]["angular_vel_coeff"].as<Scalar>();
+    survive_rew_ = cfg["rewards"]["survive_rew"].as<Scalar>();
+
     // load reward settings
     reward_names_ = cfg["rewards"]["names"].as<std::vector<std::string>>();
-
-    rew_dim_ = cfg["rewards"]["names"].as<std::vector<std::string>>().size();
+    rew_dim_ = reward_names_.size();
   } else {
     logger_.error("Cannot load [rewards] parameters");
     return false;
@@ -449,6 +416,7 @@ bool VisionEnv::loadParam(const YAML::Node &cfg) {
     unity_render_ = cfg["unity"]["render"].as<bool>();
     scene_id_ = cfg["unity"]["scene_id"].as<SceneID>();
   }
+
   //
   std::string scene_file =
     getenv("FLIGHTMARE_PATH") + std::string("/flightpy/configs/scene.yaml");
@@ -501,8 +469,7 @@ bool VisionEnv::configDynamicObjects(const std::string &yaml_file) {
     obj->setScale(Vector<3>(scalevec.data()));
 
     std::string csv_name = cfg_node[object_id]["csvtraj"].as<std::string>();
-    std::string csv_file = getenv("FLIGHTMARE_PATH") +
-                           std::string("/flightpy/configs/vision/csvtrajs/") +
+    std::string csv_file = obstacle_cfg_path_ + std::string("/csvtrajs/") +
                            csv_name + std::string(".csv");
     if (!(file_exists(csv_file))) {
       logger_.error("Configuration file %s does not exists.", csv_file);
