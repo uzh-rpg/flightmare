@@ -122,13 +122,15 @@ class VisionEnv final : public EnvBase {
 
   // Define reward for training
   Scalar vel_coeff_, collision_coeff_, angular_vel_coeff_, survive_rew_;
-  Scalar collision_penalty_;
   Vector<3> goal_linear_vel_;
   bool is_collision_;
 
   // max detection range (meter)
   Scalar max_detection_range_;
   std::vector<Scalar> relative_pos_norm_;
+  std::vector<Scalar> obstacle_radius_;
+
+
   int num_detected_obstacles_;
   std::string difficulty_level_;
   std::vector<Scalar> world_box_;

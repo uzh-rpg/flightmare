@@ -32,7 +32,6 @@ VisionEnv::VisionEnv(const YAML::Node &cfg_node, const int env_id) : EnvBase() {
 void VisionEnv::init() {
   //
   is_collision_ = false;
-  collision_penalty_ = 0.0;
   unity_render_offset_ << 0.0, 0.0, 0.0;
   goal_linear_vel_ << 0.0, 0.0, 0.0;
   cmd_.setZeros();
@@ -97,14 +96,13 @@ bool VisionEnv::reset(Ref<Vector<>> obs) {
   quad_state_.setZero();
   pi_act_.setZero();
   old_pi_act_.setZero();
+  is_collision_ = false;
 
   // randomly reset the quadrotor state
   // reset position
   quad_state_.x(QS::POSX) = uniform_dist_(random_gen_);
-  quad_state_.x(QS::POSY) = uniform_dist_(random_gen_);
-  quad_state_.x(QS::POSZ) = uniform_dist_(random_gen_) + 5;
-  if (quad_state_.x(QS::POSZ) < -0.0)
-    quad_state_.x(QS::POSZ) = -quad_state_.x(QS::POSZ);
+  quad_state_.x(QS::POSY) = uniform_dist_(random_gen_) * 9.0;
+  quad_state_.x(QS::POSZ) = uniform_dist_(random_gen_) * 4 + 5.0;
 
   // reset quadrotor with random states
   quad_ptr_->reset(quad_state_);
@@ -147,47 +145,61 @@ bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) {
     return false;
   }
   // make sure to reset the collision penalty
-  collision_penalty_ = 0.0;
   relative_pos_norm_.clear();
+  obstacle_radius_.clear();
 
-  // TODO: Make this part of code faster
+  //
   quad_ptr_->getState(&quad_state_);
 
   // compute relative distance to dynamic obstacles
-  std::vector<Scalar> obstacle_scale;
   std::vector<Vector<3>, Eigen::aligned_allocator<Vector<3>>> relative_pos;
   for (int i = 0; i < (int)dynamic_objects_.size(); i++) {
+    // compute relative position vector
     Vector<3> delta_pos = dynamic_objects_[i]->getPos() - quad_state_.p;
     relative_pos.push_back(delta_pos);
-    obstacle_scale.push_back(dynamic_objects_[i]->getScale()[0]);
 
+    // compute relative distance
     Scalar obstacle_dist = delta_pos.norm();
+    // limit observation range
     if (obstacle_dist > max_detection_range_) {
       obstacle_dist = max_detection_range_;
     }
+    relative_pos_norm_.push_back(obstacle_dist);
 
-    if (obstacle_dist < dynamic_objects_[i]->getScale()[0] / 2) {
+    // store the obstacle radius
+    Scalar obs_radius = dynamic_objects_[i]->getScale()[0] / 2;
+    obstacle_radius_.push_back(obs_radius);
+
+    //
+    if (obstacle_dist < obs_radius) {
       is_collision_ = true;
     }
-    relative_pos_norm_.push_back(obstacle_dist);
   }
 
   // compute relatiev distance to static obstacles
   for (int i = 0; i < (int)static_objects_.size(); i++) {
+    // compute relative position vector
     Vector<3> delta_pos = static_objects_[i]->getPos() - quad_state_.p;
     relative_pos.push_back(delta_pos);
-    obstacle_scale.push_back(static_objects_[i]->getScale()[0]);
 
+
+    // compute relative distance
     Scalar obstacle_dist = delta_pos.norm();
     if (obstacle_dist > max_detection_range_) {
       obstacle_dist = max_detection_range_;
     }
-    if (obstacle_dist < static_objects_[i]->getScale()[0] / 2) {
+    relative_pos_norm_.push_back(obstacle_dist);
+
+    // store the obstacle radius
+    Scalar obs_radius = static_objects_[i]->getScale()[0] / 2;
+    obstacle_radius_.push_back(obs_radius);
+
+    if (obstacle_dist < obs_radius) {
       is_collision_ = true;
     }
-    relative_pos_norm_.push_back(obstacle_dist);
   }
 
+  // std::cout << relative_pos_norm_ << std::endl;
   size_t idx = 0;
   for (size_t sort_idx : sort_indexes(relative_pos_norm_)) {
     if (idx >= visionenv::kNObstacles) break;
@@ -199,21 +211,15 @@ bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) {
         obs_state.segment<visionenv::kNObstaclesState>(
           idx * visionenv::kNObstaclesState)
           << relative_pos[sort_idx],
-          obstacle_scale[sort_idx];
+          obstacle_radius_[sort_idx];
       } else {
         // if obstacles are beyong detection range
         obs_state.segment<visionenv::kNObstaclesState>(
           idx * visionenv::kNObstaclesState) =
           Vector<4>(max_detection_range_, max_detection_range_,
-                    max_detection_range_, obstacle_scale[sort_idx]);
+                    max_detection_range_, obstacle_radius_[sort_idx]);
       }
 
-      // compute distance penalty
-      collision_penalty_ +=
-        collision_coeff_ *
-        ((max_detection_range_ - relative_pos_norm_[sort_idx]) /
-           (relative_pos_norm_[sort_idx] * max_detection_range_) +
-         1e-8);
     } else {
       // if not enough obstacles in the environment
       obs_state.segment<visionenv::kNObstaclesState>(
@@ -281,6 +287,28 @@ bool VisionEnv::simDynamicObstacles(const Scalar dt) {
 
 bool VisionEnv::computeReward(Ref<Vector<>> reward) {
   // ---------------------- reward function design
+  // - compute collision penalty
+  Scalar collision_penalty = 0.0;
+  size_t idx = 0;
+  for (size_t sort_idx : sort_indexes(relative_pos_norm_)) {
+    if (idx >= visionenv::kNObstacles) break;
+
+    Scalar relative_dist =
+      relative_pos_norm_[sort_idx]
+        ? (relative_pos_norm_[sort_idx] > 0) &&
+            (relative_pos_norm_[sort_idx] < max_detection_range_)
+        : max_detection_range_;
+
+    const Scalar dist_margin = 0.5;
+    if (relative_pos_norm_[sort_idx] <=
+        obstacle_radius_[sort_idx] + dist_margin) {
+      // compute distance penalty
+      collision_penalty += collision_coeff_ * std::exp(-1.0 * relative_dist);
+    }
+
+    idx += 1;
+  }
+
   // - tracking a constant linear velocity
   Scalar lin_vel_reward =
     vel_coeff_ * (quad_state_.v - goal_linear_vel_).norm();
@@ -290,11 +318,11 @@ bool VisionEnv::computeReward(Ref<Vector<>> reward) {
 
   //  change progress reward as survive reward
   const Scalar total_reward =
-    lin_vel_reward + collision_penalty_ + ang_vel_penalty + survive_rew_;
+    lin_vel_reward + collision_penalty + ang_vel_penalty + survive_rew_;
 
   // return all reward components for debug purposes
   // only the total reward is used by the RL algorithm
-  reward << lin_vel_reward, collision_penalty_, ang_vel_penalty, survive_rew_,
+  reward << lin_vel_reward, collision_penalty, ang_vel_penalty, survive_rew_,
     total_reward;
   return true;
 }
