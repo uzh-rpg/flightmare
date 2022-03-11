@@ -119,19 +119,6 @@ bool VisionEnv::reset(Ref<Vector<>> obs) {
   quad_state_.x(QS::POSZ) = uniform_dist_(random_gen_) + 5;
   if (quad_state_.x(QS::POSZ) < -0.0)
     quad_state_.x(QS::POSZ) = -quad_state_.x(QS::POSZ);
-  // reset linear velocity
-  // quad_state_.x(QS::VELX) = uniform_dist_(random_gen_);
-  // quad_state_.x(QS::VELY) = uniform_dist_(random_gen_);
-  // quad_state_.x(QS::VELZ) = uniform_dist_(random_gen_);
-  // // reset orientation
-  // quad_state_.x(QS::ATTW) = uniform_dist_(random_gen_);
-  // quad_state_.x(QS::ATTX) = uniform_dist_(random_gen_);
-  // quad_state_.x(QS::ATTY) = uniform_dist_(random_gen_);
-  // quad_state_.x(QS::ATTZ) = uniform_dist_(random_gen_);
-  // quad_state_.qx /= quad_state_.qx.norm();
-  // std::cout << "=== " << std::endl;
-  // std::cout << act_std_ << " " << act_mean_ << std::endl;
-  // std::cout << pi_act_ << " " << quad_state_.p << std::endl;
 
   // reset quadrotor with random states
   quad_ptr_->reset(quad_state_);
@@ -161,24 +148,13 @@ bool VisionEnv::getObs(Ref<Vector<>> obs) {
     return false;
   }
 
-  const Scalar a_ramp_start = 1.0;
-  // goal_linear_vel_.segment<2>(0) *=
-  //   std::min(goal_speed_, cmd_.t * a_ramp_start) /
-  //   goal_linear_vel.segment<2>(0).norm();
-  // goal_linear_vel_(2) = 0;
 
-
-  if (!goal_linear_vel_.allFinite()) {
-    std::cout << goal_linear_vel_ << std::endl;
-  }
   Vector<9> ori = Map<Vector<>>(quad_state_.R().data(), quad_state_.R().size());
 
   Vector<visionenv::kNObstacles * visionenv::kNObstaclesState> obstacle_obs;
   getObstacleState(obstacle_obs);
 
-  // 3 + 9 + 3 + 3 + 3*N
-  // obs << goal_linear_vel_, quad_state_.p - goal_pos_, ori, quad_state_.v,
-  //   obstacle_obs;
+  // Observations
   obs << goal_linear_vel_, ori, quad_state_.v, obstacle_obs;
   return true;
 }
@@ -186,6 +162,7 @@ bool VisionEnv::getObs(Ref<Vector<>> obs) {
 bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) {
   distance_penalty_ = 0.0;
   relative_pos_norm_.clear();
+
   // TODO: Make this part of code faster
   quad_ptr_->getState(&quad_state_);
   // compute relative distance to dynamic obstacles
@@ -203,13 +180,8 @@ bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) {
 
     if (obstacle_dist < dynamic_objects_[i]->getScale()[0] / 2) {
       num_collisions_ += 1;
-      obstacle_collision_ = true;
+      // obstacle_collision_ = true;
     }
-
-    // // compute distance penlaty
-    // distance_penalty_ += -0.001 * ((max_detection_range_ - obstacle_dist) /
-    //                                  (obstacle_dist * max_detection_range_) +
-    //                                1e-8);
   }
 
   // compute relatiev distance to static obstacles
@@ -224,15 +196,10 @@ bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) {
     }
     if (obstacle_dist < static_objects_[i]->getScale()[0] / 2) {
       num_collisions_ += 1;
-      obstacle_collision_ = true;
+      // obstacle_collision_ = true;
     }
 
     relative_pos_norm_.push_back(obstacle_dist);
-
-    // // compute distance penlaty
-    // distance_penalty_ += -0.001 * ((max_detection_range_ - obstacle_dist) /
-    //                                  (obstacle_dist * max_detection_range_) +
-    //  1e-8);
   }
 
   size_t idx = 0;
@@ -254,10 +221,12 @@ bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) {
           Vector<4>(max_detection_range_, max_detection_range_,
                     max_detection_range_, obstacle_scale[sort_idx]);
       }
+
+      // compute distance penalty
       distance_penalty_ +=
-        -0.1 * ((max_detection_range_ - relative_pos_norm_[sort_idx]) /
-                  (relative_pos_norm_[sort_idx] * max_detection_range_) +
-                1e-8);
+        -0.01 * ((max_detection_range_ - relative_pos_norm_[sort_idx]) /
+                   (relative_pos_norm_[sort_idx] * max_detection_range_) +
+                 1e-8);
     } else {
       // if not enough obstacles in the environment
       obs_state.segment<visionenv::kNObstaclesState>(
@@ -286,12 +255,10 @@ bool VisionEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs,
   cmd_.t += sim_dt_;
   quad_state_.t += sim_dt_;
 
+  // apply old actions to simulate delay
   if (rotor_ctrl_ == quadcmd::SINGLEROTOR) {
-    // cmd_.thrusts = pi_act_;
     cmd_.thrusts = old_pi_act_;
   } else if (rotor_ctrl_ == quadcmd::THRUSTRATE) {
-    // cmd_.collective_thrust = pi_act_(0);
-    // cmd_.omega = pi_act_.segment<3>(1);
     cmd_.collective_thrust = old_pi_act_(0);
     cmd_.omega = old_pi_act_.segment<3>(1);
   }
@@ -324,14 +291,8 @@ bool VisionEnv::simDynamicObstacles(const Scalar dt) {
 }
 
 bool VisionEnv::computeReward(Ref<Vector<>> reward) {
-  // progress reward
-  const Scalar dist = (goal_pos_ - quad_state_.p).norm();
-  const Scalar dist_prev = (goal_pos_ - quad_old_state_.p).norm();
-  Scalar prog_reward = (dist_prev - dist);
-
-
-  Scalar lin_vel_reward =
-    0.01 * std::exp(-1.0 * (quad_state_.v - goal_linear_vel_).norm());
+  //
+  Scalar lin_vel_reward = -0.01 * (quad_state_.v - goal_linear_vel_).norm();
 
   // ---------------------- reward function design
   // - position tracking
@@ -346,27 +307,9 @@ bool VisionEnv::computeReward(Ref<Vector<>> reward) {
   // - angular angular velocity penalty
   const Scalar ang_vel_penalty = -0.0001 * quad_state_.w.norm();
 
-  // const Scalar pos_reward = std::exp(-1.0 * (quad_state_.p -
-  // goal_pos_).norm()); const Scalar ori_penalty =
-  //   0.1 *
-  //   std::exp(-1.0 *
-  //            (quad_state_.q().toRotationMatrix().eulerAngles(2, 1,
-  //            0)).norm());
-  // // - linear velocity penalty
-  // const Scalar lin_vel_penalty = 0.1 * std::exp(-1.0 * quad_state_.v.norm());
-  // // - angular angular velocity penalty
-  // const Scalar ang_vel_penalty = 0.1 * std::exp(-1.0 * quad_state_.w.norm());
-  if (quad_state_.p(0) > 60) {
-    // disable the distance penalty after passing throug the obstacle dense
-    // region
-    distance_penalty_ = 0.0;
-    //  change progress reward as survive reward
-    prog_reward = 0.01;
-  }
-
   //  change progress reward as survive reward
   const Scalar total_reward =
-    lin_vel_reward + ang_vel_penalty + distance_penalty_;
+    lin_vel_reward + ang_vel_penalty + distance_penalty_ + 0.03;
 
   reward << lin_vel_reward, pos_reward, distance_penalty_, ori_penalty,
     lin_vel_penalty, ang_vel_penalty, num_collisions_, total_reward;
