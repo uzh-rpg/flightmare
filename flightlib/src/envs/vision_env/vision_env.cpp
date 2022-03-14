@@ -62,7 +62,7 @@ void VisionEnv::init() {
 
   obstacle_cfg_path_ = getenv("FLIGHTMARE_PATH") +
                        std::string("/flightpy/configs/vision/") +
-                       difficulty_level_;
+                       difficulty_level_ + std::string("/") + env_folder_;
 
   // add dynamic objects
   std::string dynamic_object_yaml =
@@ -422,6 +422,7 @@ bool VisionEnv::getImage(Ref<ImgVector<>> img, const bool rgb) {
 bool VisionEnv::loadParam(const YAML::Node &cfg) {
   if (cfg["environment"]) {
     difficulty_level_ = cfg["environment"]["level"].as<std::string>();
+    env_folder_ = cfg["environment"]["env_folder"].as<std::string>();
     world_box_ = cfg["environment"]["world_box"].as<std::vector<Scalar>>();
     std::vector<Scalar> goal_vel_vec =
       cfg["environment"]["goal_vel"].as<std::vector<Scalar>>();
