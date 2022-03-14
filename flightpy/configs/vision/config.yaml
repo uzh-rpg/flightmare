@@ -1,6 +1,6 @@
 environment:
   level: "median" # three difficulty level [easy, median, hard]
-  env_folder: "env_0" # configurations for dynamic and static obstacles
+  env_folder: "environment_0" # configurations for dynamic and static obstacles
   world_box: [-20, 80, -10, 10, 0.0, 10] # xmin, xmax, ymin, ymax, zmin, zmax
   goal_vel: [3.0, 0.0, 0.0] # goal velicty for tracking vx, vy, vz
   max_detection_range: 10.0 # max obstacle detection range, in meters
@@ -27,12 +27,12 @@ rgb_camera:
   width: 320 
   height: 240
   fov: 70.0
-  enable_depth: yes 
+  enable_depth: no 
   enable_segmentation: no
   enable_opticalflow: no
 
 unity:
-  scene_id: 0 # 0 warehouse, 1 garage, 3 natureforest
+  scene_id: 2 # 0 warehouse, 1 garage, 3 natureforest
   render: no 
 
 simulation:
