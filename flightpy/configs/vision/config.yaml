@@ -1,5 +1,5 @@
 environment:
-  level: "median" # three difficulty level [easy, median, hard]
+  level: "easy" # three difficulty level [easy, median, hard]
   env_folder: "environment_0" # configurations for dynamic and static obstacles
   world_box: [-20, 80, -10, 10, 0.0, 10] # xmin, xmax, ymin, ymax, zmin, zmax
   goal_vel: [3.0, 0.0, 0.0] # goal velicty for tracking vx, vy, vz
