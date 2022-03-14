@@ -27,12 +27,12 @@ rgb_camera:
   width: 320 
   height: 240
   fov: 70.0
-  enable_depth: no 
+  enable_depth: yes 
   enable_segmentation: no
   enable_opticalflow: no
 
 unity:
-  scene_id: 2 # 0 warehouse, 1 garage, 3 natureforest
+  scene_id: 0 # 0 warehouse, 1 garage, 3 natureforest
   render: no 
 
 simulation:
