@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 3.0)
 
-project(agilib-download NONE)
+project(dodgelib-download NONE)
 
 include(ExternalProject)
 
-ExternalProject_Add(agilib
+ExternalProject_Add(dodgelib
   GIT_REPOSITORY    git@github.com:uzh-rpg/agilicious.git
   GIT_TAG           master
-  SOURCE_DIR        "${PROJECT_SOURCE_DIR}/externals/agilib-src"
-  BINARY_DIR        "${PROJECT_SOURCE_DIR}/externals/agilib-bin"
+  SOURCE_DIR        "${PROJECT_SOURCE_DIR}/externals/dodgelib-src"
+  BINARY_DIR        "${PROJECT_SOURCE_DIR}/externals/dodgelib-bin"
   CONFIGURE_COMMAND ""
   BUILD_COMMAND     ""
   INSTALL_COMMAND   ""
