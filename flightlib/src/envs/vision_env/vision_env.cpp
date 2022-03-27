@@ -639,7 +639,7 @@ bool VisionEnv::addQuadrotorToUnity(const std::shared_ptr<UnityBridge> bridge) {
   }
 
   //
-  bridge->setPositionOffset(unity_render_offset_);
+  bridge->setRenderOffset(unity_render_offset_);
   bridge->setObjectCSV(static_object_csv_);
   return true;
 }

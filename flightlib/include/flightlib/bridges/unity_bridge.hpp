@@ -61,13 +61,11 @@ class UnityBridge {
   bool addCamera(std::shared_ptr<UnityCamera> unity_camera);
   bool addStaticObject(std::shared_ptr<UnityObject> unity_object);
   bool addDynamicObject(std::shared_ptr<UnityObject> unity_object);
+  void setRenderOffset(const Ref<Vector<3>> render_offset);
 
   // public auxiliary functions
   inline void setPubPort(const std::string &pub_port) { pub_port_ = pub_port; };
   inline void setSubPort(const std::string &sub_port) { sub_port_ = sub_port; };
-  inline void setPositionOffset(const Ref<Vector<3>> pos_offset) {
-    position_offset_ = pos_offset;
-  };
 
   // create unity bridge
   static std::shared_ptr<UnityBridge> getInstance(void) {
@@ -98,8 +96,6 @@ class UnityBridge {
   zmqpp::socket sub_{context_, zmqpp::socket_type::subscribe};
   bool sendInitialSettings(void);
   bool handleSettings(void);
-
-  Vector<3> position_offset_{0, 0, 0};
 
   // timing variables
   int64_t num_frames_;

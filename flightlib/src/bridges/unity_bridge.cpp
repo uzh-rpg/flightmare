@@ -112,15 +112,14 @@ bool UnityBridge::getRender(const FrameID frame_id) {
   QuadState quad_state;
   for (size_t idx = 0; idx < pub_msg_.vehicles.size(); idx++) {
     unity_quadrotors_[idx]->getState(&quad_state);
-    pub_msg_.vehicles[idx].position =
-      positionRos2Unity(quad_state.p + position_offset_);
+    pub_msg_.vehicles[idx].position = positionRos2Unity(quad_state.p);
     pub_msg_.vehicles[idx].rotation = quaternionRos2Unity(quad_state.q());
   }
 
   for (size_t idx = 0; idx < pub_msg_.dynamic_objects.size(); idx++) {
     std::shared_ptr<UnityObject> object = dynamic_objects_[idx];
     pub_msg_.dynamic_objects[idx].position =
-      positionRos2Unity(object->getPos() + position_offset_);
+      positionRos2Unity(object->getPos());
     pub_msg_.dynamic_objects[idx].rotation =
       quaternionRos2Unity(object->getQuat());
   }
@@ -147,6 +146,10 @@ bool UnityBridge::setScene(const SceneID& scene_id) {
   return true;
 }
 
+void UnityBridge::setRenderOffset(const Ref<Vector<3>> render_offset) {
+  settings_.render_offset = positionRos2Unity(render_offset);
+}
+
 bool UnityBridge::setObjectCSV(const std::string& csv_file) {
   if (!(file_exists(csv_file))) {
     logger_.error("Configuration file %s does not exists.", csv_file);
@@ -167,7 +170,7 @@ bool UnityBridge::addQuadrotor(std::shared_ptr<Quadrotor> quad) {
   }
 
   vehicle_t.ID = "quadrotor" + std::to_string(settings_.vehicles.size());
-  vehicle_t.position = positionRos2Unity(quad_state.p + position_offset_);
+  vehicle_t.position = positionRos2Unity(quad_state.p);
   vehicle_t.rotation = quaternionRos2Unity(quad_state.q());
   vehicle_t.size = scalarRos2Unity(quad->getSize());
 
@@ -203,8 +206,7 @@ bool UnityBridge::addStaticObject(std::shared_ptr<UnityObject> unity_object) {
   Object_t object_t;
   object_t.ID = unity_object->getID();
   object_t.prefab_ID = unity_object->getPrefabID();
-  object_t.position =
-    positionRos2Unity(unity_object->getPos() + position_offset_);
+  object_t.position = positionRos2Unity(unity_object->getPos());
   object_t.rotation = quaternionRos2Unity(unity_object->getQuat());
   object_t.size = scalarRos2Unity(unity_object->getScale());
 
@@ -220,8 +222,7 @@ bool UnityBridge::addDynamicObject(std::shared_ptr<UnityObject> unity_object) {
   Object_t object_t;
   object_t.ID = unity_object->getID();
   object_t.prefab_ID = unity_object->getPrefabID();
-  object_t.position =
-    positionRos2Unity(unity_object->getPos() + position_offset_);
+  object_t.position = positionRos2Unity(unity_object->getPos());
   object_t.rotation = quaternionRos2Unity(unity_object->getQuat());
   object_t.size = scalarRos2Unity(unity_object->getScale());
 

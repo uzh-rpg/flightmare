@@ -12,9 +12,9 @@ scene_2:
   name: "forest"
   # render_offset: [101.737, 86.504, 31.217]
   render_offset: [145, 107, 93]
-  render_orientation: [0.0, 0.0, -40]
+  render_orientation: [0.0, 0.0, 0]
 
 scene_3:
   name: "wasteland"
   render_offset: [963, 1044, 112]
-  render_orientation: [0.0, 0.0, 160]
+  render_orientation: [0.0, 0.0, 0]

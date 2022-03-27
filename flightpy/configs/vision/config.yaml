@@ -32,7 +32,7 @@ rgb_camera:
   enable_opticalflow: no
 
 unity:
-  scene_id: 0 # 0 warehouse, 1 garage, 3 natureforest
+  scene_id: 1 # 0 warehouse, 1 garage, 3 natureforest
   render: no 
 
 simulation:
