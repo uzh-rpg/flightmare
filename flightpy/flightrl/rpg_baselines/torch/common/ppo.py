@@ -18,9 +18,9 @@ from stable_baselines3.common.utils import explained_variance, get_schedule_fn
 from torch.nn import functional as F
 
 #
-from flightrl.rpg_baselines.torch.common.on_policy_algorithm import \
+from rpg_baselines.torch.common.on_policy_algorithm import \
     OnPolicyAlgorithm
-from flightrl.rpg_baselines.torch.common.util import plot3d_traj, traj_rollout
+from rpg_baselines.torch.common.util import plot3d_traj, traj_rollout
 
 
 class PPO(OnPolicyAlgorithm):
