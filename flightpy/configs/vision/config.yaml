@@ -34,6 +34,8 @@ rgb_camera:
 unity:
   scene_id: 0 # 0 warehouse, 1 street, 2 forest, 3 wasteland
   render: no 
+  input_port: 10253
+  output_port: 10254
 
 simulation:
   seed: 1

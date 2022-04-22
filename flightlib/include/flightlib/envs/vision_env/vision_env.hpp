@@ -86,6 +86,7 @@ class VisionEnv final : public EnvBase {
 
   // flightmare (visualization)
   bool setUnity(const bool render);
+  bool setUnity(const bool render, int input_port, int output_port);
   bool connectUnity();
   void disconnectUnity();
   FrameID updateUnity(const FrameID frame_id);

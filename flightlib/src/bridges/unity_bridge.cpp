@@ -18,6 +18,21 @@ UnityBridge::UnityBridge()
   initializeConnections();
 }
 
+UnityBridge::UnityBridge(int input_port, int output_port)
+  : client_address_("tcp://*"),
+    //pub_port_("10258"),
+    //sub_port_("10259"),
+    pub_port_(std::to_string(input_port)),
+    sub_port_(std::to_string(output_port)), 
+    num_frames_(0),
+    last_downloaded_utime_(0),
+    last_download_debug_utime_(0),
+    u_packet_latency_(0),
+    unity_ready_(false) {
+  // initialize connections upon creating unity bridge
+  initializeConnections();
+}
+
 bool UnityBridge::initializeConnections() {
   logger_.info("Initializing ZMQ connection!");
 

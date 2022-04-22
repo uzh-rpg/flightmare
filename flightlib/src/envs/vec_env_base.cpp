@@ -25,12 +25,16 @@ void VecEnvBase<EnvBaseName>::configEnv(const YAML::Node& cfg_node) {
     logger_.info("Load Unity configuration.");
     unity_render_ = cfg_node["unity"]["render"].as<bool>();
     scene_id_ = cfg_node["unity"]["scene_id"].as<SceneID>();
+    input_port_ = cfg_node["unity"]["input_port"].as<int>();
+    output_port_ = cfg_node["unity"]["output_port"].as<int>();
 
     //
     logger_.info("Load Simulation configuration.");
     seed_ = cfg_node["simulation"]["seed"].as<int>();
     num_envs_ = cfg_node["simulation"]["num_envs"].as<int>();
     num_threads_ = cfg_node["simulation"]["num_threads"].as<int>();
+
+    
   }
 
   // set threads
@@ -43,7 +47,7 @@ void VecEnvBase<EnvBaseName>::configEnv(const YAML::Node& cfg_node) {
 
   // set Unity
   if (unity_render_) {
-    setUnity(unity_render_);
+    setUnity(unity_render_, input_port_, output_port_);
   }
 
   obs_dim_ = envs_[0]->getObsDim();
@@ -207,7 +211,7 @@ void VecEnvBase<EnvBaseName>::perAgentStep(int agent_id,
 
 
 template<typename EnvBaseName>
-bool VecEnvBase<EnvBaseName>::setUnity(bool render) {
+bool VecEnvBase<EnvBaseName>::setUnity(bool render, const int input_port, const int output_port)  {
   unity_render_ = render;
   if (!unity_render_ || unity_bridge_ptr_ != nullptr) {
     logger_.warn(
@@ -216,7 +220,7 @@ bool VecEnvBase<EnvBaseName>::setUnity(bool render) {
     return false;
   }
   // create unity bridge
-  unity_bridge_ptr_ = UnityBridge::getInstance();
+  unity_bridge_ptr_ = UnityBridge::getInstance(input_port, output_port);
   // add objects to Unity
   for (int i = 0; i < num_envs_; i++) {
     envs_[i]->addQuadrotorToUnity(unity_bridge_ptr_);

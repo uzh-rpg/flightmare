@@ -40,6 +40,7 @@ class UnityBridge {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   // constructor & destructor
   UnityBridge();
+  UnityBridge(int input_port, int output_port);
   ~UnityBridge(){};
 
   // connect function
@@ -68,7 +69,13 @@ class UnityBridge {
   inline void setSubPort(const std::string &sub_port) { sub_port_ = sub_port; };
 
   // create unity bridge
-  static std::shared_ptr<UnityBridge> getInstance(void) {
+  static std::shared_ptr<UnityBridge> getInstance(int input_port, int output_port) {
+    static std::shared_ptr<UnityBridge> bridge_ptr =
+      std::make_shared<UnityBridge>(input_port, output_port);
+    return bridge_ptr;
+  };
+
+  static std::shared_ptr<UnityBridge> getInstance() {
     static std::shared_ptr<UnityBridge> bridge_ptr =
       std::make_shared<UnityBridge>();
     return bridge_ptr;
@@ -105,7 +112,7 @@ class UnityBridge {
 
   // axuiliary variables
   const int max_output_request_{100};
-  const Scalar unity_connection_time_out_{60.0};
+  const Scalar unity_connection_time_out_{10.0};
   bool unity_ready_{false};
 };
 

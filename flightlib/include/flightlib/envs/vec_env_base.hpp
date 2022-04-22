@@ -51,6 +51,7 @@ class VecEnvBase {
 
   // flightmare (visualization)
   bool setUnity(const bool render);
+  bool setUnity(const bool render, const int input_port_, const int output_port_);
   bool connectUnity();
   void disconnectUnity();
   FrameID updateUnity(const FrameID frame_id);
@@ -89,6 +90,7 @@ class VecEnvBase {
   bool unity_render_{false};
   RenderMessage_t unity_output_;
   uint16_t receive_id_{0};
+  int input_port_, output_port_;
 
   // auxiliar variables
   int seed_, num_envs_, obs_dim_, act_dim_, rew_dim_, num_threads_;

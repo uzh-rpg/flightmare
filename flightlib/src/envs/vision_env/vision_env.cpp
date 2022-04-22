@@ -330,12 +330,14 @@ bool VisionEnv::computeReward(Ref<Vector<>> reward) {
 bool VisionEnv::isTerminalState(Scalar &reward) {
   if (is_collision_) {
       reward = -1.0;
+      std::cout << "Collision!\n";
       return true;
   }
 
   // simulation time out
   if (cmd_.t >= max_t_ - sim_dt_) {
     reward = 0.0;
+    std::cout << "Timeout!\n";
     return true;
   }
 
@@ -348,7 +350,28 @@ bool VisionEnv::isTerminalState(Scalar &reward) {
                  quad_state_.p(QS::POSY) <= world_box_[3] - safty_threshold;
   bool z_valid = quad_state_.x(QS::POSZ) >= world_box_[4] + safty_threshold &&
                  quad_state_.x(QS::POSZ) <= world_box_[5] - safty_threshold;
-  if (!x_valid || !y_valid || !z_valid) {
+ if (!x_valid || !y_valid || !z_valid) {
+    std::cout << "Drone X:" << quad_state_.p(QS::POSX) << "\n";
+    std::cout << "Drone Y:" << quad_state_.p(QS::POSY) << "\n";
+    std::cout << "Drone Z:" << quad_state_.p(QS::POSZ) << "\n";
+
+    if(!x_valid){
+      std::cout << "Drone X " << quad_state_.p(QS::POSX) << " >= " << world_box_[0] + safty_threshold << " ?\n";
+      std::cout << "Drone X " << quad_state_.p(QS::POSX) << " <= " << world_box_[1] - safty_threshold << " ?\n";
+    }
+
+    if(!y_valid){
+      std::cout << "Drone Y " << quad_state_.p(QS::POSY) << " >= " << world_box_[2] + safty_threshold << " ?\n";
+      std::cout << "Drone Y " << quad_state_.p(QS::POSY) << " <= " << world_box_[3] - safty_threshold << " ?\n";
+    }
+
+    if(!z_valid){
+      std::cout << "Drone Z " << quad_state_.p(QS::POSZ) << " >= " << world_box_[4] + safty_threshold << " ?\n";
+      std::cout << "Drone Z " << quad_state_.p(QS::POSZ) << " <= " << world_box_[5] - safty_threshold << " ?\n";
+    }
+
+    std::cout << "XYZ not valid\n";
+
     reward = -1.0;
     return true;
   }
@@ -644,7 +667,7 @@ bool VisionEnv::addQuadrotorToUnity(const std::shared_ptr<UnityBridge> bridge) {
   return true;
 }
 
-bool VisionEnv::setUnity(bool render) {
+bool VisionEnv::setUnity(bool render, const int input_port, const int output_port) {
   unity_render_ = render;
   if (!unity_render_ || unity_bridge_ptr_ != nullptr) {
     logger_.warn(
@@ -653,7 +676,7 @@ bool VisionEnv::setUnity(bool render) {
     return false;
   }
   // create unity bridge
-  unity_bridge_ptr_ = UnityBridge::getInstance();
+  unity_bridge_ptr_ = UnityBridge::getInstance(input_port, output_port);
   // add objects to Unity
 
   addQuadrotorToUnity(unity_bridge_ptr_);
