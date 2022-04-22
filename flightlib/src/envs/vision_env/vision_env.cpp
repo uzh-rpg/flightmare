@@ -685,6 +685,24 @@ bool VisionEnv::setUnity(bool render, const int input_port, const int output_por
   return true;
 }
 
+bool VisionEnv::setUnity(bool render) {
+  unity_render_ = render;
+  if (!unity_render_ || unity_bridge_ptr_ != nullptr) {
+    logger_.warn(
+      "Unity render is False or Flightmare Bridge has been already created. "
+      "Cannot set Unity.");
+    return false;
+  }
+  // create unity bridge
+  unity_bridge_ptr_ = UnityBridge::getInstance();
+  // add objects to Unity
+
+  addQuadrotorToUnity(unity_bridge_ptr_);
+
+  logger_.info("Flightmare Bridge created.");
+  return true;
+}
+
 
 bool VisionEnv::connectUnity(void) {
   if (unity_bridge_ptr_ == nullptr) return false;
