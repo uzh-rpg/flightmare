@@ -294,9 +294,9 @@ bool VisionEnv::computeReward(Ref<Vector<>> reward) {
     if (idx >= visionenv::kNObstacles) break;
 
     Scalar relative_dist =
-      relative_pos_norm_[sort_idx]
-        ? (relative_pos_norm_[sort_idx] > 0) &&
-            (relative_pos_norm_[sort_idx] < max_detection_range_)
+      (relative_pos_norm_[sort_idx] > 0) &&
+          (relative_pos_norm_[sort_idx] < max_detection_range_)
+        ? relative_pos_norm_[sort_idx]
         : max_detection_range_;
 
     const Scalar dist_margin = 0.5;
