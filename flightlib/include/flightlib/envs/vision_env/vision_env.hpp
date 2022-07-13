@@ -30,7 +30,7 @@ enum Vision : int {
   //
   kNQuadState = 25,
 
-  kNObstacles = 10,
+  kNObstacles = 1,
   kNObstaclesState = 4,
 
   // observations
