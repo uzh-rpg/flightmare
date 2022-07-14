@@ -192,25 +192,6 @@ bool VecEnvBase<EnvBaseName>::getDepthImage(
   return valid_img;
 }
 
-template<typename EnvBaseName>
-bool VecEnvBase<EnvBaseName>::getLeftDepthImage(
-  Ref<DepthImgMatrixRowMajor<>> depth_img) {
-  bool valid_img = true;
-  for (int i = 0; i < num_envs_; i++) {
-    valid_img &= envs_[i]->getLeftDepthImage(depth_img.row(i));
-  }
-  return valid_img;
-}
-
-template<typename EnvBaseName>
-bool VecEnvBase<EnvBaseName>::getRightDepthImage(
-  Ref<DepthImgMatrixRowMajor<>> depth_img) {
-  bool valid_img = true;
-  for (int i = 0; i < num_envs_; i++) {
-    valid_img &= envs_[i]->getRightDepthImage(depth_img.row(i));
-  }
-  return valid_img;
-}
 
 template<typename EnvBaseName>
 size_t VecEnvBase<EnvBaseName>::getEpisodeLength(void) {

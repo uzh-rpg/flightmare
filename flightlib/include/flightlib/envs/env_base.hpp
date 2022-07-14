@@ -39,8 +39,6 @@ class EnvBase {
   virtual bool getLeftImage(Ref<ImgVector<>> img, const bool rgb = true);
   virtual bool getRightImage(Ref<ImgVector<>> img, const bool rgb = true);
   virtual bool getDepthImage(Ref<DepthImgVector<>> img);
-  virtual bool getLeftDepthImage(Ref<DepthImgVector<>> img);
-  virtual bool getRightDepthImage(Ref<DepthImgVector<>> img);
   virtual void curriculumUpdate();
   virtual void close();
   virtual void render();

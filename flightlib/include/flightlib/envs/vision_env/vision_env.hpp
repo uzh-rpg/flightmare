@@ -67,8 +67,6 @@ class VisionEnv final : public EnvBase {
   bool getRightImage(Ref<ImgVector<>> img, const bool rgb = true) override;
 
   bool getDepthImage(Ref<DepthImgVector<>> img) override;
-  bool getLeftDepthImage(Ref<DepthImgVector<>> img) override;
-  bool getRightDepthImage(Ref<DepthImgVector<>> img) override;
 
   bool getObstacleState(Ref<Vector<>> obstacle_obs);
   // get quadrotor states

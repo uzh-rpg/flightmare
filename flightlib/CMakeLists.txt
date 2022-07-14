@@ -270,22 +270,22 @@ if(BUILD_TESTS AND FLIGHTLIB_GYM_TEST_SOURCES)
 add_test(test_gym test_gym)
 endif()
 
-# # Build tests for flightlib
-# if(BUILD_TESTS AND FLIGHTLIB_TEST_SOURCES)
-#   add_executable(test_lib ${FLIGHTLIB_TEST_SOURCES})
-#   target_link_libraries(test_lib PUBLIC
-#     ${LIBRARY_NAME}
-#     gtest
-#     gtest_main)
-# add_test(test_lib test_lib)
-# endif()
+# Build tests for flightlib
+if(BUILD_TESTS AND FLIGHTLIB_TEST_SOURCES)
+  add_executable(test_lib ${FLIGHTLIB_TEST_SOURCES})
+  target_link_libraries(test_lib PUBLIC
+    ${LIBRARY_NAME}
+    gtest
+    gtest_main)
+add_test(test_lib test_lib)
+endif()
 
 # Build tests for flightlib unity bridge
-# if(BUILD_UNITY_BRIDGE_TESTS AND FLIGHTLIB_UNITY_BRIDGE_TEST_SOURCES)
-#   add_executable(test_unity_bridge ${FLIGHTLIB_UNITY_BRIDGE_TEST_SOURCES})
-#   target_link_libraries(test_unity_bridge PUBLIC
-#     ${LIBRARY_NAME}
-#     gtest
-#     gtest_main)
-# add_test(test_unity_bridge test_unity_bridge)
-# endif()
+if(BUILD_UNITY_BRIDGE_TESTS AND FLIGHTLIB_UNITY_BRIDGE_TEST_SOURCES)
+  add_executable(test_unity_bridge ${FLIGHTLIB_UNITY_BRIDGE_TEST_SOURCES})
+  target_link_libraries(test_unity_bridge PUBLIC
+    ${LIBRARY_NAME}
+    gtest
+    gtest_main)
+add_test(test_unity_bridge test_unity_bridge)
+endif()

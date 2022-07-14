@@ -15,6 +15,10 @@ EnvBase::~EnvBase() {}
 
 bool EnvBase::getImage(Ref<ImgVector<>> img, const bool rgb) { return false; }
 
+bool EnvBase::getLeftImage(Ref<ImgVector<>> img, const bool rgb) { return false; }
+
+bool EnvBase::getRightImage(Ref<ImgVector<>> img, const bool rgb) { return false; }
+
 bool EnvBase::getDepthImage(Ref<DepthImgVector<>> img) { return false; }
 
 bool EnvBase::addQuadrotorToUnity(const std::shared_ptr<UnityBridge> bridge) {

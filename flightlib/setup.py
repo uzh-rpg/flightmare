@@ -99,7 +99,7 @@ setup(
     description='Flightmare: A Quadrotor Simulator.',
     long_description='',
     ext_modules=[CMakeExtension('flightlib')],
-    install_requires=['gym==0.21', 'ruamel.yaml',
+    install_requires=['gym==0.24', 'ruamel.yaml',
                       'numpy', 'stable_baselines3==1.5.0'],
     cmdclass=dict(build_ext=CMakeBuild),
     include_package_data=True,

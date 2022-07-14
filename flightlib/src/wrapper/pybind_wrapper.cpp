@@ -80,8 +80,6 @@ PYBIND11_MODULE(flightgym, m) {
     .def("getLeftImage", &VisionVecEnv<VisionEnv>::getLeftImage)
     .def("getRightImage", &VisionVecEnv<VisionEnv>::getRightImage)
     .def("getDepthImage", &VisionVecEnv<VisionEnv>::getDepthImage)
-    .def("getLeftDepthImage", &VisionVecEnv<VisionEnv>::getLeftDepthImage)
-    .def("getRightDepthImage", &VisionVecEnv<VisionEnv>::getRightDepthImage)
     .def("getNumOfEnvs", &VisionVecEnv<VisionEnv>::getNumOfEnvs)
     .def("getObsDim", &VisionVecEnv<VisionEnv>::getObsDim)
     .def("getActDim", &VisionVecEnv<VisionEnv>::getActDim)

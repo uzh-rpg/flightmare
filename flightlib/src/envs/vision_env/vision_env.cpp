@@ -397,35 +397,6 @@ bool VisionEnv::getDepthImage(Ref<DepthImgVector<>> depth_img) {
   return true;
 }
 
-bool VisionEnv::getLeftDepthImage(Ref<DepthImgVector<>> depth_img) {
-  if (!left_camera_ || !left_camera_->getEnabledLayers()[0]) {
-    logger_.error(
-      "No RGB Camera or depth map is not enabled. Cannot retrieve depth "
-      "images.");
-    return false;
-  }
-  left_camera_->getDepthMap(depth_img_);
-
-  depth_img = Map<DepthImgVector<>>((float_t *)depth_img_.data,
-                                    depth_img_.rows * depth_img_.cols);
-  return true;
-}
-
-bool VisionEnv::getRightDepthImage(Ref<DepthImgVector<>> depth_img) {
-  if (!right_camera_ || !right_camera_->getEnabledLayers()[0]) {
-    logger_.error(
-      "No RGB Camera or depth map is not enabled. Cannot retrieve depth "
-      "images.");
-    return false;
-  }
-  right_camera_->getDepthMap(depth_img_);
-
-  depth_img = Map<DepthImgVector<>>((float_t *)depth_img_.data,
-                                    depth_img_.rows * depth_img_.cols);
-  return true;
-}
-
-
 bool VisionEnv::getImage(Ref<ImgVector<>> img, const bool rgb) {
   if (!left_camera_) {
     logger_.error("No Camera! Cannot retrieve Images.");
