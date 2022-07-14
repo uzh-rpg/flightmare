@@ -209,14 +209,6 @@ class FlightEnvVec(VecEnv):
         self.wrapper.getDepthImage(self._depth_img_obs)
         return self._depth_img_obs.copy()
     
-    def getLeftDepthImage(self):
-        self.wrapper.getLeftDepthImage(self._depth_img_obs)
-        return self._depth_img_obs.copy()
-    
-    def getRightDepthImage(self):
-        self.wrapper.getRightDepthImage(self._depth_img_obs)
-        return self._depth_img_obs.copy()
-
     def stepUnity(self, action, send_id):
         receive_id = self.wrapper.stepUnity(
             action,
