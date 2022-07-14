@@ -41,6 +41,8 @@ class VecEnvBase {
   // public get functions
   bool getObs(Ref<MatrixRowMajor<>> obs);
   bool getImage(Ref<ImgMatrixRowMajor<>> img, const bool rgb = false);
+  bool getLeftImage(Ref<ImgMatrixRowMajor<>> img, const bool rgb = false);
+  bool getRightImage(Ref<ImgMatrixRowMajor<>> img, const bool rgb = false);
   bool getDepthImage(Ref<DepthImgMatrixRowMajor<>> img);
 
   size_t getEpisodeLength(void);

@@ -152,6 +152,7 @@ bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) {
   quad_ptr_->getState(&quad_state_);
 
   // compute relative distance to dynamic obstacles
+  // TODO(Chao): only obstacle in front of the drone can be observed. 
   std::vector<Vector<3>, Eigen::aligned_allocator<Vector<3>>> relative_pos;
   for (int i = 0; i < (int)dynamic_objects_.size(); i++) {
     // compute relative position vector
@@ -159,7 +160,7 @@ bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) {
     relative_pos.push_back(delta_pos);
 
     // compute relative distance
-    Scalar obstacle_dist = delta_pos.norm();
+    Scalar obstacle_dist = delta_pos.norm() - dynamic_objects_[i]->getScale()[0] / 2;
     // limit observation range
     if (obstacle_dist > max_detection_range_) {
       obstacle_dist = max_detection_range_;
@@ -171,7 +172,7 @@ bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) {
     obstacle_radius_.push_back(obs_radius);
 
     //
-    if (obstacle_dist < obs_radius) {
+    if (obstacle_dist < 0) {
       is_collision_ = true;
     }
   }
@@ -184,7 +185,7 @@ bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) {
 
 
     // compute relative distance
-    Scalar obstacle_dist = delta_pos.norm();
+    Scalar obstacle_dist = delta_pos.norm() - static_objects_[i]->getScale()[0] / 2;
     if (obstacle_dist > max_detection_range_) {
       obstacle_dist = max_detection_range_;
     }
@@ -194,7 +195,7 @@ bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) {
     Scalar obs_radius = static_objects_[i]->getScale()[0] / 2;
     obstacle_radius_.push_back(obs_radius);
 
-    if (obstacle_dist < obs_radius) {
+    if (obstacle_dist < 0) {
       is_collision_ = true;
     }
   }
@@ -312,26 +313,33 @@ bool VisionEnv::computeReward(Ref<Vector<>> reward) {
   // - tracking a constant linear velocity
   Scalar lin_vel_reward =
     vel_coeff_ * (quad_state_.v - goal_linear_vel_).norm();
+  
+  // make sure the drone is heading to the desired direction, corner case: vx=vy=0
+  const Scalar desired_yaw = std::atan2(goal_linear_vel_[1], goal_linear_vel_[0]);
+
+  const Scalar yaw = quad_state_.q().toRotationMatrix().eulerAngles(0, 1, 2)[2]; // [-pi,pi]
+  const Scalar orientation_reward = 
+    ori_coeff_ * (desired_yaw - yaw) * (desired_yaw - yaw);
 
   // - angular velocity penalty, to avoid oscillations
   const Scalar ang_vel_penalty = angular_vel_coeff_ * quad_state_.w.norm();
 
   //  change progress reward as survive reward
   const Scalar total_reward =
-    lin_vel_reward + collision_penalty + ang_vel_penalty + survive_rew_;
+    lin_vel_reward + orientation_reward + collision_penalty + ang_vel_penalty + survive_rew_;
 
   // return all reward components for debug purposes
   // only the total reward is used by the RL algorithm
-  reward << lin_vel_reward, collision_penalty, ang_vel_penalty, survive_rew_,
+  reward << lin_vel_reward, orientation_reward, collision_penalty, ang_vel_penalty, survive_rew_,
     total_reward;
   return true;
 }
 
 bool VisionEnv::isTerminalState(Scalar &reward) {
-  // if (is_collision_) {
-  //   reward = -1.0;
-  //   return true;
-  // }
+  if (is_collision_) {
+    reward = -1.0;
+    return true;
+  }
 
   // simulation time out
   if (cmd_.t >= max_t_ - sim_dt_) {
@@ -376,27 +384,26 @@ bool VisionEnv::getQuadState(Ref<Vector<>> obs) const {
 }
 
 bool VisionEnv::getDepthImage(Ref<DepthImgVector<>> depth_img) {
-  if (!rgb_camera_ || !rgb_camera_->getEnabledLayers()[0]) {
+  if (!left_camera_ || !left_camera_->getEnabledLayers()[0]) {
     logger_.error(
       "No RGB Camera or depth map is not enabled. Cannot retrieve depth "
       "images.");
     return false;
   }
-  rgb_camera_->getDepthMap(depth_img_);
+  left_camera_->getDepthMap(depth_img_);
 
   depth_img = Map<DepthImgVector<>>((float_t *)depth_img_.data,
                                     depth_img_.rows * depth_img_.cols);
   return true;
 }
 
-
 bool VisionEnv::getImage(Ref<ImgVector<>> img, const bool rgb) {
-  if (!rgb_camera_) {
+  if (!left_camera_) {
     logger_.error("No Camera! Cannot retrieve Images.");
     return false;
   }
 
-  rgb_camera_->getRGBImage(rgb_img_);
+  left_camera_->getRGBImage(rgb_img_);
 
   if (rgb_img_.rows != img_height_ || rgb_img_.cols != img_width_) {
     logger_.error(
@@ -413,7 +420,63 @@ bool VisionEnv::getImage(Ref<ImgVector<>> img, const bool rgb) {
     img = Map<ImgVector<>>(gray_img_.data, gray_img_.rows * gray_img_.cols);
   } else {
     img = Map<ImgVector<>>(rgb_img_.data, rgb_img_.rows * rgb_img_.cols *
-                                            rgb_camera_->getChannels());
+                                            left_camera_->getChannels());
+  }
+  return true;
+}
+
+bool VisionEnv::getLeftImage(Ref<ImgVector<>> img, const bool rgb) {
+  if (!left_camera_) {
+    logger_.error("No Camera! Cannot retrieve Images.");
+    return false;
+  }
+
+  left_camera_->getRGBImage(rgb_img_);
+
+  if (rgb_img_.rows != img_height_ || rgb_img_.cols != img_width_) {
+    logger_.error(
+      "Image resolution mismatch. Aborting.. Image rows %d != %d, Image cols "
+      "%d != %d",
+      rgb_img_.rows, img_height_, rgb_img_.cols, img_width_);
+    return false;
+  }
+
+  if (!rgb) {
+    // converting rgb image to gray image
+    cvtColor(rgb_img_, gray_img_, CV_RGB2GRAY);
+    // map cv::Mat data to Eiegn::Vector
+    img = Map<ImgVector<>>(gray_img_.data, gray_img_.rows * gray_img_.cols);
+  } else {
+    img = Map<ImgVector<>>(rgb_img_.data, rgb_img_.rows * rgb_img_.cols *
+                                            left_camera_->getChannels());
+  }
+  return true;
+}
+
+bool VisionEnv::getRightImage(Ref<ImgVector<>> img, const bool rgb) {
+  if (!right_camera_) {
+    logger_.error("No Camera! Cannot retrieve Images.");
+    return false;
+  }
+
+  right_camera_->getRGBImage(rgb_img_);
+
+  if (rgb_img_.rows != img_height_ || rgb_img_.cols != img_width_) {
+    logger_.error(
+      "Image resolution mismatch. Aborting.. Image rows %d != %d, Image cols "
+      "%d != %d",
+      rgb_img_.rows, img_height_, rgb_img_.cols, img_width_);
+    return false;
+  }
+
+  if (!rgb) {
+    // converting rgb image to gray image
+    cvtColor(rgb_img_, gray_img_, CV_RGB2GRAY);
+    // map cv::Mat data to Eiegn::Vector
+    img = Map<ImgVector<>>(gray_img_.data, gray_img_.rows * gray_img_.cols);
+  } else {
+    img = Map<ImgVector<>>(rgb_img_.data, rgb_img_.rows * rgb_img_.cols *
+                                            right_camera_->getChannels());
   }
   return true;
 }
@@ -442,6 +505,7 @@ bool VisionEnv::loadParam(const YAML::Node &cfg) {
   if (cfg["rewards"]) {
     // load reward coefficients for reinforcement learning
     vel_coeff_ = cfg["rewards"]["vel_coeff"].as<Scalar>();
+    ori_coeff_ = cfg["rewards"]["ori_coeff"].as<Scalar>();
     collision_coeff_ = cfg["rewards"]["collision_coeff"].as<Scalar>();
     angular_vel_coeff_ = cfg["rewards"]["angular_vel_coeff"].as<Scalar>();
     survive_rew_ = cfg["rewards"]["survive_rew"].as<Scalar>();
@@ -588,44 +652,62 @@ bool VisionEnv::configCamera(const YAML::Node &cfg) {
     return false;
   }
 
-  // create camera
-  rgb_camera_ = std::make_shared<RGBCamera>();
+  if (!cfg["rgb_camera"]["stereo"].as<bool>()) {
+    logger_.warn("Stereo Camera is off, please turn it on.");
+    return false;
+  }
+
+  // create left camera
+  left_camera_ = std::make_shared<RGBCamera>();
+  right_camera_ = std::make_shared<RGBCamera>();
 
   // load camera settings
-  std::vector<Scalar> t_BC_vec =
-    cfg["rgb_camera"]["t_BC"].as<std::vector<Scalar>>();
+  std::vector<Scalar> t_BC_vec_left =
+    cfg["rgb_camera"]["t_BC_left"].as<std::vector<Scalar>>();
+  std::vector<Scalar> t_BC_vec_right =
+    cfg["rgb_camera"]["t_BC_right"].as<std::vector<Scalar>>();
   std::vector<Scalar> r_BC_vec =
     cfg["rgb_camera"]["r_BC"].as<std::vector<Scalar>>();
 
   //
-  Vector<3> t_BC(t_BC_vec.data());
+  Vector<3> t_BC_left(t_BC_vec_left.data());
+  Vector<3> t_BC_right(t_BC_vec_right.data());
   Matrix<3, 3> r_BC =
     (AngleAxis(r_BC_vec[2] * M_PI / 180.0, Vector<3>::UnitZ()) *
      AngleAxis(r_BC_vec[1] * M_PI / 180.0, Vector<3>::UnitY()) *
      AngleAxis(r_BC_vec[0] * M_PI / 180.0, Vector<3>::UnitX()))
       .toRotationMatrix();
+
   std::vector<bool> post_processing = {false, false, false};
   post_processing[0] = cfg["rgb_camera"]["enable_depth"].as<bool>();
   post_processing[1] = cfg["rgb_camera"]["enable_segmentation"].as<bool>();
   post_processing[2] = cfg["rgb_camera"]["enable_opticalflow"].as<bool>();
 
   //
-  rgb_camera_->setFOV(cfg["rgb_camera"]["fov"].as<Scalar>());
-  rgb_camera_->setWidth(cfg["rgb_camera"]["width"].as<int>());
-  rgb_camera_->setChannels(cfg["rgb_camera"]["channels"].as<int>());
-  rgb_camera_->setHeight(cfg["rgb_camera"]["height"].as<int>());
-  rgb_camera_->setRelPose(t_BC, r_BC);
-  rgb_camera_->setPostProcessing(post_processing);
+  left_camera_->setFOV(cfg["rgb_camera"]["fov"].as<Scalar>());
+  left_camera_->setWidth(cfg["rgb_camera"]["width"].as<int>());
+  left_camera_->setChannels(cfg["rgb_camera"]["channels"].as<int>());
+  left_camera_->setHeight(cfg["rgb_camera"]["height"].as<int>());
+  left_camera_->setRelPose(t_BC_left, r_BC);
+  left_camera_->setPostProcessing(post_processing);
+
+  right_camera_->setFOV(cfg["rgb_camera"]["fov"].as<Scalar>());
+  right_camera_->setWidth(cfg["rgb_camera"]["width"].as<int>());
+  right_camera_->setChannels(cfg["rgb_camera"]["channels"].as<int>());
+  right_camera_->setHeight(cfg["rgb_camera"]["height"].as<int>());
+  right_camera_->setRelPose(t_BC_right, r_BC);
+  right_camera_->setPostProcessing(post_processing);
 
 
   // add camera to the quadrotor
-  quad_ptr_->addRGBCamera(rgb_camera_);
+  quad_ptr_->addRGBCamera(left_camera_);
+  quad_ptr_->addRGBCamera(right_camera_);
 
   // adapt parameters
-  img_width_ = rgb_camera_->getWidth();
-  img_height_ = rgb_camera_->getHeight();
+  img_width_ = left_camera_->getWidth();
+  img_height_ = left_camera_->getHeight();
   rgb_img_ = cv::Mat::zeros(img_height_, img_width_,
-                            CV_MAKETYPE(CV_8U, rgb_camera_->getChannels()));
+                            CV_MAKETYPE(CV_8U, left_camera_->getChannels()));
   depth_img_ = cv::Mat::zeros(img_height_, img_width_, CV_32FC1);
   return true;
 }

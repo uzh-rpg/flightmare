@@ -36,6 +36,8 @@ class EnvBase {
 
   // (virtual) public methods (implementations are optional.)
   virtual bool getImage(Ref<ImgVector<>> img, const bool rgb = true);
+  virtual bool getLeftImage(Ref<ImgVector<>> img, const bool rgb = true);
+  virtual bool getRightImage(Ref<ImgVector<>> img, const bool rgb = true);
   virtual bool getDepthImage(Ref<DepthImgVector<>> img);
   virtual void curriculumUpdate();
   virtual void close();

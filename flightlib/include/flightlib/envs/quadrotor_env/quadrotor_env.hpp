@@ -58,6 +58,12 @@ class QuadrotorEnv final : public EnvBase {
   // - public get functions
   bool getObs(Ref<Vector<>> obs) override;
   bool getImage(Ref<ImgVector<>> img, const bool rgb = true) override;
+  bool getLeftImage(Ref<ImgVector<>> img, const bool rgb = true) override {
+    return false;
+  }
+  bool getRightImage(Ref<ImgVector<>> img, const bool rgb = true) override {
+    return false;
+  }
   bool getDepthImage(Ref<DepthImgVector<>> img) override;
 
   // get quadrotor states

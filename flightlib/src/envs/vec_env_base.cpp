@@ -161,6 +161,28 @@ bool VecEnvBase<EnvBaseName>::getImage(Ref<ImgMatrixRowMajor<>> img,
 }
 
 template<typename EnvBaseName>
+bool VecEnvBase<EnvBaseName>::getLeftImage(Ref<ImgMatrixRowMajor<>> img,
+                                       const bool rgb_image) {
+  bool valid_img = true;
+#pragma omp parallel for schedule(dynamic)
+  for (int i = 0; i < num_envs_; i++) {
+    valid_img &= envs_[i]->getLeftImage(img.row(i), rgb_image);
+  }
+  return valid_img;
+}
+
+template<typename EnvBaseName>
+bool VecEnvBase<EnvBaseName>::getRightImage(Ref<ImgMatrixRowMajor<>> img,
+                                       const bool rgb_image) {
+  bool valid_img = true;
+#pragma omp parallel for schedule(dynamic)
+  for (int i = 0; i < num_envs_; i++) {
+    valid_img &= envs_[i]->getRightImage(img.row(i), rgb_image);
+  }
+  return valid_img;
+}
+
+template<typename EnvBaseName>
 bool VecEnvBase<EnvBaseName>::getDepthImage(
   Ref<DepthImgMatrixRowMajor<>> depth_img) {
   bool valid_img = true;
@@ -169,6 +191,7 @@ bool VecEnvBase<EnvBaseName>::getDepthImage(
   }
   return valid_img;
 }
+
 
 template<typename EnvBaseName>
 size_t VecEnvBase<EnvBaseName>::getEpisodeLength(void) {

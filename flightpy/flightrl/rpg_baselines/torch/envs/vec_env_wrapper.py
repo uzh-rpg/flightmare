@@ -167,6 +167,10 @@ class FlightEnvVec(VecEnv):
     def getObs(self):
         self.wrapper.getObs(self._observation)
         return self.normalize_obs(self._observation)
+    
+    def getRawObs(self):
+        self.wrapper.getObs(self._observation)
+        return self._observation.astype(np.float64)
 
     def reset_and_update_info(self):
         return self.reset(), self._update_epi_info()
@@ -184,11 +188,27 @@ class FlightEnvVec(VecEnv):
         else:
             self.wrapper.getImage(self._gray_img_obs, False)
             return self._gray_img_obs.copy()
+    
+    def getLeftImage(self, rgb=False):
+        if rgb:
+            self.wrapper.getLeftImage(self._rgb_img_obs, True)
+            return self._rgb_img_obs.copy()
+        else:
+            self.wrapper.getLeftImage(self._gray_img_obs, False)
+            return self._gray_img_obs.copy()
+    
+    def getRightImage(self, rgb=False):
+        if rgb:
+            self.wrapper.getRightImage(self._rgb_img_obs, True)
+            return self._rgb_img_obs.copy()
+        else:
+            self.wrapper.getRightImage(self._gray_img_obs, False)
+            return self._gray_img_obs.copy()
 
     def getDepthImage(self):
         self.wrapper.getDepthImage(self._depth_img_obs)
         return self._depth_img_obs.copy()
-
+    
     def stepUnity(self, action, send_id):
         receive_id = self.wrapper.stepUnity(
             action,

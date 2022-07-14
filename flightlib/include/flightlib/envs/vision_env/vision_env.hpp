@@ -63,6 +63,9 @@ class VisionEnv final : public EnvBase {
   // - public get functions
   bool getObs(Ref<Vector<>> obs) override;
   bool getImage(Ref<ImgVector<>> img, const bool rgb = true) override;
+  bool getLeftImage(Ref<ImgVector<>> img, const bool rgb = true) override;
+  bool getRightImage(Ref<ImgVector<>> img, const bool rgb = true) override;
+
   bool getDepthImage(Ref<DepthImgVector<>> img) override;
 
   bool getObstacleState(Ref<Vector<>> obstacle_obs);
@@ -121,7 +124,7 @@ class VisionEnv final : public EnvBase {
   Logger logger_{"VisionEnv"};
 
   // Define reward for training
-  Scalar vel_coeff_, collision_coeff_, angular_vel_coeff_, survive_rew_;
+  Scalar vel_coeff_, ori_coeff_, collision_coeff_, angular_vel_coeff_, survive_rew_;
   Vector<3> goal_linear_vel_;
   bool is_collision_;
 
@@ -148,7 +151,9 @@ class VisionEnv final : public EnvBase {
   Vector<visionenv::kNObs> obs_std_ = Vector<visionenv::kNObs>::Ones();
 
   // robot vision
-  std::shared_ptr<RGBCamera> rgb_camera_;
+  // if right camera is not set, the by default uses left camera
+  std::shared_ptr<RGBCamera> left_camera_;
+  std::shared_ptr<RGBCamera> right_camera_;
   cv::Mat rgb_img_, gray_img_;
   cv::Mat depth_img_;
 
