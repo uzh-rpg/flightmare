@@ -145,6 +145,15 @@ bool VisionVecEnv<EnvBaseName>::getQuadState(Ref<MatrixRowMajor<>> quadstate) {
   return valid;
 }
 
+template<typename EnvBaseName>
+bool VisionVecEnv<EnvBaseName>::setQuadState(Ref<MatrixRowMajor<>> quadstate) {
+  bool valid = true;
+  for (int i = 0; i < this->num_envs_; i++) {
+    valid &= this->envs_[i]->setQuadState(quadstate.row(i));
+  }
+  return valid;
+}
+
 
 template<typename EnvBaseName>
 VisionVecEnv<EnvBaseName>::~VisionVecEnv() {}

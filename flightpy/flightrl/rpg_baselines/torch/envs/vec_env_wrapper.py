@@ -21,6 +21,7 @@ class FlightEnvVec(VecEnv):
     def __init__(self, impl):
         self.wrapper = impl
         self.act_dim = self.wrapper.getActDim()
+        self.state_dim = 24 # todo, to get from interface
         self.obs_dim = self.wrapper.getObsDim()
         self.rew_dim = self.wrapper.getRewDim()
         self.img_width = self.wrapper.getImgWidth()
@@ -252,6 +253,11 @@ class FlightEnvVec(VecEnv):
     def getQuadState(self):
         self.wrapper.getQuadState(self._quadstate)
         return self._quadstate
+    
+    def setQuadState(self, state):
+        if state.ndim <= 1:
+            state = state.reshape((-1, self.state_dim))
+        self.wrapper.setQuadState(state)
 
     def getQuadAct(self):
         self.wrapper.getQuadAct(self._quadact)

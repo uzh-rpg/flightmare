@@ -59,6 +59,7 @@ class VisionEnv final : public EnvBase {
 
   // - public set functions
   bool loadParam(const YAML::Node &cfg);
+  bool setQuadState(Ref<Vector<>> state);
 
   // - public get functions
   bool getObs(Ref<Vector<>> obs) override;

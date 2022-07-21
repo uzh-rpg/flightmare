@@ -383,6 +383,14 @@ bool VisionEnv::getQuadState(Ref<Vector<>> obs) const {
   return false;
 }
 
+bool VisionEnv::setQuadState(Ref<Vector<>> state) {
+  quad_state_.x << state;
+  cmd_.t += sim_dt_;
+  quad_state_.t += sim_dt_;
+  quad_ptr_->setState(quad_state_);
+  return true;
+}
+
 bool VisionEnv::getDepthImage(Ref<DepthImgVector<>> depth_img) {
   if (!left_camera_ || !left_camera_->getEnabledLayers()[0]) {
     logger_.error(
