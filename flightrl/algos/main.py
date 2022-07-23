@@ -15,11 +15,10 @@ from stable_baselines import logger
 from rpg_baselines.common.policies import MlpPolicy
 from rpg_baselines.ppo.ppo2 import PPO2
 from rpg_baselines.ppo.ppo2_test import test_model
-from rpg_baselines.envs import vec_env_wrapper as wrapper
 import rpg_baselines.common.util as U
 #
 from flightgym import QuadrotorEnv_v1
-
+from algos.env import DroneReachTarget
 
 def configure_random_seed(seed, env=None):
     if env is not None:
@@ -42,6 +41,10 @@ def parser():
                         help='trained weight path')
     return parser
 
+############### Hyperparameters ##############
+MAX_EPISODE_STEPS = 300
+NUM_EPISODES = 1000
+##############################################
 
 def main():
     args = parser().parse_args()
@@ -56,7 +59,7 @@ def main():
     else:
         cfg["env"]["render"] = "no"
 
-    env = wrapper.FlightEnvVec(QuadrotorEnv_v1(
+    env = DroneReachTarget(QuadrotorEnv_v1(
         dump(cfg, Dumper=RoundTripDumper), False))
 
     # set random seed
@@ -64,50 +67,51 @@ def main():
 
     #
     if args.train:
-        # save the configuration and other files
-        rsg_root = os.path.dirname(os.path.abspath(__file__))
-        log_dir = rsg_root + '/saved'
-        saver = U.ConfigurationSaver(log_dir=log_dir)
-        model = PPO2(
-            tensorboard_log=saver.data_dir,
-            policy=MlpPolicy,  # check activation function
-            policy_kwargs=dict(
-                net_arch=[dict(pi=[128, 128], vf=[128, 128])], act_fun=tf.nn.relu),
-            env=env,
-            lam=0.95,
-            gamma=0.99,  # lower 0.9 ~ 0.99
-            # n_steps=math.floor(cfg['env']['max_time'] / cfg['env']['ctl_dt']),
-            n_steps=250,
-            ent_coef=0.00,
-            learning_rate=3e-4,
-            vf_coef=0.5,
-            max_grad_norm=0.5,
-            nminibatches=1,
-            noptepochs=10,
-            cliprange=0.2,
-            verbose=1,
-        )
+        # # save the configuration and other files
+        # rsg_root = os.path.dirname(os.path.abspath(__file__))
+        # log_dir = rsg_root + '/saved'
+        # saver = U.ConfigurationSaver(log_dir=log_dir)
+        # model = PPO2(
+        #     tensorboard_log=saver.data_dir,
+        #     policy=MlpPolicy,  # check activation function
+        #     policy_kwargs=dict(
+        #         net_arch=[dict(pi=[128, 128], vf=[128, 128])], act_fun=tf.nn.relu),
+        #     env=env,
+        #     lam=0.95,
+        #     gamma=0.99,  # lower 0.9 ~ 0.99
+        #     # n_steps=math.floor(cfg['env']['max_time'] / cfg['env']['ctl_dt']),
+        #     n_steps=250,
+        #     ent_coef=0.00,
+        #     learning_rate=3e-4,
+        #     vf_coef=0.5,
+        #     max_grad_norm=0.5,
+        #     nminibatches=1,
+        #     noptepochs=10,
+        #     cliprange=0.2,
+        #     verbose=1,
+        # )
 
-        # tensorboard
-        # Make sure that your chrome browser is already on.
-        # TensorboardLauncher(saver.data_dir + '/PPO2_1')
+        # # tensorboard
+        # # Make sure that your chrome browser is already on.
+        # # TensorboardLauncher(saver.data_dir + '/PPO2_1')
 
-        # PPO run
-        # Originally the total timestep is 5 x 10^8
-        # 10 zeros for nupdates to be 4000
-        # 1000000000 is 2000 iterations and so
-        # 2000000000 is 4000 iterations.
-        logger.configure(folder=saver.data_dir)
-        model.learn(
-            total_timesteps=int(25000000),
-            log_dir=saver.data_dir, logger=logger)
-        model.save(saver.data_dir)
+        # # PPO run
+        # # Originally the total timestep is 5 x 10^8
+        # # 10 zeros for nupdates to be 4000
+        # # 1000000000 is 2000 iterations and so
+        # # 2000000000 is 4000 iterations.
+        # logger.configure(folder=saver.data_dir)
+        # model.learn(
+        #     total_timesteps=int(25000000),
+        #     log_dir=saver.data_dir, logger=logger)
+        # model.save(saver.data_dir)
+        pass
 
     # # Testing mode with a trained weight
     else:
-        model = PPO2.load(args.weight)
-        print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-        test_model(env, model, render=args.render)
+        # model = PPO2.load(args.weight)
+        # test_model(env, model, render=args.render)
+        pass
 
 
 if __name__ == "__main__":
