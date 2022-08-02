@@ -61,6 +61,7 @@ class UnityBridge {
   bool addCamera(std::shared_ptr<UnityCamera> unity_camera);
   bool addStaticObject(std::shared_ptr<UnityObject> unity_object);
   bool addDynamicObject(std::shared_ptr<UnityObject> unity_object);
+  bool addTree(std::shared_ptr<UnityObject> unity_object);
   void setRenderOffset(const Ref<Vector<3>> render_offset);
 
   // public auxiliary functions
@@ -86,6 +87,7 @@ class UnityBridge {
   std::vector<std::shared_ptr<RGBCamera>> rgb_cameras_;
   std::vector<std::shared_ptr<UnityObject>> static_objects_;
   std::vector<std::shared_ptr<UnityObject>> dynamic_objects_;
+  std::vector<std::shared_ptr<UnityObject>> trees_;
 
   // ZMQ variables and functions
   std::string client_address_;

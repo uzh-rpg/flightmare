@@ -154,6 +154,15 @@ bool VisionVecEnv<EnvBaseName>::setQuadState(Ref<MatrixRowMajor<>> quadstate) {
   return valid;
 }
 
+template<typename EnvBaseName>
+bool VisionVecEnv<EnvBaseName>::setPoissonTrees(Ref<MatrixRowMajor<>> treelist) {
+  bool valid = true;
+  for (int i = 0; i < this->num_envs_; i++) {
+    valid &= this->envs_[i]->setPoissonTrees(treelist);
+  }
+  return valid;
+}
+
 
 template<typename EnvBaseName>
 VisionVecEnv<EnvBaseName>::~VisionVecEnv() {}

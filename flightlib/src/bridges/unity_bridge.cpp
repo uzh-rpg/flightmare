@@ -124,6 +124,14 @@ bool UnityBridge::getRender(const FrameID frame_id) {
       quaternionRos2Unity(object->getQuat());
   }
 
+  for (size_t idx = 0; idx < pub_msg_.trees.size(); idx++) {
+    std::shared_ptr<UnityObject> object = trees_[idx];
+    pub_msg_.trees[idx].position =
+      positionRos2Unity(object->getPos());
+    pub_msg_.trees[idx].rotation =
+      quaternionRos2Unity(object->getQuat());
+  }
+
 
   // create new message object
   zmqpp::message msg;
@@ -230,6 +238,22 @@ bool UnityBridge::addDynamicObject(std::shared_ptr<UnityObject> unity_object) {
   dynamic_objects_.push_back(unity_object);
   settings_.dynamic_objects.push_back(object_t);
   pub_msg_.dynamic_objects.push_back(object_t);
+  //
+  return true;
+}
+
+bool UnityBridge::addTree(std::shared_ptr<UnityObject> unity_object) {
+  Object_t object_t;
+  object_t.ID = unity_object->getID();
+  object_t.prefab_ID = unity_object->getPrefabID();
+  object_t.position = positionRos2Unity(unity_object->getPos());
+  object_t.rotation = quaternionRos2Unity(unity_object->getQuat());
+  object_t.size = scalarRos2Unity(unity_object->getScale());
+
+  // add Tree
+  trees_.push_back(unity_object);
+  settings_.trees.push_back(object_t);
+  pub_msg_.trees.push_back(object_t);
   //
   return true;
 }

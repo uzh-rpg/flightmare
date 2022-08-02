@@ -29,6 +29,7 @@ class VisionVecEnv : public VecEnvBase<EnvBaseName> {
   bool getQuadAct(Ref<MatrixRowMajor<>> quadact);
   bool getQuadState(Ref<MatrixRowMajor<>> quadstate);
   bool setQuadState(Ref<MatrixRowMajor<>> quadstate);
+  bool setPoissonTrees(Ref<MatrixRowMajor<>> treelist);
   inline std::vector<std::string> getRewardNames(void) {
     return this->envs_[0]->getRewardNames();
   };

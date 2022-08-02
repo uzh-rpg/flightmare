@@ -77,6 +77,7 @@ PYBIND11_MODULE(flightgym, m) {
     .def("getQuadAct", &VisionVecEnv<VisionEnv>::getQuadAct)
     .def("getQuadState", &VisionVecEnv<VisionEnv>::getQuadState)
     .def("setQuadState", &VisionVecEnv<VisionEnv>::setQuadState)
+    .def("setPoissonTrees", &VisionVecEnv<VisionEnv>::setPoissonTrees)
     .def("getImage", &VisionVecEnv<VisionEnv>::getImage)
     .def("getLeftImage", &VisionVecEnv<VisionEnv>::getLeftImage)
     .def("getRightImage", &VisionVecEnv<VisionEnv>::getRightImage)

@@ -103,6 +103,7 @@ struct SettingsMessage_t {
   std::vector<Vehicle_t> vehicles;
   std::vector<Object_t> dynamic_objects;
   std::vector<Object_t> static_objects;
+  std::vector<Object_t> trees;
 };
 
 struct PubMessage_t {
@@ -110,6 +111,7 @@ struct PubMessage_t {
   std::vector<Vehicle_t> vehicles;
   std::vector<Object_t> dynamic_objects;
   std::vector<Object_t> static_objects;
+  std::vector<Object_t> trees;
 };
 
 //
@@ -189,7 +191,8 @@ inline void to_json(json &j, const SettingsMessage_t &o) {
            {"render_offset", o.render_offset},
            {"object_csv", o.object_csv},
            {"dynamic_objects", o.dynamic_objects},
-           {"static_objects", o.static_objects}};
+           {"static_objects", o.static_objects},
+           {"trees", o.trees}};
 }
 
 // Publish messages to unity
@@ -197,7 +200,8 @@ inline void to_json(json &j, const PubMessage_t &o) {
   j = json{{"frame_id", o.frame_id},
            {"vehicles", o.vehicles},
            {"dynamic_objects", o.dynamic_objects},
-           {"static_objects", o.static_objects}};
+           {"static_objects", o.static_objects},
+           {"trees", o.trees}};
 }
 
 // Publish messages to unity

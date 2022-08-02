@@ -6,6 +6,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <map>
 
 // yaml cpp
 #include <yaml-cpp/yaml.h>
@@ -60,6 +61,7 @@ class VisionEnv final : public EnvBase {
   // - public set functions
   bool loadParam(const YAML::Node &cfg);
   bool setQuadState(Ref<Vector<>> state);
+  bool setPoissonTrees(Ref<MatrixRowMajor<>> tree_list);
 
   // - public get functions
   bool getObs(Ref<Vector<>> obs) override;
@@ -77,6 +79,7 @@ class VisionEnv final : public EnvBase {
   // - auxiliar functions
   bool isTerminalState(Scalar &reward) override;
   bool addQuadrotorToUnity(const std::shared_ptr<UnityBridge> bridge) override;
+  bool addTreeToUnity(const std::shared_ptr<UnityBridge> bridge);
 
   friend std::ostream &operator<<(std::ostream &os,
                                   const VisionEnv &vision_env);
@@ -85,6 +88,9 @@ class VisionEnv final : public EnvBase {
   bool configCamera(const YAML::Node &cfg_node);
   bool configDynamicObjects(const std::string &yaml_file);
   bool configStaticObjects(const std::string &csv_file);
+
+  // - generate poisson distribution trees
+  bool resetPoissonDistributionTrees(Scalar &radius);
 
   bool simDynamicObstacles(const Scalar dt);
 
@@ -119,6 +125,10 @@ class VisionEnv final : public EnvBase {
   //
   std::vector<std::shared_ptr<UnityObject>> static_objects_;
   std::vector<std::shared_ptr<UnityObject>> dynamic_objects_;
+  std::vector<std::shared_ptr<UnityObject>> trees_;
+
+  //
+  std::map<int, std::string> object_dictionary_;
 
   QuadState quad_state_, quad_old_state_;
   Command cmd_;
@@ -177,6 +187,7 @@ class VisionEnv final : public EnvBase {
   std::string obstacle_cfg_path_;
   int num_dynamic_objects_;
   int num_static_objects_;
+  Scalar radius_;
 };
 
 }  // namespace flightlib

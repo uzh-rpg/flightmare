@@ -22,6 +22,7 @@ class FlightEnvVec(VecEnv):
         self.wrapper = impl
         self.act_dim = self.wrapper.getActDim()
         self.state_dim = 24 # todo, to get from interface
+        self.tree_dim = 9 # x,y,z,quat(4),scale, object type
         self.obs_dim = self.wrapper.getObsDim()
         self.rew_dim = self.wrapper.getRewDim()
         self.img_width = self.wrapper.getImgWidth()
@@ -258,6 +259,10 @@ class FlightEnvVec(VecEnv):
         if state.ndim <= 1:
             state = state.reshape((-1, self.state_dim))
         self.wrapper.setQuadState(state)
+    
+    def setPoissonTrees(self, trees):
+        trees = trees.reshape((-1, self.tree_dim))
+        self.wrapper.setPoissonTrees(trees)
 
     def getQuadAct(self):
         self.wrapper.getQuadAct(self._quadact)

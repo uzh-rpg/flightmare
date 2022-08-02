@@ -81,6 +81,15 @@ void VisionEnv::init() {
       "Cannot config Static Object. Something wrong with the config file");
   }
 
+  // add Poisson distributed trees
+  logger_.info("make it to configure the poisson function");
+  radius_ = 0;
+  // if (!resetPoissonDistributionTrees(radius_)) {
+  //   logger_.error(
+  //     "Cannot reset Poisson distributed trees."
+  //   );
+  // }
+
   // use single rotor control or bodyrate control
   Scalar max_force = quad_ptr_->getDynamics().getForceMax();
   Vector<3> max_omega = quad_ptr_->getDynamics().getOmegaMax();
@@ -717,6 +726,94 @@ bool VisionEnv::configCamera(const YAML::Node &cfg) {
   rgb_img_ = cv::Mat::zeros(img_height_, img_width_,
                             CV_MAKETYPE(CV_8U, left_camera_->getChannels()));
   depth_img_ = cv::Mat::zeros(img_height_, img_width_, CV_32FC1);
+
+  object_dictionary_ = {{1, "beech_tree_04",}, 
+                          {2, "prefab_beech_tree_06",}, 
+                          {3, "prefab_beech_tree_07",}, 
+                          {4, "prefab_beech_tree_09",},
+                          {5, "prefab_beech_forest_stones_01_4",},
+                          {6, "prefab_beech_forest_stones_01_5",},
+                          {7, "prefab_beech_forest_stones_01_6",},
+                          {8, "prefab_beech_forest_stones_01_7",},
+                          {9, "rpg_box02",},
+                          {10, "rpg_wall01",},
+                          {11, "rpg_wall02",}};
+  return true;
+}
+
+bool VisionEnv::setPoissonTrees(Ref<MatrixRowMajor<>> tree_list) {
+  unity_bridge_ptr_ = UnityBridge::getInstance();
+  // to set tree object from an outsider list
+  for (int i = 0; i < tree_list.rows(); i++) {
+    auto param = tree_list.row(i);
+    std::string object_id = "PoissonObject" + std::to_string(i + 1);
+    std::string prefab_id = object_dictionary_[int(param[8])];
+    std::shared_ptr<UnityObject> obj =
+      std::make_shared<UnityObject>(object_id, prefab_id);
+
+    //
+    Vector<3> pos;
+   
+    pos << param[0], param[1], param[2];
+
+    Quaternion quat;
+    quat.w() = param[3];
+    quat.x() = param[4];
+    quat.y() = param[5];
+    quat.z() = param[6];
+
+    Vector<3> scale;
+    scale << param[7], param[7], param[7];
+
+    //
+    obj->setPosition(pos);
+    obj->setRotation(quat);
+    // actual size in meters
+    obj->setSize(Vector<3>(1.0, 1.0, 1.0));
+    // scale of the original size
+    obj->setScale(scale);
+    unity_bridge_ptr_->addDynamicObject(obj);
+
+    dynamic_objects_.push_back(obj); 
+  }
+  return true;
+}
+
+bool VisionEnv::resetPoissonDistributionTrees(Scalar &radius) {
+  // to set for tree object:
+  // 
+   for (int i = 0; i < 10; i++) {
+    std::string object_id = "Tree" + std::to_string(i + 1);
+    std::string prefab_id = "beech_tree_04";
+    std::shared_ptr<UnityObject> obj =
+      std::make_shared<UnityObject>(object_id, prefab_id);
+
+    std::cout << prefab_id << std::endl;
+
+    //
+    Vector<3> pos;
+    pos << i+1, 0, 0;
+
+    Quaternion quat;
+    quat.w() = 1.0;
+    quat.x() = 0.0;
+    quat.y() = 0.0;
+    quat.z() = 0.0;
+
+    Vector<3> scale;
+    scale << 1.0, 1.0, 1,0;
+
+    //
+    obj->setPosition(pos);
+    obj->setRotation(quat);
+    // actual size in meters
+    obj->setSize(Vector<3>(1.0, 1.0, 1.0));
+    // scale of the original size
+    obj->setScale(scale);
+
+    dynamic_objects_.push_back(obj);
+  }
+  logger_.info("print the size of trees:" + std::to_string(dynamic_objects_.size()));
   return true;
 }
 
@@ -734,6 +831,14 @@ bool VisionEnv::addQuadrotorToUnity(const std::shared_ptr<UnityBridge> bridge) {
   return true;
 }
 
+bool VisionEnv::addTreeToUnity(const std::shared_ptr<UnityBridge> bridge) {
+  std::cout << "make it to enter the addTreeToUnity function and print size: " << trees_.size() << " "<< std::endl;
+  // for (int i = 0; i < (int)trees_.size(); i++) {
+  //   bridge->addDynamicObject(trees_[i]);
+  // }
+  return true;
+}
+
 bool VisionEnv::setUnity(bool render) {
   unity_render_ = render;
   if (!unity_render_ || unity_bridge_ptr_ != nullptr) {
@@ -746,8 +851,11 @@ bool VisionEnv::setUnity(bool render) {
   unity_bridge_ptr_ = UnityBridge::getInstance();
   // add objects to Unity
 
+  addTreeToUnity(unity_bridge_ptr_);
+  logger_.info("make it to call add tree to unity function");
   addQuadrotorToUnity(unity_bridge_ptr_);
-
+  logger_.info("make it to add quadrotor to unity");
+  
   logger_.info("Flightmare Bridge created.");
   return true;
 }
