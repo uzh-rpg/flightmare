@@ -7,8 +7,8 @@ namespace flightlib {
 // constructor
 UnityBridge::UnityBridge()
   : client_address_("tcp://*"),
-    pub_port_("10253"),
-    sub_port_("10254"),
+    pub_port_("12345"),
+    sub_port_("12346"),
     num_frames_(0),
     last_downloaded_utime_(0),
     last_download_debug_utime_(0),

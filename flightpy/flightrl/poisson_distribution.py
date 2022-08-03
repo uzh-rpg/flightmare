@@ -1,4 +1,5 @@
 import argparse
+from random import random
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial.transform import Rotation as R
@@ -8,8 +9,23 @@ from trajectory_generator import TrajectoryGenerator
 
 class PoissonDistribution():
 
-    def __init__(self, radius, maximum_x=200, maximum_y=200, max_try=30, trajectories=None):
+    def __init__(self, radius, type=1,  maximum_x=200, maximum_y=200, max_try=30, trajectories=None):
+
+        ''' Current types: 
+                          {{1, "beech_tree_04",}, 
+                          {2, "prefab_beech_tree_06",}, 
+                          {3, "prefab_beech_tree_07",}, 
+                          {4, "prefab_beech_tree_09",},
+                          {5, "prefab_beech_forest_stones_01_4",},
+                          {6, "prefab_beech_forest_stones_01_5",},
+                          {7, "prefab_beech_forest_stones_01_6",},
+                          {8, "prefab_beech_forest_stones_01_7",},
+                          {9, "rpg_box02",},
+                          {10, "rpg_wall01",},
+                          {11, "rpg_wall02",}};
+        '''
         self.radius = radius
+        self.type = type
         self.cell_size = self.radius / np.sqrt(2)
         self.max_try = max_try
         self.maximum_x = maximum_x
@@ -127,8 +143,8 @@ class PoissonDistribution():
             rot = R.from_euler('zyx', [yaw, pitch, roll], degrees=False)
             quat = rot.as_quat()
             # scale = np.random.uniform(15.0, 20.2)
-            scale = np.random.uniform(0.8, 1.2)
-            object_type = 1
+            scale = np.random.uniform(0.8, 2.0) if self.type <= 4 else np.random.uniform(20.0, 30.2)
+            object_type = self.type
             trees[i,:] = np.array((x, y, z, quat[3], quat[0], quat[1], quat[2], scale, object_type))
         return trees
     

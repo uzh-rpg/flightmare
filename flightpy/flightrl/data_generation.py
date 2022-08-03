@@ -7,6 +7,7 @@ from ntpath import join
 import os
 from sqlite3 import Date
 import subprocess
+from matplotlib import cm
 
 
 import numpy as np
@@ -26,16 +27,22 @@ from trajectory_generator import TrajectoryGenerator
 
 class Dataset():
 
-    def __init__(self, save_dir, render, max_env=1, trajectory_area=80, tree_area=100, waypoint_step=7, waypoint_time=1, num_trajectory=100, 
+    def __init__(self, save_dir, render, object_type=1, radius=5, max_env=3, trajectory_area=80, tree_area=100, waypoint_step=7, waypoint_time=1, num_trajectory=50, 
                     max_poisson_sampling_try=30, sim_dt=0.01):
-        self.save_dir = save_dir
+        self.save_dir = os.path.join(save_dir, "object_{:02d}".format(object_type))
         self.sim_dt = sim_dt
         self.render = render
+        self.object_type = object_type
         self.cfg = YAML().load(
                 open(
                      os.environ["FLIGHTMARE_PATH"] + "/flightpy/configs/vision/config.yaml", "r"
                 )
         )
+        self.baseline = self.cfg["rgb_camera"]["baseline"]
+        self.fov = self.cfg["rgb_camera"]["fov"]
+        self.far = 40
+        self.near = 0.02
+        self.radius = 5 if object_type <= 4 else 16
         if render:
             self.cfg["unity"]["render"] = "yes"
     
@@ -45,11 +52,13 @@ class Dataset():
             VisionEnv_v1(dump(self.cfg, Dumper=RoundTripDumper), False)
         )
 
-        # if render:
-        #     self.proc = subprocess.Popen(os.environ["FLIGHTMARE_PATH"] + "/flightrender/RPG_Flightmare.x86_64")
+        if render:
+            cmd = [os.environ["FLIGHTMARE_PATH"] + "/flightrender/RPG_Flightmare.x86_64", '--batchmode']
+            self.proc = subprocess.Popen(cmd)
+            # self.proc = subprocess.Popen(os.environ["FLIGHTMARE_PATH"] + "/flightrender/RPG_Flightmare.x86_64")
         
         self.trajectory_generator = TrajectoryGenerator(trajectory_area, trajectory_area, waypoint_step, waypoint_time, num_trajectory)
-        self.poisson_distribution = PoissonDistribution(5, tree_area, tree_area, max_poisson_sampling_try)
+        self.poisson_distribution = PoissonDistribution(self.radius, object_type, tree_area, tree_area, max_poisson_sampling_try)
 
         self.num_trajectory = 0
         self.max_env = max_env
@@ -73,7 +82,7 @@ class Dataset():
 
     def start_collecting_data(self):
         print("-----------------Starting Collecting Data From Flightmare-------------------")
-        os.makedirs(self.save_dir, exist_ok=True)
+        os.makedirs(self.save_dir, exist_ok=False)
 
         # generate collision free trajectories and trees
         for i in range(self.max_env):
@@ -87,7 +96,7 @@ class Dataset():
                 os.makedirs(seq_dir, exist_ok=True)
                 left_image_dir = os.path.join(seq_dir, "images/left")
                 right_image_dir = os.path.join(seq_dir, "images/right")
-                depth_img_dir = os.path.join(seq_dir, "depth")
+                depth_img_dir = os.path.join(seq_dir, "disparity")
                 os.makedirs(left_image_dir, exist_ok=True)
                 os.makedirs(right_image_dir, exist_ok=True)
                 os.makedirs(depth_img_dir, exist_ok=True)
@@ -115,46 +124,22 @@ class Dataset():
 
                         depth_img = np.reshape(self.env.getDepthImage()[
                                         0], (self.env.img_height, self.env.img_width))
-                        near = 0.02
-                        far = 40
-                        # depth_img = depth_img.clip(0.01, 1.0)
-                        # print(np.unique(depth_img), np.mean(depth_img))
-                        depth_img_save = near + depth_img  * (far - near)
+                        depth_img_save = self.near + depth_img  * (self.far - self.near)
+                        depth_valid = depth_img_save > 0
+                        depth_img_save[depth_valid] = self.fov * self.baseline / depth_img_save[depth_valid]
                         np.save(os.path.join(depth_img_dir, "frame_{:010d}.npy".format(frame_id)), depth_img_save)
 
-                        cv2.imshow("depth", depth_img)
-                        cv2.imwrite(os.path.join(depth_img_dir, "frame_{:010d}.png".format(frame_id)), depth_img)
+                        # cv2.imshow("depth", depth_img)
                         cv2.waitKey(100)
 
                         frame_id += 1
-                        # cv2.waitKey(100)
-
-                    # # # ======Depth Image=========
-                    # depth image from Unity is not real depth, but for visualization purpose
-                    # depth_img = np.reshape(self.env.getDepthImage()[
-                    #                     0], (self.env.img_height, self.env.img_width))
-                    # near = 0.02
-                    # far = 40
-                    # # depth_img = depth_img.clip(0.01, 1.0)
-                    # # print(np.unique(depth_img), np.mean(depth_img))
-                    # depth_img_save = near * far / (far - depth_img * (far - near))
-                    # np.save(os.path.join(depth_img_dir, "frame_{:010d}.npy".format(frame_id)), depth_img_save)
-                    # # print(np.unique(depth_img), np.mean(depth_img))
-                    # # depth_img = depth_img * 100000
-                    # # depth_img = (depth_img - np.min(depth_img)) / (np.ptp(depth_img)) * 255.0
-                    # # depth_img = depth_img.astype(np.uint8)
-                    # cv2.imshow("depth", depth_img)
-                    # # plt.imshow(depth_img, cmap='inferno')
-                    # # plt.pause(100)
-                    # cv2.imwrite(os.path.join(depth_img_dir, "frame_{:010d}.png".format(frame_id)), depth_img)
-                    # cv2.waitKey(100)
                     ep_len += 1
                 
                 self.generate_timestamps(seq_dir, frame_id)
         
-        if self.render:
-            self.env.disconnectUnity()
-            self.proc.terminate()
+            if self.render:
+                self.env.disconnectUnity()
+                self.proc.terminate()
     
     def generate_timestamps(self, dir, frames):
         with open(os.path.join(dir, 'timestamps.txt'), 'w') as f:
@@ -163,9 +148,6 @@ class Dataset():
                 f.write(" ".join(str(item) for item in texts))
                 f.write('\n')
     
-
-
-
 
 # move GT images to the SGM prepation folders and generate timestamps for generating events
 def move_to_sgm(save_dir, sim_dt):
@@ -204,5 +186,6 @@ if __name__ == "__main__":
 
     # start_data_generation(args.save_dir, args.render, args.sim_dt)
     # move_to_sgm(args.save_dir, args.sim_dt)
-    dataset = Dataset("/home/chaoni/drive_data/test_depth_2", True)
-    dataset.start_collecting_data()
+    for object_type in [1, 5]:
+        dataset = Dataset("/home/chaoni/drive_data/event-based-disparity-test", render=True, object_type=object_type)
+        dataset.start_collecting_data()
