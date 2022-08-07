@@ -117,20 +117,17 @@ class Dataset():
                     img_right = self.env.getRightImage(rgb=True) 
                     rgb_right = np.reshape(
                     img_right[0], (self.env.img_height, self.env.img_width, 3))
+                    depth_img = np.reshape(self.env.getDepthImage()[
+                                        0], (self.env.img_height, self.env.img_width))
 
                     if ep_len > self.start_save:
                         cv2.imwrite(os.path.join(left_image_dir, "frame_{:010d}.png".format(frame_id)), rgb_left)
                         cv2.imwrite(os.path.join(right_image_dir,"frame_{:010d}.png".format(frame_id)), rgb_right)
 
-                        depth_img = np.reshape(self.env.getDepthImage()[
-                                        0], (self.env.img_height, self.env.img_width))
                         depth_img_save = self.near + depth_img  * (self.far - self.near)
                         depth_valid = depth_img_save > 0
                         depth_img_save[depth_valid] = self.fov * self.baseline / depth_img_save[depth_valid]
                         np.save(os.path.join(depth_img_dir, "frame_{:010d}.npy".format(frame_id)), depth_img_save)
-
-                        # cv2.imshow("depth", depth_img)
-                        cv2.waitKey(100)
 
                         frame_id += 1
                     ep_len += 1
