@@ -125,11 +125,6 @@ bool VisionEnv::reset(Ref<Vector<>> obs) {
 
 bool VisionEnv::reset(Ref<Vector<>> obs, bool random) { return reset(obs); }
 
-bool VisionEnv::move(void){
-    //Modified
-  if(!moveStaticObstacles(true)) return false;
-  return true;
-}
 
 bool VisionEnv::getObs(Ref<Vector<>> obs) {
   if (obs.size() != obs_dim_) {
@@ -297,21 +292,32 @@ bool VisionEnv::simDynamicObstacles(const Scalar dt) {
 
 /****************************************************/
 /*MODIFIED - 13TH APRIL*/
-bool VisionEnv::moveStaticObstacles(bool trigger){
+bool VisionEnv::move(void){
+  //Call the move Dynamic Obstacles Functions
+  if(!moveDynamicObstacles(_datagen)) return false;
+  return true;
+}
+
+bool VisionEnv::moveDynamicObstacles(bool trigger){
+  if(!trigger) return false;
+
   logger_.info("Moving Static Obstacles!");
+  
   if(!changeObsLoc()) return false;
+  //Obstacle change was successful! next time trial number would increase
   logger_.info("Obstacle Changes Successful!");
   _numRun+=1; 
   return true; 
 }
 bool VisionEnv::changeObsLoc(void){
   //For each static objects
-  logger_.info(std::to_string(num_static_objects_));
-  for (int i=0;i<num_static_objects_-1;i++){
+  logger_.info(std::to_string(num_dynamic_objects_));
+  //For each dynamic object
+  for (int i=0;i<num_dynamic_objects_;i++){
     //Get the static data file
     std::string csvFile = obstacle_cfg_path_+std::string("/static_kr_") + std::to_string(i) +std::string(".csv");
     if(!readTrainingObs(csvFile,i)){
-      logger_.error("Function didn't run as intended");
+      logger_.error("Function didn't run as intended!");
       return false; //We should not return and let the obstacles stay constant?
     }
   }
@@ -327,7 +333,7 @@ bool VisionEnv::readTrainingObs(std::string &csv_file, int obsNo) {
     return false;
   }
   logger_.info("Changing Position!");
-
+  logger_.info(std::to_string(_numRun));
   std::ifstream infile(csv_file);
   int i=0;
   for(auto &row: CSVRange(infile)){
@@ -335,13 +341,13 @@ bool VisionEnv::readTrainingObs(std::string &csv_file, int obsNo) {
       Vector<3> pos;
       pos << std::stod((std::string)row[0]), std::stod((std::string)row[1]),
         std::stod((std::string)row[2]);
-      static_objects_[obsNo+1]->setPosition(pos);
-      // static_objects_[obsNo+1]->run(0.01);
+    
+      dynamic_objects_[obsNo]->setPosition(pos);
       return true;
     }
     i++;
   }
-  return true;
+  return false;
 }
 /****************************************************/
 
@@ -523,6 +529,15 @@ bool VisionEnv::loadParam(const YAML::Node &cfg) {
     unity_render_ = cfg["unity"]["render"].as<bool>();
     scene_id_ = cfg["unity"]["scene_id"].as<SceneID>();
   }
+
+  //[KR_AGILE] Modifications by Dhruv 17th April
+  if (cfg["datagen"]){
+    _datagen = 1; 
+  }
+  else{
+    _datagen = 0;
+  }
+
 
   //
   std::string scene_file =

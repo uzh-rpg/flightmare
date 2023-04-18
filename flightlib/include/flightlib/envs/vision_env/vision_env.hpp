@@ -106,12 +106,14 @@ class VisionEnv final : public EnvBase {
   }
 
   /******************************/
-  //Modified Functions
-  bool  moveStaticObstacles(bool);
+  //[KR_AGILE] Modified Functions
+  bool  moveDynamicObstacles(bool);
   bool changeObsLoc(void);
   bool readTrainingObs(std::string &csv_file, int obsNo);
   bool move(void);
   int _numRun = 0;
+  bool _datagen = 0;
+
   /******************************/
 
 

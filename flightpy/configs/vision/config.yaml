@@ -58,3 +58,6 @@ quadrotor_dynamics:
   body_drag_1: [0.00, 0.00, 0.00]
   body_drag_3: [0.00, 0.00, 0.00]
   body_drag_h: 0.00
+
+datagen:
+  deactivate_dynamic_obs: 1
