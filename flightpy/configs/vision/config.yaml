@@ -1,8 +1,8 @@
 environment:
-  level: "medium" # three difficulty level [easy, medium, hard]
+  level: "hard" # three difficulty level [easy, medium, hard]
   env_folder: "environment_0" # configurations for dynamic and static obstacles
   world_box: [-20, 80, -10, 10, 0.0, 10] # Bounding box applied during training, exiting this box terminates the episode. [xmin, xmax, ymin, ymax, zmin, zmax]
-  goal_vel: [3.0, 0.0, 0.0] # goal velicty for tracking vx, vy, vz
+  goal_vel: [1.0, 0.0, 0.0] # goal velicty for tracking vx, vy, vz
   max_detection_range: 10.0 # max obstacle detection range [m], obstacles outside this range will not be detected. The number of obstacles detected is fixed to 10, if less than 10 obstacles are within detectable range, the observation is padded with 10.0
 
 rewards:
@@ -24,9 +24,9 @@ rgb_camera:
   t_BC: [0.0, 0.0, 0.3] # translational vector of the camera with repect to the body frame
   r_BC: [0.0, 0.0, -90] # rotational angle (roll, pitch, yaw) of the camera in degree.
   channels: 3
-  width: 320 
-  height: 240
-  fov: 70.0
+  width: 640 
+  height: 480
+  fov: 150.0
   enable_depth: yes 
   enable_segmentation: no
   enable_opticalflow: no
@@ -36,22 +36,22 @@ unity:
   render: no 
 
 simulation:
-  seed: 1
-  sim_dt: 0.02
-  max_t: 20.0
+  seed: 10
+  sim_dt: 0.01
+  max_t: 400.0
   num_envs: 100 
-  num_threads: 10
+  num_threads: 200
 
 quadrotor_dynamics:
-  mass: 0.752
+  mass: 0.752 #0.752
   tbm_fr: [0.075, -0.10, 0.0] # [m]
   tbm_bl: [-0.075, 0.10, 0.0] # [m]
   tbm_br: [-0.075, -0.10, 0.0] # [m]
   tbm_fl: [0.075, 0.10, 0.0] # [m
   omega_max: [6.0, 6.0, 2.0]
-  inertia: [0.0025, 0.0021, 0.0043]
+  inertia:  [0.0025, 0.0021, 0.0043]
   kappa: 0.022
-  motor_omega_min: 150.0
+  motor_omega_min: 0.0
   motor_omega_max: 2800.0
   motor_tau: 0.033
   thrust_map: [1.562522e-6, 0.0, 0.0] # max thrust = 8.50 N

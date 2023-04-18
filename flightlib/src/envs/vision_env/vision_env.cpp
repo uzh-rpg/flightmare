@@ -1,4 +1,3 @@
-
 #include "flightlib/envs/vision_env/vision_env.hpp"
 
 namespace flightlib {
@@ -93,6 +92,11 @@ void VisionEnv::init() {
 VisionEnv::~VisionEnv() {}
 
 bool VisionEnv::reset(Ref<Vector<>> obs) {
+  logger_.warn("Printing");
+
+  std::cout << "RESETTING RESETTING RESETTING RESETTINGRESETTINGRESETTINGRESETTING" << std::endl;
+
+
   quad_state_.setZero();
   pi_act_.setZero();
   old_pi_act_.setZero();
@@ -120,6 +124,12 @@ bool VisionEnv::reset(Ref<Vector<>> obs) {
 }
 
 bool VisionEnv::reset(Ref<Vector<>> obs, bool random) { return reset(obs); }
+
+bool VisionEnv::move(void){
+    //Modified
+  if(!moveStaticObstacles(true)) return false;
+  return true;
+}
 
 bool VisionEnv::getObs(Ref<Vector<>> obs) {
   if (obs.size() != obs_dim_) {
@@ -269,7 +279,6 @@ bool VisionEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs,
 
   // update observations
   getObs(obs);
-
   return computeReward(reward);
 }
 
@@ -284,6 +293,61 @@ bool VisionEnv::simDynamicObstacles(const Scalar dt) {
   }
   return true;
 }
+
+
+/****************************************************/
+/*MODIFIED - 13TH APRIL*/
+bool VisionEnv::moveStaticObstacles(bool trigger){
+  logger_.info("Moving Static Obstacles!");
+  if(!changeObsLoc()) return false;
+  logger_.info("Obstacle Changes Successful!");
+  _numRun+=1; 
+  return true; 
+}
+bool VisionEnv::changeObsLoc(void){
+  //For each static objects
+  logger_.info(std::to_string(num_static_objects_));
+  for (int i=0;i<num_static_objects_-1;i++){
+    //Get the static data file
+    std::string csvFile = obstacle_cfg_path_+std::string("/static_kr_") + std::to_string(i) +std::string(".csv");
+    if(!readTrainingObs(csvFile,i)){
+      logger_.error("Function didn't run as intended");
+      return false; //We should not return and let the obstacles stay constant?
+    }
+  }
+  return true;
+}
+bool VisionEnv::readTrainingObs(std::string &csv_file, int obsNo) {
+  //
+    logger_.info(csv_file);
+  if (!(file_exists(csv_file))) {
+      logger_.info(csv_file);
+
+    logger_.error("Configuration file %s does not exists.", csv_file);
+    return false;
+  }
+  logger_.info("Changing Position!");
+
+  std::ifstream infile(csv_file);
+  int i=0;
+  for(auto &row: CSVRange(infile)){
+    if (i==_numRun){
+      Vector<3> pos;
+      pos << std::stod((std::string)row[0]), std::stod((std::string)row[1]),
+        std::stod((std::string)row[2]);
+      static_objects_[obsNo+1]->setPosition(pos);
+      // static_objects_[obsNo+1]->run(0.01);
+      return true;
+    }
+    i++;
+  }
+  return true;
+}
+/****************************************************/
+
+
+
+
 
 bool VisionEnv::computeReward(Ref<Vector<>> reward) {
   // ---------------------- reward function design
@@ -637,6 +701,10 @@ bool VisionEnv::addQuadrotorToUnity(const std::shared_ptr<UnityBridge> bridge) {
   for (int i = 0; i < (int)dynamic_objects_.size(); i++) {
     bridge->addDynamicObject(dynamic_objects_[i]);
   }
+  for (int i = 0; i < (int)static_objects_.size(); i++) {
+    bridge->addStaticObject(static_objects_[i]);
+  }
+  
 
   //
   bridge->setRenderOffset(unity_render_offset_);

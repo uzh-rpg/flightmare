@@ -40,6 +40,7 @@ enum Vision : int {
   // control actions
   kAct = 0,
   kNAct = 4,
+
 };
 }  // namespace visionenv
 
@@ -103,6 +104,16 @@ class VisionEnv final : public EnvBase {
   inline std::vector<std::shared_ptr<UnityObject>> getStaticObjects() {
     return static_objects_;
   }
+
+  /******************************/
+  //Modified Functions
+  bool  moveStaticObstacles(bool);
+  bool changeObsLoc(void);
+  bool readTrainingObs(std::string &csv_file, int obsNo);
+  bool move(void);
+  int _numRun = 0;
+  /******************************/
+
 
   std::unordered_map<std::string, float> extra_info_;
 

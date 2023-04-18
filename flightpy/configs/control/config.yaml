@@ -4,7 +4,7 @@ unity:
 
 simulation:
   seed: 1
-  sim_dt: 0.02
+  sim_dt: 0.001
   max_t: 5.0
   num_envs: 100
   num_threads: 10
@@ -53,7 +53,7 @@ rgb_camera:
   channels: 3
   width: 720
   height: 480
-  fov: 70.0
+  fov: 120.0
   enable_depth: yes 
   enable_segmentation: no
   enable_opticalflow: no
