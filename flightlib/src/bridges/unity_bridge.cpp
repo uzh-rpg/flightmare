@@ -106,17 +106,23 @@ bool UnityBridge::handleSettings(void) {
 
 bool UnityBridge::getRender(const FrameID frame_id) {
   pub_msg_.frame_id = frame_id;
+
+  // Update quadrotors and other vehicles
   QuadState quad_state;
   for (size_t idx = 0; idx < pub_msg_.vehicles.size(); idx++) {
     unity_quadrotors_[idx]->getState(&quad_state);
     pub_msg_.vehicles[idx].position = positionRos2Unity(quad_state.p);
     pub_msg_.vehicles[idx].rotation = quaternionRos2Unity(quad_state.q());
+    pub_msg_.vehicles[idx].size =
+      scalarRos2Unity(unity_quadrotors_[idx]->getSize());
   }
 
+  // Update static objects as well
   for (size_t idx = 0; idx < pub_msg_.objects.size(); idx++) {
-    std::shared_ptr<StaticObject> gate = static_objects_[idx];
-    pub_msg_.objects[idx].position = positionRos2Unity(gate->getPosition());
-    pub_msg_.objects[idx].rotation = quaternionRos2Unity(gate->getQuaternion());
+    std::shared_ptr<StaticObject> obj = static_objects_[idx];
+    pub_msg_.objects[idx].position = positionRos2Unity(obj->getPosition());
+    pub_msg_.objects[idx].rotation = quaternionRos2Unity(obj->getQuaternion());
+    pub_msg_.objects[idx].size = scalarRos2Unity(obj->getSize());
   }
 
   // create new message object

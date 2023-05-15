@@ -150,6 +150,20 @@ zmq
 zmqpp
 )
 
+# objects
+
+cs_add_executable(objects
+    src/objects/objects.cpp
+)
+
+target_link_libraries(objects
+${catkin_LIBRARIES}
+${OpenCV_LIBRARIES}
+stdc++fs
+zmq
+zmqpp
+)
+
 # Finish
 cs_install()
 cs_export()

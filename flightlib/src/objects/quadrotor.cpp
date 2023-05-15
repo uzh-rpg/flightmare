@@ -244,6 +244,8 @@ Vector<3> Quadrotor::getSize(void) const { return size_; }
 
 Vector<3> Quadrotor::getPosition(void) const { return state_.p; }
 
+Quaternion Quadrotor::getQuaternion(void) const { return state_.q(); }
+
 std::vector<std::shared_ptr<RGBCamera>> Quadrotor::getCameras(void) const {
   return rgb_cameras_;
 };
