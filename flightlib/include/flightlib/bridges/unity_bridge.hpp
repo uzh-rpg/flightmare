@@ -6,6 +6,8 @@
 
 // std libs
 #include <unistd.h>
+
+#include <chrono>
 #include <experimental/filesystem>
 #include <fstream>
 #include <map>
@@ -27,7 +29,9 @@
 #include "flightlib/objects/quadrotor.hpp"
 #include "flightlib/objects/static_object.hpp"
 #include "flightlib/objects/unity_camera.hpp"
+#include "flightlib/sensors/event_camera.hpp"
 #include "flightlib/sensors/rgb_camera.hpp"
+
 
 using json = nlohmann::json;
 
@@ -45,7 +49,9 @@ class UnityBridge {
 
   // public get functions
   bool getRender(const FrameID frame_id);
+  bool trigggerEvents(const FrameID frame_id);
   bool handleOutput();
+  bool handleOutput(bool always);
   bool getPointCloud(PointCloudMessage_t &pointcloud_msg,
                      Scalar time_out = 600.0);
 
@@ -70,13 +76,14 @@ class UnityBridge {
  private:
   bool initializeConnections(void);
 
-  //
   SettingsMessage_t settings_;
   PubMessage_t pub_msg_;
   Logger logger_{"UnityBridge"};
 
   std::vector<std::shared_ptr<Quadrotor>> unity_quadrotors_;
   std::vector<std::shared_ptr<RGBCamera>> rgb_cameras_;
+  std::vector<std::shared_ptr<EventCamera>> event_cameras_;
+
   std::vector<std::shared_ptr<StaticObject>> static_objects_;
 
   // ZMQ variables and functions

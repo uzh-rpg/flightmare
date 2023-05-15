@@ -1,0 +1,10 @@
+rosbag:
+  trajectory: "/record/japan_six"
+  rotate: false
+  trajectory_rotation: false
+  position_trajectory: true
+  scene_id: 4
+  ring_traj: false
+  cp: 0.2
+  cm: 0.2
+  time_for_rotation: 17
