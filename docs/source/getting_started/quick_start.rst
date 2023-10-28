@@ -3,20 +3,10 @@
 Quick start
 ===========
 
+**Preffered OS**: Ubuntu 18.04 LTS (Results in least dependency issues)
+
 Prerequisites
 -------------
-
-Git
-^^^
-
-For the following installation instructions you will need git which you can set up with the following commands:
-
-.. code-block:: bash
-
-   sudo apt-get install git
-   git config --global user.name "Your Name Here"
-   git config --global user.email "Same Email as used for github"
-   git config --global color.ui true
 
 Packages
 ^^^^^^^^
